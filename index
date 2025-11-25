@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Calculators</title>
+    <style>
+        :root {
+            --indigo-50: #eef2ff;
+            --indigo-100: #e0e7ff;
+            --indigo-500: #6366f1;
+            --indigo-600: #4f46e5;
+            --indigo-700: #4338ca;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --blue-700: #1d4ed8;
+            --cyan-500: #06b6d4;
+            --cyan-600: #0891b2;
+            --green-500: #10b981;
+            --green-600: #059669;
+            --emerald-500: #059669;
+            --emerald-600: #047857;
+            --rose-500: #f43f5e;
+            --rose-600: #e11d48;
+            --pink-500: #ec4899;
+            --pink-600: #db2777;
+            --orange-500: #f97316;
+            --orange-600: #ea580c;
+            --red-500: #ef4444;
+            --red-600: #dc2626;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-700: #334155;
+            --white: #ffffff;
+            --black: #000000;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--slate-50), var(--indigo-100));
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--slate-700);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid var(--slate-200);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--indigo-600), var(--blue-600));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tier-selector {
+            display: flex;
+            background: var(--slate-100);
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+        }
+
+        .tier-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tier-btn.active {
+            background: var(--white);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: var(--white);
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            background: var(--slate-100);
+        }
+
+        .tab-btn.active {
+            background: var(--indigo-50);
+            color: var(--indigo-600);
+            font-weight: 600;
+        }
+
+        /* Calculator Container */
+        .calculator-container {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .calculator-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--slate-700);
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--slate-700);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--indigo-500);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            background-color: var(--white);
+            transition: all 0.2s;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--indigo-500);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            color: var(--white);
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, var(--indigo-600), var(--blue-700));
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(to right, var(--indigo-700), var(--blue-700));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(to right, var(--blue-500), var(--cyan-600));
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(to right, var(--blue-600), var(--cyan-600));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-success {
+            background: linear-gradient(to right, var(--green-500), var(--emerald-600));
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(to right, var(--green-600), var(--emerald-600));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-danger {
+            background: linear-gradient(to right, var(--rose-500), var(--pink-600));
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(to right, var(--rose-600), var(--pink-600));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-warning {
+            background: linear-gradient(to right, var(--orange-500), var(--red-600));
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(to right, var(--orange-600), var(--red-600));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Results */
+        .results-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .result-card {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .result-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* Cash Flows */
+        .cash-flows-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .cash-flow-input {
+            padding: 0.5rem;
+            border: 1px solid var(--slate-200);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        /* Options */
+        .options-toggle {
+            display: flex;
+            background: var(--slate-100);
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+            margin-bottom: 1.5rem;
+            width: fit-content;
+        }
+
+        .option-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-btn.active {
+            background: var(--white);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        /* Hidden Class */
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .calculator-container {
+                padding: 1.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">Finance Calculators</div>
+                <div class="tier-selector">
+                    <button class="tier-btn active" data-tier="basic">Basic</button>
+                    <button class="tier-btn" data-tier="intermediate">Intermediate</button>
+                    <button class="tier-btn" data-tier="advanced">Advanced</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs" id="tabsContainer">
+            <!-- Tabs will be populated by JavaScript -->
+        </div>
+
+        <!-- Calculator Container -->
+        <div class="calculator-container">
+            <div id="calculatorContent">
+                <!-- Calculator content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Structure ---
+        const calculators = {
+            basic: [
+                {
+                    id: 'pv-fv',
+                    name: 'PV/FV Calculator',
+                    component: 'PVFVCalculator'
+                },
+                {
+                    id: 'compound-interest',
+                    name: 'Compound Interest',
+                    component: 'CompoundInterestCalculator'
+                },
+                {
+                    id: 'loan-payment',
+                    name: 'Loan Payment',
+                    component: 'LoanPaymentCalculator'
+                }
+            ],
+            intermediate: [
+                {
+                    id: 'capm',
+                    name: 'CAPM',
+                    component: 'CAPMCalculator'
+                },
+                {
+                    id: 'bond-pricing',
+                    name: 'Bond Pricing',
+                    component: 'BondPricingCalculator'
+                },
+                {
+                    id: 'npv-irr',
+                    name: 'NPV & IRR',
+                    component: 'NPVIRRCalculator'
+                }
+            ],
+            advanced: [
+                {
+                    id: 'black-scholes',
+                    name: 'Black-Scholes',
+                    component: 'BlackScholesCalculator'
+                },
+                {
+                    id: 'wacc',
+                    name: 'WACC',
+                    component: 'WACCCalculator'
+                }
+            ]
+        };
+
+        // --- State Management ---
+        let activeTier = 'basic';
+        let activeTab = 'pv-fv';
+
+        // --- DOM Elements ---
+        const tabsContainer = document.getElementById('tabsContainer');
+        const calculatorContent = document.getElementById('calculatorContent');
+        const tierButtons = document.querySelectorAll('.tier-btn');
+
+        // --- Initialize App ---
+        function initApp() {
+            renderTabs();
+            renderCalculator();
+            setupEventListeners();
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            // Tier selection
+            tierButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tierButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    activeTier = button.dataset.tier;
+                    
+                    // Switch to first calculator of new tier
+                    const firstCalculator = calculators[activeTier][0];
+                    if (firstCalculator) {
+                        activeTab = firstCalculator.id;
+                    }
+                    
+                    renderTabs();
+                    renderCalculator();
+                });
+            });
+        }
+
+        // --- Render Tabs ---
+        function renderTabs() {
+            tabsContainer.innerHTML = '';
+            const tierCalculators = calculators[activeTier];
+            
+            tierCalculators.forEach(calc => {
+                const tabButton = document.createElement('button');
+                tabButton.className = `tab-btn ${calc.id === activeTab ? 'active' : ''}`;
+                tabButton.textContent = calc.name;
+                tabButton.onclick = () => {
+                    activeTab = calc.id;
+                    renderTabs();
+                    renderCalculator();
+                };
+                tabsContainer.appendChild(tabButton);
+            });
+        }
+
+        // --- Render Calculator ---
+        function renderCalculator() {
+            const calculator = calculators[activeTier].find(c => c.id === activeTab);
+            if (!calculator) return;
+
+            switch(calculator.component) {
+                case 'PVFVCalculator':
+                    calculatorContent.innerHTML = renderPVFVCalculator();
+                    setupPVFVCalculator();
+                    break;
+                case 'CompoundInterestCalculator':
+                    calculatorContent.innerHTML = renderCompoundInterestCalculator();
+                    setupCompoundInterestCalculator();
+                    break;
+                case 'LoanPaymentCalculator':
+                    calculatorContent.innerHTML = renderLoanPaymentCalculator();
+                    setupLoanPaymentCalculator();
+                    break;
+                case 'CAPMCalculator':
+                    calculatorContent.innerHTML = renderCAPMCalculator();
+                    setupCAPMCalculator();
+                    break;
+                case 'BondPricingCalculator':
+                    calculatorContent.innerHTML = renderBondPricingCalculator();
+                    setupBondPricingCalculator();
+                    break;
+                case 'NPVIRRCalculator':
+                    calculatorContent.innerHTML = renderNPVIRRCalculator();
+                    setupNPVIRRCalculator();
+                    break;
+                case 'BlackScholesCalculator':
+                    calculatorContent.innerHTML = renderBlackScholesCalculator();
+                    setupBlackScholesCalculator();
+                    break;
+                case 'WACCCalculator':
+                    calculatorContent.innerHTML = renderWACCCalculator();
+                    setupWACCCalculator();
+                    break;
+                default:
+                    calculatorContent.innerHTML = '<p>Calculator not found</p>';
+            }
+        }
+
+        // --- PV/FV Calculator ---
+        function renderPVFVCalculator() {
+            return `
+                <h2 class="calculator-title">Present Value / Future Value Calculator</h2>
+                <div class="options-toggle">
+                    <button class="option-btn active" id="pvOption">Calculate PV</button>
+                    <button class="option-btn" id="fvOption">Calculate FV</button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Future Value ($)</label>
+                        <input type="number" id="futureValue" class="form-input" placeholder="10000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Interest Rate (%)</label>
+                        <input type="number" id="interestRate" class="form-input" placeholder="5" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Number of Periods</label>
+                        <input type="number" id="periods" class="form-input" placeholder="10">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="calculatePVFV">Calculate</button>
+                <div id="pvfvResults" class="results-container hidden" style="border-color: var(--indigo-100); background-color: var(--indigo-50);">
+                    <!-- Results will be populated here -->
+                </div>
+            `;
+        }
+
+        function setupPVFVCalculator() {
+            const pvOption = document.getElementById('pvOption');
+            const fvOption = document.getElementById('fvOption');
+            const futureValueInput = document.getElementById('futureValue');
+            const interestRateInput = document.getElementById('interestRate');
+            const periodsInput = document.getElementById('periods');
+            const calculateBtn = document.getElementById('calculatePVFV');
+            const resultsDiv = document.getElementById('pvfvResults');
+            
+            let isPVCalculation = true;
+            
+            pvOption.addEventListener('click', () => {
+                pvOption.classList.add('active');
+                fvOption.classList.remove('active');
+                isPVCalculation = true;
+                // Swap labels
+                document.querySelectorAll('.form-label')[0].textContent = 'Future Value ($)';
+                futureValueInput.placeholder = '10000';
+            });
+            
+            fvOption.addEventListener('click', () => {
+                fvOption.classList.add('active');
+                pvOption.classList.remove('active');
+                isPVCalculation = false;
+                // Swap labels
+                document.querySelectorAll('.form-label')[0].textContent = 'Present Value ($)';
+                futureValueInput.placeholder = '5000';
+            });
+            
+            calculateBtn.addEventListener('click', () => {
+                const r = parseFloat(interestRateInput.value) / 100;
+                const n = parseFloat(periodsInput.value);
+                
+                if (isNaN(r) || isNaN(n) || r < 0 || n < 0) {
+                    alert('Please enter valid positive numbers for interest rate and periods.');
+                    return;
+                }
+                
+                if (isPVCalculation) {
+                    const fv = parseFloat(futureValueInput.value);
+                    if (isNaN(fv)) {
+                        alert('Please enter a valid future value.');
+                        return;
+                    }
+                    const pv = fv / Math.pow(1 + r, n);
+                    resultsDiv.innerHTML = `
+                        <div class="results-grid">
+                            <div class="result-card" style="background-color: var(--indigo-100);">
+                                <div class="result-label">Present Value</div>
+                                <div class="result-value">$${pv.toFixed(2)}</div>
+                            </div>
+                            <div class="result-card" style="background-color: var(--slate-100);">
+                                <div class="result-label">Future Value</div>
+                                <div class="result-value">$${fv.toFixed(2)}</div>
+                            </div>
+                            <div class="result-card" style="background-color: var(--slate-100);">
+                                <div class="result-label">Interest Rate</div>
+                                <div class="result-value">${(r * 100).toFixed(2)}%</div>
+                            </div>
+                            <div class="result-card" style="background-color: var(--slate-100);">
+                                <div class="result-label">Periods</div>
+                                <div class="result-value">${n}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const pv = parseFloat(futureValueInput.value);
+                    if (isNaN(pv)) {
+                        alert('Please enter a valid present value.');
+                        return;
+                    }
+                    const fv = pv * Math.pow(1 + r, n);
+                    resultsDiv.innerHTML = `
+                        <div class="results-grid">
+                            <div class="result-card" style="background-color: var(--slate-100);">
+                                <div class="result-label">Present Value</div>
+                                <div class="result-value">$${pv.toFixed(2)}</div>
+                            </div>
+                            <div class="result-card" style="background-color: var(--indigo-100);">
+                                <div class="result-label">Future Value</div>
+                                <div class="result-value">$${fv.toFixed(2)}</div>
+                            </div>
+                            <div class="result-card" style="background-color: var(--slate-100);">
+                                <div class="result-label">Interest Rate</div>
+                                <div class="result-value">${(r * 100).toFixed(2)}%</div>
+                            </div>
+                            <div class="result-card" style="background-color: var(--slate-100);">
+                                <div class="result-label">Periods</div>
+                                <div class="result-value">${n}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                resultsDiv.classList.remove('hidden');
+            });
+        }
+
+        // --- Compound Interest Calculator ---
+        function renderCompoundInterestCalculator() {
+            return `
+                <h2 class="calculator-title">Compound Interest Calculator</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Principal Amount ($)</label>
+                        <input type="number" id="principal" class="form-input" placeholder="10000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Annual Interest Rate (%)</label>
+                        <input type="number" id="annualRate" class="form-input" placeholder="5" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Number of Years</label>
+                        <input type="number" id="years" class="form-input" placeholder="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Compounding Frequency</label>
+                        <select id="compounding" class="form-select">
+                            <option value="1">Annually</option>
+                            <option value="2">Semi-annually</option>
+                            <option value="4">Quarterly</option>
+                            <option value="12">Monthly</option>
+                            <option value="365">Daily</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-success" id="calculateCI">Calculate Compound Interest</button>
+                <div id="ciResults" class="results-container hidden" style="border-color: var(--green-100); background-color: var(--green-50);">
+                    <!-- Results will be populated here -->
+                </div>
+            `;
+        }
+
+        function setupCompoundInterestCalculator() {
+            const calculateBtn = document.getElementById('calculateCI');
+            const resultsDiv = document.getElementById('ciResults');
+            
+            calculateBtn.addEventListener('click', () => {
+                const principal = parseFloat(document.getElementById('principal').value);
+                const annualRate = parseFloat(document.getElementById('annualRate').value) / 100;
+                const years = parseFloat(document.getElementById('years').value);
+                const compounding = parseFloat(document.getElementById('compounding').value);
+                
+                if (isNaN(principal) || isNaN(annualRate) || isNaN(years) || isNaN(compounding) ||
+                    principal < 0 || annualRate < 0 || years < 0 || compounding <= 0) {
+                    alert('Please enter valid positive numbers.');
+                    return;
+                }
+                
+                const finalAmount = principal * Math.pow(1 + annualRate / compounding, compounding * years);
+                const interestEarned = finalAmount - principal;
+                
+                resultsDiv.innerHTML = `
+                    <div class="results-grid">
+                        <div class="result-card" style="background-color: var(--green-100);">
+                            <div class="result-label">Final Amount</div>
+                            <div class="result-value">$${finalAmount.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Principal</div>
+                            <div class="result-value">$${principal.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Interest Earned</div>
+                            <div class="result-value">$${interestEarned.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Annual Rate</div>
+                            <div class="result-value">${(annualRate * 100).toFixed(2)}%</div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsDiv.classList.remove('hidden');
+            });
+        }
+
+        // --- Loan Payment Calculator ---
+        function renderLoanPaymentCalculator() {
+            return `
+                <h2 class="calculator-title">Loan Payment Calculator</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Loan Amount ($)</label>
+                        <input type="number" id="loanAmount" class="form-input" placeholder="10000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Annual Interest Rate (%)</label>
+                        <input type="number" id="loanRate" class="form-input" placeholder="5" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Loan Term (Years)</label>
+                        <input type="number" id="loanTerm" class="form-input" placeholder="10">
+                    </div>
+                </div>
+                <button class="btn btn-secondary" id="calculateLoan">Calculate Loan Payment</button>
+                <div id="loanResults" class="results-container hidden" style="border-color: var(--blue-100); background-color: var(--blue-50);">
+                    <!-- Results will be populated here -->
+                </div>
+            `;
+        }
+
+        function setupLoanPaymentCalculator() {
+            const calculateBtn = document.getElementById('calculateLoan');
+            const resultsDiv = document.getElementById('loanResults');
+            
+            calculateBtn.addEventListener('click', () => {
+                const principal = parseFloat(document.getElementById('loanAmount').value);
+                const annualRate = parseFloat(document.getElementById('loanRate').value) / 100;
+                const years = parseFloat(document.getElementById('loanTerm').value);
+                
+                if (isNaN(principal) || isNaN(annualRate) || isNaN(years) ||
+                    principal < 0 || annualRate < 0 || years < 0) {
+                    alert('Please enter valid positive numbers.');
+                    return;
+                }
+                
+                const monthlyRate = annualRate / 12;
+                const numberOfPayments = years * 12;
+                const monthlyPayment = (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -numberOfPayments));
+                const totalPayment = monthlyPayment * numberOfPayments;
+                const totalInterest = totalPayment - principal;
+                
+                resultsDiv.innerHTML = `
+                    <div class="results-grid">
+                        <div class="result-card" style="background-color: var(--blue-100);">
+                            <div class="result-label">Monthly Payment</div>
+                            <div class="result-value">$${monthlyPayment.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Total Payment</div>
+                            <div class="result-value">$${totalPayment.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Total Interest</div>
+                            <div class="result-value">$${totalInterest.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Loan Term</div>
+                            <div class="result-value">${years} years</div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsDiv.classList.remove('hidden');
+            });
+        }
+
+        // --- CAPM Calculator ---
+        function renderCAPMCalculator() {
+            return `
+                <h2 class="calculator-title">Capital Asset Pricing Model (CAPM)</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Risk-free Rate (%)</label>
+                        <input type="number" id="riskFreeRate" class="form-input" placeholder="3" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Beta (β)</label>
+                        <input type="number" id="beta" class="form-input" placeholder="1.2" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Market Return (%)</label>
+                        <input type="number" id="marketReturn" class="form-input" placeholder="8" step="0.01">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="calculateCAPM">Calculate Expected Return (CAPM)</button>
+                <div id="capmResults" class="results-container hidden" style="border-color: var(--indigo-100); background-color: var(--indigo-50);">
+                    <!-- Results will be populated here -->
+                </div>
+            `;
+        }
+
+        function setupCAPMCalculator() {
+            const calculateBtn = document.getElementById('calculateCAPM');
+            const resultsDiv = document.getElementById('capmResults');
+            
+            calculateBtn.addEventListener('click', () => {
+                const rf = parseFloat(document.getElementById('riskFreeRate').value) / 100;
+                const beta = parseFloat(document.getElementById('beta').value);
+                const rm = parseFloat(document.getElementById('marketReturn').value) / 100;
+                
+                if (isNaN(rf) || isNaN(beta) || isNaN(rm)) {
+                    alert('Please enter valid numbers.');
+                    return;
+                }
+                
+                const marketRiskPremium = rm - rf;
+                const riskPremium = beta * marketRiskPremium;
+                const expectedReturn = rf + riskPremium;
+                
+                resultsDiv.innerHTML = `
+                    <div class="results-grid">
+                        <div class="result-card" style="background-color: var(--indigo-100);">
+                            <div class="result-label">Expected Return</div>
+                            <div class="result-value">${(expectedReturn * 100).toFixed(2)}%</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Risk-free Rate</div>
+                            <div class="result-value">${(rf * 100).toFixed(2)}%</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Market Risk Premium</div>
+                            <div class="result-value">${(marketRiskPremium * 100).toFixed(2)}%</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Risk Premium</div>
+                            <div class="result-value">${(riskPremium * 100).toFixed(2)}%</div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsDiv.classList.remove('hidden');
+            });
+        }
+
+        // --- Bond Pricing Calculator ---
+        function renderBondPricingCalculator() {
+            return `
+                <h2 class="calculator-title">Bond Pricing Calculator</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Face Value ($)</label>
+                        <input type="number" id="faceValue" class="form-input" placeholder="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Coupon Rate (%)</label>
+                        <input type="number" id="couponRate" class="form-input" placeholder="5" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Yield to Maturity (%)</label>
+                        <input type="number" id="ytm" class="form-input" placeholder="6" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Years to Maturity</label>
+                        <input type="number" id="yearsToMaturity" class="form-input" placeholder="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payment Frequency</label>
+                        <select id="frequency" class="form-select">
+                            <option value="1">Annual</option>
+                            <option value="2" selected>Semi-annual</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-warning" id="calculateBond">Calculate Bond Price</button>
+                <div id="bondResults" class="results-container hidden" style="border-color: var(--orange-100); background-color: var(--orange-50);">
+                    <!-- Results will be populated here -->
+                </div>
+            `;
+        }
+
+        function setupBondPricingCalculator() {
+            const calculateBtn = document.getElementById('calculateBond');
+            const resultsDiv = document.getElementById('bondResults');
+            
+            calculateBtn.addEventListener('click', () => {
+                const faceValue = parseFloat(document.getElementById('faceValue').value);
+                const couponRate = parseFloat(document.getElementById('couponRate').value) / 100;
+                const ytm = parseFloat(document.getElementById('ytm').value) / 100;
+                const yearsToMaturity = parseFloat(document.getElementById('yearsToMaturity').value);
+                const frequency = parseFloat(document.getElementById('frequency').value);
+                
+                if (isNaN(faceValue) || isNaN(couponRate) || isNaN(ytm) || isNaN(yearsToMaturity) || isNaN(frequency) ||
+                    faceValue < 0 || couponRate < 0 || ytm < 0 || yearsToMaturity < 0 || (frequency !== 1 && frequency !== 2)) {
+                    alert('Please enter valid positive numbers.');
+                    return;
+                }
+                
+                const couponPayment = (faceValue * couponRate) / frequency;
+                const periods = yearsToMaturity * frequency;
+                const periodicYield = ytm / frequency;
+                
+                let bondPrice = 0;
+                for (let t = 1; t <= periods; t++) {
+                    bondPrice += couponPayment / Math.pow(1 + periodicYield, t);
+                }
+                bondPrice += faceValue / Math.pow(1 + periodicYield, periods);
+                
+                resultsDiv.innerHTML = `
+                    <div class="results-grid">
+                        <div class="result-card" style="background-color: var(--orange-100);">
+                            <div class="result-label">Bond Price</div>
+                            <div class="result-value">$${bondPrice.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Face Value</div>
+                            <div class="result-value">$${faceValue.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Coupon Payment</div>
+                            <div class="result-value">$${couponPayment.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Yield to Maturity</div>
+                            <div class="result-value">${(ytm * 100).toFixed(2)}%</div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsDiv.classList.remove('hidden');
+            });
+        }
+
+        // --- NPV & IRR Calculator ---
+        function renderNPVIRRCalculator() {
+            return `
+                <h2 class="calculator-title">NPV & IRR Calculator</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Initial Investment ($)</label>
+                        <input type="number" id="initialInvestment" class="form-input" placeholder="100000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Discount Rate (%)</label>
+                        <input type="number" id="discountRate" class="form-input" placeholder="10" step="0.1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cash Flows by Year ($)</label>
+                    <div class="cash-flows-grid" id="cashFlowsContainer">
+                        <!-- Cash flows will be populated by JavaScript -->
+                    </div>
+                </div>
+                <button class="btn btn-danger" id="calculateNPV">Calculate NPV & IRR</button>
+                <div id="npvResults" class="results-container hidden" style="border-color: var(--rose-100); background-color: var(--rose-50);">
+                    <!-- Results will be populated here -->
+                </div>
+            `;
+        }
+
+        function setupNPVIRRCalculator() {
+            const cashFlowsContainer = document.getElementById('cashFlowsContainer');
+            const calculateBtn = document.getElementById('calculateNPV');
+            const resultsDiv = document.getElementById('npvResults');
+            
+            // Create 5 cash flow inputs
+            for (let i = 1; i <= 5; i++) {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label class="form-label">Year ${i}</label>
+                    <input type="number" class="form-input cash-flow-input" id="cf${i}" placeholder="25000">
+                `;
+                cashFlowsContainer.appendChild(div);
+            }
+            
+            calculateBtn.addEventListener('click', () => {
+                const initialInvestment = parseFloat(document.getElementById('initialInvestment').value);
+                const discountRate = parseFloat(document.getElementById('discountRate').value) / 100;
+                
+                if (isNaN(initialInvestment) || isNaN(discountRate)) {
+                    alert('Please enter valid numbers for initial investment and discount rate.');
+                    return;
+                }
+                
+                // Get cash flows
+                const cashFlows = [];
+                for (let i = 1; i <= 5; i++) {
+                    const cf = parseFloat(document.getElementById(`cf${i}`).value);
+                    if (isNaN(cf)) {
+                        alert(`Please enter a valid number for Year ${i} cash flow.`);
+                        return;
+                    }
+                    cashFlows.push(cf);
+                }
+                
+                // Calculate NPV
+                let npv = -initialInvestment;
+                for (let i = 0; i < cashFlows.length; i++) {
+                    npv += cashFlows[i] / Math.pow(1 + discountRate, i + 1);
+                }
+                
+                // Simple IRR calculation (using Newton-Raphson method)
+                let irr = 0.1; // Initial guess
+                let iterations = 0;
+                const maxIterations = 1000;
+                const tolerance = 1e-7;
+                
+                while (iterations < maxIterations) {
+                    let npvAtIRR = -initialInvestment;
+                    let derivative = 0;
+                    
+                    for (let i = 0; i < cashFlows.length; i++) {
+                        const period = i + 1;
+                        npvAtIRR += cashFlows[i] / Math.pow(1 + irr, period);
+                        derivative -= period * cashFlows[i] / Math.pow(1 + irr, period + 1);
+                    }
+                    
+                    const delta = npvAtIRR / derivative;
+                    irr -= delta;
+                    
+                    if (Math.abs(delta) < tolerance) {
+                        break;
+                    }
+                    
+                    iterations++;
+                }
+                
+                resultsDiv.innerHTML = `
+                    <div class="results-grid">
+                        <div class="result-card" style="background-color: var(--rose-100);">
+                            <div class="result-label">NPV</div>
+                            <div class="result-value">$${npv.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--pink-100);">
+                            <div class="result-label">IRR</div>
+                            <div class="result-value">${(irr * 100).toFixed(2)}%</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Initial Investment</div>
+                            <div class="result-value">$${initialInvestment.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Discount Rate</div>
+                            <div class="result-value">${(discountRate * 100).toFixed(2)}%</div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsDiv.classList.remove('hidden');
+            });
+        }
+
+        // --- Black-Scholes Calculator ---
+        function renderBlackScholesCalculator() {
+            return `
+                <h2 class="calculator-title">Black-Scholes Option Pricing Model</h2>
+                <div class="options-toggle">
+                    <button class="option-btn active" id="callOption">Call Option</button>
+                    <button class="option-btn" id="putOption">Put Option</button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Current Stock Price ($)</label>
+                        <input type="number" id="stockPrice" class="form-input" placeholder="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Strike Price ($)</label>
+                        <input type="number" id="strikePrice" class="form-input" placeholder="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Time to Expiration (Years)</label>
+                        <input type="number" id="timeToExp" class="form-input" placeholder="1" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Risk-free Rate (%)</label>
+                        <input type="number" id="bsRiskFreeRate" class="form-input" placeholder="5" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Volatility (%)</label>
+                        <input type="number" id="volatility" class="form-input" placeholder="20" step="0.1">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="calculateBS">Calculate Option Price</button>
+                <div id="bsResults" class="results-container hidden" style="border-color: var(--indigo-100); background-color: var(--indigo-50);">
+                    <!-- Results will be populated here -->
+                </div>
+            `;
+        }
+
+        function setupBlackScholesCalculator() {
+            const callOption = document.getElementById('callOption');
+            const putOption = document.getElementById('putOption');
+            const calculateBtn = document.getElementById('calculateBS');
+            const resultsDiv = document.getElementById('bsResults');
+            
+            let isCall = true;
+            
+            callOption.addEventListener('click', () => {
+                callOption.classList.add('active');
+                putOption.classList.remove('active');
+                isCall = true;
+            });
+            
+            putOption.addEventListener('click', () => {
+                putOption.classList.add('active');
+                callOption.classList.remove('active');
+                isCall = false;
+            });
+            
+            // Normal CDF approximation
+            function normalCDF(x) {
+                const a1 =  0.254829592;
+                const a2 = -0.284496736;
+                const a3 =  1.421413741;
+                const a4 = -1.453152027;
+                const a5 =  1.061405429;
+                const p  =  0.3275911;
+
+                const sign = x < 0 ? -1 : 1;
+                x = Math.abs(x) / Math.sqrt(2.0);
+
+                const t = 1.0 / (1.0 + p * x);
+                const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+
+                return 0.5 * (1.0 + sign * y);
+            }
+            
+            calculateBtn.addEventListener('click', () => {
+                const S = parseFloat(document.getElementById('stockPrice').value);
+                const K = parseFloat(document.getElementById('strikePrice').value);
+                const T = parseFloat(document.getElementById('timeToExp').value);
+                const r = parseFloat(document.getElementById('bsRiskFreeRate').value) / 100;
+                const sigma = parseFloat(document.getElementById('volatility').value) / 100;
+                
+                if (isNaN(S) || isNaN(K) || isNaN(T) || isNaN(r) || isNaN(sigma) ||
+                    S <= 0 || K <= 0 || T <= 0 || sigma <= 0) {
+                    alert('Please enter valid positive numbers.');
+                    return;
+                }
+                
+                const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T));
+                const d2 = d1 - sigma * Math.sqrt(T);
+                
+                const Nd1 = normalCDF(d1);
+                const Nd2 = normalCDF(d2);
+                const Nminusd1 = normalCDF(-d1);
+                const Nminusd2 = normalCDF(-d2);
+                
+                let optionPrice;
+                if (isCall) {
+                    optionPrice = S * Nd1 - K * Math.exp(-r * T) * Nd2;
+                } else {
+                    optionPrice = K * Math.exp(-r * T) * Nminusd2 - S * Nminusd1;
+                }
+                
+                resultsDiv.innerHTML = `
+                    <div class="results-grid">
+                        <div class="result-card" style="background-color: var(--indigo-100);">
+                            <div class="result-label">${isCall ? 'Call' : 'Put'} Option Price</div>
+                            <div class="result-value">$${optionPrice.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Stock Price</div>
+                            <div class="result-value">$${S.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Strike Price</div>
+                            <div class="result-value">$${K.toFixed(2)}</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Time to Expiry</div>
+                            <div class="result-value">${T} years</div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsDiv.classList.remove('hidden');
+            });
+        }
+
+        // --- WACC Calculator ---
+        function renderWACCCalculator() {
+            return `
+                <h2 class="calculator-title">Weighted Average Cost of Capital (WACC)</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Market Value of Equity ($)</label>
+                        <input type="number" id="marketValueEquity" class="form-input" placeholder="500000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Market Value of Debt ($)</label>
+                        <input type="number" id="marketValueDebt" class="form-input" placeholder="300000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cost of Equity (%)</label>
+                        <input type="number" id="costOfEquity" class="form-input" placeholder="12" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cost of Debt (%)</label>
+                        <input type="number" id="costOfDebt" class="form-input" placeholder="6" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tax Rate (%)</label>
+                        <input type="number" id="taxRate" class="form-input" placeholder="30" step="0.1">
+                    </div>
+                </div>
+                <button class="btn btn-success" id="calculateWACC">Calculate WACC</button>
+                <div id="waccResults" class="results-container hidden" style="border-color: var(--green-100); background-color: var(--green-50);">
+                    <!-- Results will be populated here -->
+                </div>
+            `;
+        }
+
+        function setupWACCCalculator() {
+            const calculateBtn = document.getElementById('calculateWACC');
+            const resultsDiv = document.getElementById('waccResults');
+            
+            calculateBtn.addEventListener('click', () => {
+                const E = parseFloat(document.getElementById('marketValueEquity').value);
+                const D = parseFloat(document.getElementById('marketValueDebt').value);
+                const Re = parseFloat(document.getElementById('costOfEquity').value) / 100;
+                const Rd = parseFloat(document.getElementById('costOfDebt').value) / 100;
+                const T = parseFloat(document.getElementById('taxRate').value) / 100;
+                
+                if (isNaN(E) || isNaN(D) || isNaN(Re) || isNaN(Rd) || isNaN(T) ||
+                    E < 0 || D < 0 || Re < 0 || Rd < 0 || T < 0 || T > 100) {
+                    alert('Please enter valid numbers.');
+                    return;
+                }
+                
+                const V = E + D;
+                
+                // WACC = (E/V × Re) + ((D/V × Rd) × (1-T))
+                const wacc = (E/V * Re) + ((D/V * Rd) * (1-T));
+                const equityWeight = E/V;
+                const debtWeight = D/V;
+                const afterTaxCostOfDebt = Rd * (1-T);
+                
+                resultsDiv.innerHTML = `
+                    <div class="results-grid">
+                        <div class="result-card" style="background-color: var(--green-100);">
+                            <div class="result-label">WACC</div>
+                            <div class="result-value">${(wacc * 100).toFixed(2)}%</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Equity Weight</div>
+                            <div class="result-value">${(equityWeight * 100).toFixed(1)}%</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">Debt Weight</div>
+                            <div class="result-value">${(debtWeight * 100).toFixed(1)}%</div>
+                        </div>
+                        <div class="result-card" style="background-color: var(--slate-100);">
+                            <div class="result-label">After-tax Cost of Debt</div>
+                            <div class="result-value">${(afterTaxCostOfDebt * 100).toFixed(2)}%</div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsDiv.classList.remove('hidden');
+            });
+        }
+
+        // --- Initialize the app when the page loads ---
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
