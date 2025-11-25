@@ -2221,896 +2221,1839 @@
         });
       }
 
+      // ==================== ENHANCED LBO MODEL CODE ====================
+
       function renderLBOCalculator() {
         return `
-          <h2 class="calculator-title">Leveraged Buyout (LBO) Model</h2>
+          <h2 class="calculator-title">Advanced Leveraged Buyout (LBO) Model</h2>
           <div class="explanation-box">
             <div class="explanation-title">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Private Equity Transaction Model
+              Institutional-Grade LBO Model
             </div>
             <p class="explanation-text">
-              An <strong>LBO Model</strong> analyzes a leveraged buyout transaction where a PE firm acquires a company using a combination of equity and debt.
-              The model projects the company's financial performance, debt paydown schedule, and calculates returns (IRR and MoM) at exit.
-            </p>
-            <p class="explanation-text">
-              Key drivers: <strong>Entry Multiple</strong> (purchase price), <strong>Exit Multiple</strong> (sale price),
-              <strong>Debt/Equity Mix</strong>, <strong>EBITDA Growth</strong>, and <strong>Debt Paydown</strong> from free cash flow.
+              Advanced LBO model with multi-tranche debt structure, management incentives, dividend recaps,
+              and 3-scenario analysis. This model reflects real PE deal dynamics including covenants,
+              cash sweeps, and realistic exit strategies.
             </p>
             <div class="explanation-note">
-              <strong>PE Insight:</strong> LBO returns come from 3 sources: (1) <strong>Multiple expansion</strong> (buying low, selling high),
-              (2) <strong>Deleveraging</strong> (paying down debt with cash flow), and (3) <strong>EBITDA growth</strong> (operational improvements).
-              Target IRR: 20-25%+ for PE funds.
+              <strong>PE Best Practice:</strong> Always model Base/Upside/Downside scenarios. Target IRR 20-25%+
+              with 2.5-3.0x+ MOIC. Returns come from: (1) Multiple expansion, (2) EBITDA growth, (3) Deleveraging.
             </div>
           </div>
 
+          <!-- Transaction Structure Section -->
           <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
-            📊 Transaction Assumptions
+            📊 Transaction Structure
           </h3>
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">LTM EBITDA ($M)</label>
-              <input type="number" id="lboEBITDA" class="form-input" placeholder="100" step="0.1">
+              <input type="number" id="lboEBITDA" class="form-input" value="100" step="0.1">
             </div>
             <div class="form-group">
               <label class="form-label">Entry EV/EBITDA Multiple</label>
-              <input type="number" id="entryMultiple" class="form-input" placeholder="10.0" step="0.1">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Exit EV/EBITDA Multiple</label>
-              <input type="number" id="exitMultipleLBO" class="form-input" placeholder="10.0" step="0.1">
+              <input type="number" id="entryMultiple" class="form-input" value="10.0" step="0.1">
             </div>
             <div class="form-group">
               <label class="form-label">Transaction Fees (% of EV)</label>
-              <input type="number" id="transFees" class="form-input" placeholder="2.0" step="0.1">
-            </div>
-          </div>
-
-          <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
-            💰 Sources & Uses
-          </h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">Debt / EBITDA Multiple</label>
-              <input type="number" id="debtMultiple" class="form-input" placeholder="5.0" step="0.1">
+              <input type="number" id="transFees" class="form-input" value="2.0" step="0.1">
             </div>
             <div class="form-group">
-              <label class="form-label">Revolver ($M or % of Debt)</label>
-              <input type="number" id="revolver" class="form-input" placeholder="0" step="0.1">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Cash on Balance Sheet ($M)</label>
-              <input type="number" id="existingCash" class="form-input" placeholder="10" step="0.1">
+              <label class="form-label">Existing Cash ($M)</label>
+              <input type="number" id="existingCash" class="form-input" value="10" step="0.1">
             </div>
             <div class="form-group">
               <label class="form-label">Minimum Cash ($M)</label>
-              <input type="number" id="minCash" class="form-input" placeholder="10" step="0.1">
+              <input type="number" id="minCash" class="form-input" value="10" step="0.1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hold Period (Years)</label>
+              <input type="number" id="holdPeriod" class="form-input" value="5" min="3" max="10">
             </div>
           </div>
 
+          <!-- Debt Structure Section -->
           <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
-            📈 Operating Assumptions
+            💰 Multi-Tranche Debt Structure
           </h3>
           <div class="form-grid">
             <div class="form-group">
-              <label class="form-label">Revenue Growth (Year 1, %)</label>
-              <input type="number" id="revenueGrowth1" class="form-input" placeholder="5.0" step="0.1">
+              <label class="form-label">Revolver (x EBITDA)</label>
+              <input type="number" id="revolverMultiple" class="form-input" value="0.5" step="0.1">
             </div>
             <div class="form-group">
-              <label class="form-label">Revenue Growth (Years 2-5, %)</label>
-              <input type="number" id="revenueGrowthSteady" class="form-input" placeholder="4.0" step="0.1">
+              <label class="form-label">Revolver Rate (SOFR + bps)</label>
+              <input type="number" id="revolverRate" class="form-input" value="450" step="25">
             </div>
             <div class="form-group">
-              <label class="form-label">EBITDA Margin (%)</label>
-              <input type="number" id="ebitdaMargin" class="form-input" placeholder="20.0" step="0.1">
+              <label class="form-label">Commitment Fee (%)</label>
+              <input type="number" id="commitmentFee" class="form-input" value="0.5" step="0.1">
             </div>
             <div class="form-group">
-              <label class="form-label">Tax Rate (%)</label>
-              <input type="number" id="lboTaxRate" class="form-input" placeholder="25.0" step="0.1">
+              <label class="form-label">Term Loan B (x EBITDA)</label>
+              <input type="number" id="tlbMultiple" class="form-input" value="4.0" step="0.1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">TLB Rate (SOFR + bps)</label>
+              <input type="number" id="tlbRate" class="form-input" value="500" step="25">
+            </div>
+            <div class="form-group">
+              <label class="form-label">TLB Amortization (%/year)</label>
+              <input type="number" id="tlbAmort" class="form-input" value="1.0" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mezzanine (x EBITDA)</label>
+              <input type="number" id="mezzMultiple" class="form-input" value="1.5" step="0.1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mezz Rate (%)</label>
+              <input type="number" id="mezzRate" class="form-input" value="11.0" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">PIK Toggle (%)</label>
+              <input type="number" id="pikToggle" class="form-input" value="50" step="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Base SOFR (%)</label>
+              <input type="number" id="baseSofr" class="form-input" value="4.5" step="0.25">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Max Net Leverage (Year 1)</label>
+              <input type="number" id="maxLevY1" class="form-input" value="6.0" step="0.25">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Max Net Leverage (Year 5)</label>
+              <input type="number" id="maxLevY5" class="form-input" value="4.0" step="0.25">
+            </div>
+          </div>
+
+          <!-- Management Equity Section -->
+          <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
+            👔 Management Equity Structure
+          </h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Management Rollover (%)</label>
+              <input type="number" id="mgmtRollover" class="form-input" value="15" step="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sweet Equity Pool (%)</label>
+              <input type="number" id="sweetEquity" class="form-input" value="10" step="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sweet Equity Discount (%)</label>
+              <input type="number" id="sweetDiscount" class="form-input" value="50" step="5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Options Pool (%)</label>
+              <input type="number" id="optionsPool" class="form-input" value="5" step="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Option Strike (% of FMV)</label>
+              <input type="number" id="optionStrike" class="form-input" value="100" step="5">
+            </div>
+          </div>
+
+          <!-- Operating Assumptions - Base Case -->
+          <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
+            📈 Operating Assumptions (Base Case)
+          </h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Revenue Growth Y1 (%)</label>
+              <input type="number" id="revenueGrowthY1" class="form-input" value="8" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Revenue Growth Y2-Y5 (%)</label>
+              <input type="number" id="revenueGrowthSteady" class="form-input" value="5" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">EBITDA Margin Y1 (%)</label>
+              <input type="number" id="ebitdaMarginY1" class="form-input" value="20" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">EBITDA Margin Y5 (%)</label>
+              <input type="number" id="ebitdaMarginY5" class="form-input" value="23" step="0.5">
             </div>
             <div class="form-group">
               <label class="form-label">D&A (% of Revenue)</label>
-              <input type="number" id="daPercent" class="form-input" placeholder="3.0" step="0.1">
+              <input type="number" id="daPercent" class="form-input" value="3.0" step="0.1">
             </div>
             <div class="form-group">
               <label class="form-label">CapEx (% of Revenue)</label>
-              <input type="number" id="capexPercent" class="form-input" placeholder="2.0" step="0.1">
+              <input type="number" id="capexPercent" class="form-input" value="2.0" step="0.1">
             </div>
             <div class="form-group">
               <label class="form-label">NWC (% of Revenue)</label>
-              <input type="number" id="nwcPercent" class="form-input" placeholder="10.0" step="0.1">
+              <input type="number" id="nwcPercent" class="form-input" value="10" step="0.5">
             </div>
             <div class="form-group">
-              <label class="form-label">Interest Rate on Debt (%)</label>
-              <input type="number" id="interestRateDebt" class="form-input" placeholder="6.0" step="0.1">
+              <label class="form-label">Tax Rate (%)</label>
+              <input type="number" id="taxRate" class="form-input" value="25" step="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Exit Multiple (Base)</label>
+              <input type="number" id="exitMultipleBase" class="form-input" value="10.0" step="0.5">
             </div>
           </div>
 
+          <!-- Scenario Adjustments -->
+          <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
+            🎯 Scenario Adjustments
+          </h3>
           <div class="form-grid">
             <div class="form-group">
-              <label class="form-label">Hold Period (Years)</label>
-              <input type="number" id="holdPeriod" class="form-input" placeholder="5" min="1" max="10">
+              <label class="form-label">Upside: Growth Delta (%)</label>
+              <input type="number" id="upsideGrowth" class="form-input" value="2" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Upside: Multiple Delta (x)</label>
+              <input type="number" id="upsideMultiple" class="form-input" value="1.0" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Downside: Growth Delta (%)</label>
+              <input type="number" id="downsideGrowth" class="form-input" value="-2" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Downside: Multiple Delta (x)</label>
+              <input type="number" id="downsideMultiple" class="form-input" value="-1.0" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Downside: Rate Increase (bps)</label>
+              <input type="number" id="downsideRate" class="form-input" value="200" step="50">
             </div>
           </div>
 
-          <button class="btn btn-success" id="calculateLBO">Run LBO Model</button>
-
-          <div id="lboResults" class="results-container hidden" style="border-color: var(--green-100); background-color: var(--green-50);">
-            <!-- Results will be populated here -->
+          <!-- Dividend Recap Section -->
+          <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
+            💵 Dividend Recapitalization (Optional)
+          </h3>
+          <div style="margin-bottom: 1rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+              <input type="checkbox" id="enableRecap" style="width: 20px; height: 20px;">
+              <span style="font-weight: 500;">Enable Dividend Recap</span>
+            </label>
           </div>
-
-          <div id="lboSourcesUses" class="hidden" style="margin-top: 2rem; padding: 1.5rem; background: var(--white); border-radius: 0.75rem; border: 1px solid var(--slate-200);">
-            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--slate-700);">Sources & Uses of Funds</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-              <div id="usesTable"></div>
-              <div id="sourcesTable"></div>
+          <div class="form-grid" id="recapInputs" style="display: none;">
+            <div class="form-group">
+              <label class="form-label">Recap Year</label>
+              <input type="number" id="recapYear" class="form-input" value="3" min="2" max="4">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Additional Debt (x EBITDA)</label>
+              <input type="number" id="recapDebtMultiple" class="form-input" value="1.0" step="0.25">
             </div>
           </div>
 
-          <div id="lboProjections" class="hidden" style="margin-top: 2rem; padding: 1.5rem; background: var(--white); border-radius: 0.75rem; border: 1px solid var(--slate-200);">
-            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--slate-700);">5-Year Financial Projections</h3>
-            <div style="overflow-x: auto;">
-              <table id="projectionsTable" style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
-                <!-- Table will be populated here -->
-              </table>
-            </div>
+          <button class="btn btn-success" id="calculateLBO" style="margin-top: 1.5rem;">
+            🚀 Run LBO Model (3 Scenarios)
+          </button>
+
+          <!-- Results Sections -->
+          <div id="lboScenarioResults" class="results-container hidden" style="border-color: var(--green-100); background-color: var(--green-50); margin-top: 2rem;">
+            <!-- Scenario comparison will be populated here -->
           </div>
 
-          <div id="lboReturns" class="hidden" style="margin-top: 2rem; padding: 1.5rem; background: var(--white); border-radius: 0.75rem; border: 1px solid var(--slate-200);">
-            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--slate-700);">Returns Analysis & Exit Waterfall</h3>
-            <div id="returnsBreakdown"></div>
+          <div id="lboDetailedResults" class="hidden" style="margin-top: 2rem;">
+            <!-- Detailed results tabs for each scenario -->
           </div>
         `;
       }
 
       function setupLBOCalculator() {
-        const calculateBtn = document.getElementById("calculateLBO");
-        const resultsDiv = document.getElementById("lboResults");
-        const sourcesUsesDiv = document.getElementById("lboSourcesUses");
-        const projectionsDiv = document.getElementById("lboProjections");
-        const returnsDiv = document.getElementById("lboReturns");
+        // Toggle recap inputs
+        document
+          .getElementById("enableRecap")
+          .addEventListener("change", (e) => {
+            document.getElementById("recapInputs").style.display = e.target
+              .checked
+              ? "grid"
+              : "none";
+          });
 
-        calculateBtn.addEventListener("click", () => {
-          // ==================== GET ALL INPUTS ====================
-          const ltmEBITDA = parseFloat(
-            document.getElementById("lboEBITDA").value
-          );
-          const entryMultiple = parseFloat(
+        document
+          .getElementById("calculateLBO")
+          .addEventListener("click", () => {
+            runLBOModel();
+          });
+      }
+
+      function runLBOModel() {
+        // Get all inputs
+        const inputs = getModelInputs();
+
+        // Validate inputs
+        if (!validateInputs(inputs)) {
+          return;
+        }
+
+        // Run 3 scenarios
+        const scenarios = {
+          base: calculateScenario(inputs, "base"),
+          upside: calculateScenario(inputs, "upside"),
+          downside: calculateScenario(inputs, "downside"),
+        };
+
+        // Display results
+        displayScenarioComparison(scenarios);
+        displayDetailedResults(scenarios, inputs);
+      }
+
+      function getModelInputs() {
+        return {
+          // Transaction
+          ltmEBITDA: parseFloat(document.getElementById("lboEBITDA").value),
+          entryMultiple: parseFloat(
             document.getElementById("entryMultiple").value
-          );
-          const exitMultiple = parseFloat(
-            document.getElementById("exitMultipleLBO").value
-          );
-          const transFees =
-            parseFloat(document.getElementById("transFees").value) / 100;
-          const debtMultiple = parseFloat(
-            document.getElementById("debtMultiple").value
-          );
-          const revolver = parseFloat(
-            document.getElementById("revolver").value
-          );
-          const existingCash = parseFloat(
+          ),
+          transFees:
+            parseFloat(document.getElementById("transFees").value) / 100,
+          existingCash: parseFloat(
             document.getElementById("existingCash").value
-          );
-          const minCash = parseFloat(document.getElementById("minCash").value);
-          const revenueGrowth1 =
-            parseFloat(document.getElementById("revenueGrowth1").value) / 100;
-          const revenueGrowthSteady =
+          ),
+          minCash: parseFloat(document.getElementById("minCash").value),
+          holdPeriod: parseInt(document.getElementById("holdPeriod").value),
+
+          // Debt structure
+          revolverMultiple: parseFloat(
+            document.getElementById("revolverMultiple").value
+          ),
+          revolverRate:
+            parseFloat(document.getElementById("revolverRate").value) / 10000,
+          commitmentFee:
+            parseFloat(document.getElementById("commitmentFee").value) / 100,
+          tlbMultiple: parseFloat(document.getElementById("tlbMultiple").value),
+          tlbRate: parseFloat(document.getElementById("tlbRate").value) / 10000,
+          tlbAmort: parseFloat(document.getElementById("tlbAmort").value) / 100,
+          mezzMultiple: parseFloat(
+            document.getElementById("mezzMultiple").value
+          ),
+          mezzRate: parseFloat(document.getElementById("mezzRate").value) / 100,
+          pikToggle:
+            parseFloat(document.getElementById("pikToggle").value) / 100,
+          baseSofr: parseFloat(document.getElementById("baseSofr").value) / 100,
+          maxLevY1: parseFloat(document.getElementById("maxLevY1").value),
+          maxLevY5: parseFloat(document.getElementById("maxLevY5").value),
+
+          // Management equity
+          mgmtRollover:
+            parseFloat(document.getElementById("mgmtRollover").value) / 100,
+          sweetEquity:
+            parseFloat(document.getElementById("sweetEquity").value) / 100,
+          sweetDiscount:
+            parseFloat(document.getElementById("sweetDiscount").value) / 100,
+          optionsPool:
+            parseFloat(document.getElementById("optionsPool").value) / 100,
+          optionStrike:
+            parseFloat(document.getElementById("optionStrike").value) / 100,
+
+          // Operating assumptions
+          revenueGrowthY1:
+            parseFloat(document.getElementById("revenueGrowthY1").value) / 100,
+          revenueGrowthSteady:
             parseFloat(document.getElementById("revenueGrowthSteady").value) /
-            100;
+            100,
+          ebitdaMarginY1:
+            parseFloat(document.getElementById("ebitdaMarginY1").value) / 100,
+          ebitdaMarginY5:
+            parseFloat(document.getElementById("ebitdaMarginY5").value) / 100,
+          daPercent:
+            parseFloat(document.getElementById("daPercent").value) / 100,
+          capexPercent:
+            parseFloat(document.getElementById("capexPercent").value) / 100,
+          nwcPercent:
+            parseFloat(document.getElementById("nwcPercent").value) / 100,
+          taxRate: parseFloat(document.getElementById("taxRate").value) / 100,
+          exitMultipleBase: parseFloat(
+            document.getElementById("exitMultipleBase").value
+          ),
+
+          // Scenarios
+          upsideGrowth:
+            parseFloat(document.getElementById("upsideGrowth").value) / 100,
+          upsideMultiple: parseFloat(
+            document.getElementById("upsideMultiple").value
+          ),
+          downsideGrowth:
+            parseFloat(document.getElementById("downsideGrowth").value) / 100,
+          downsideMultiple: parseFloat(
+            document.getElementById("downsideMultiple").value
+          ),
+          downsideRate:
+            parseFloat(document.getElementById("downsideRate").value) / 10000,
+
+          // Recap
+          enableRecap: document.getElementById("enableRecap").checked,
+          recapYear: parseInt(document.getElementById("recapYear").value),
+          recapDebtMultiple: parseFloat(
+            document.getElementById("recapDebtMultiple").value
+          ),
+        };
+      }
+
+      function validateInputs(inputs) {
+        if (isNaN(inputs.ltmEBITDA) || inputs.ltmEBITDA <= 0) {
+          alert("Please enter a valid LTM EBITDA");
+          return false;
+        }
+
+        if (inputs.holdPeriod < 3 || inputs.holdPeriod > 10) {
+          alert("Hold period must be between 3 and 10 years");
+          return false;
+        }
+
+        const totalLeverage =
+          inputs.revolverMultiple + inputs.tlbMultiple + inputs.mezzMultiple;
+        if (totalLeverage < 2 || totalLeverage > 10) {
+          alert("Total leverage should be between 2x and 10x EBITDA");
+          return false;
+        }
+
+        const totalMgmtEquity =
+          inputs.mgmtRollover + inputs.sweetEquity + inputs.optionsPool;
+        if (totalMgmtEquity > 0.4) {
+          alert("Total management equity cannot exceed 40%");
+          return false;
+        }
+
+        return true;
+      }
+
+      function calculateScenario(inputs, scenarioType) {
+        // Adjust inputs based on scenario
+        const adjustedInputs = adjustForScenario(inputs, scenarioType);
+
+        // Step 1: Calculate purchase price and sources/uses
+        const transaction = calculateTransaction(adjustedInputs);
+
+        // Step 2: Project financials
+        const projections = projectFinancials(adjustedInputs, transaction);
+
+        // Step 3: Calculate exit value and returns
+        const returns = calculateReturns(
+          adjustedInputs,
+          transaction,
+          projections
+        );
+
+        // Step 4: Calculate management returns
+        const mgmtReturns = calculateManagementReturns(
+          adjustedInputs,
+          transaction,
+          returns
+        );
+
+        return {
+          transaction,
+          projections,
+          returns,
+          mgmtReturns,
+          inputs: adjustedInputs,
+        };
+      }
+
+      function adjustForScenario(inputs, scenarioType) {
+        const adjusted = { ...inputs };
+
+        if (scenarioType === "upside") {
+          adjusted.revenueGrowthY1 += inputs.upsideGrowth;
+          adjusted.revenueGrowthSteady += inputs.upsideGrowth;
+          adjusted.exitMultipleBase += inputs.upsideMultiple;
+        } else if (scenarioType === "downside") {
+          adjusted.revenueGrowthY1 += inputs.downsideGrowth;
+          adjusted.revenueGrowthSteady += inputs.downsideGrowth;
+          adjusted.exitMultipleBase += inputs.downsideMultiple;
+          adjusted.revolverRate += inputs.downsideRate;
+          adjusted.tlbRate += inputs.downsideRate;
+        }
+
+        return adjusted;
+      }
+
+      function calculateTransaction(inputs) {
+        const purchaseEV = inputs.ltmEBITDA * inputs.entryMultiple;
+        const transFees = purchaseEV * inputs.transFees;
+        const totalUses = purchaseEV + transFees;
+
+        // Debt sizing
+        const revolver = inputs.ltmEBITDA * inputs.revolverMultiple;
+        const tlb = inputs.ltmEBITDA * inputs.tlbMultiple;
+        const mezz = inputs.ltmEBITDA * inputs.mezzMultiple;
+        const totalDebt = revolver + tlb + mezz;
+
+        // Equity calculation
+        const purchaseEquity =
+          totalUses - totalDebt - inputs.existingCash + inputs.minCash;
+        const rolloverValue = purchaseEquity * inputs.mgmtRollover;
+        const sponsorEquity = purchaseEquity - rolloverValue;
+
+        // FMV per share (for sweet equity and options)
+        const fmvPerShare = purchaseEquity; // Simplified
+        const sweetEquityStrike = fmvPerShare * (1 - inputs.sweetDiscount);
+        const optionStrike = fmvPerShare * inputs.optionStrike;
+
+        // Ownership structure
+        const sponsorOwnership =
+          1 - inputs.mgmtRollover - inputs.sweetEquity - inputs.optionsPool;
+
+        return {
+          purchaseEV,
+          transFees,
+          totalUses,
+          revolver,
+          tlb,
+          mezz,
+          totalDebt,
+          purchaseEquity,
+          rolloverValue,
+          sponsorEquity,
+          fmvPerShare,
+          sweetEquityStrike,
+          optionStrike,
+          sponsorOwnership,
+          totalLeverage: totalDebt / inputs.ltmEBITDA,
+        };
+      }
+
+      function projectFinancials(inputs, transaction) {
+        const years = [];
+        let currentRevenue = inputs.ltmEBITDA / inputs.ebitdaMarginY1;
+        let prevNWC = currentRevenue * inputs.nwcPercent;
+
+        // Covenant step-down
+        const covenantStepDown =
+          (inputs.maxLevY1 - inputs.maxLevY5) / (inputs.holdPeriod - 1);
+
+        // Debt balances
+        let revolverBalance = transaction.revolver;
+        let tlbBalance = transaction.tlb;
+        let mezzBalance = transaction.mezz;
+
+        let recapDividend = 0;
+
+        for (let year = 1; year <= inputs.holdPeriod; year++) {
+          // Revenue growth
+          const growthRate =
+            year === 1 ? inputs.revenueGrowthY1 : inputs.revenueGrowthSteady;
+          const revenue = currentRevenue * (1 + growthRate);
+
+          // EBITDA margin expansion
+          const marginProgress = (year - 1) / (inputs.holdPeriod - 1);
           const ebitdaMargin =
-            parseFloat(document.getElementById("ebitdaMargin").value) / 100;
-          const taxRate =
-            parseFloat(document.getElementById("lboTaxRate").value) / 100;
-          const daPercent =
-            parseFloat(document.getElementById("daPercent").value) / 100;
-          const capexPercent =
-            parseFloat(document.getElementById("capexPercent").value) / 100;
-          const nwcPercent =
-            parseFloat(document.getElementById("nwcPercent").value) / 100;
-          const interestRate =
-            parseFloat(document.getElementById("interestRateDebt").value) / 100;
-          const holdPeriod = parseInt(
-            document.getElementById("holdPeriod").value
-          );
+            inputs.ebitdaMarginY1 +
+            (inputs.ebitdaMarginY5 - inputs.ebitdaMarginY1) * marginProgress;
+          const ebitda = revenue * ebitdaMargin;
 
-          // ==================== VALIDATION ====================
-          if (
-            isNaN(ltmEBITDA) ||
-            isNaN(entryMultiple) ||
-            isNaN(exitMultiple) ||
-            isNaN(debtMultiple) ||
-            isNaN(holdPeriod)
-          ) {
-            alert("Please fill in all required fields with valid numbers.");
-            return;
-          }
+          // Operating metrics
+          const depreciation = revenue * inputs.daPercent;
+          const ebit = ebitda - depreciation;
 
-          if (holdPeriod < 1 || holdPeriod > 10) {
-            alert("Hold period must be between 1 and 10 years.");
-            return;
-          }
+          // Interest calculation
+          const sofrRate = inputs.baseSofr;
+          const revolverInterest =
+            revolverBalance * (sofrRate + inputs.revolverRate);
+          const commitmentFeeAmount =
+            (transaction.revolver - revolverBalance) * inputs.commitmentFee;
+          const tlbInterest = tlbBalance * (sofrRate + inputs.tlbRate);
 
-          if (entryMultiple <= 0 || exitMultiple <= 0) {
-            alert("Entry and exit multiples must be positive.");
-            return;
-          }
+          // Mezz interest with PIK toggle
+          const mezzCashInterest =
+            mezzBalance * inputs.mezzRate * (1 - inputs.pikToggle);
+          const mezzPIKInterest =
+            mezzBalance * inputs.mezzRate * inputs.pikToggle;
 
-          // ==================== STEP 1: PURCHASE PRICE & SOURCES/USES ====================
-          const purchaseEV = ltmEBITDA * entryMultiple;
-          const transactionFees = purchaseEV * transFees;
-          const totalUses = purchaseEV + transactionFees;
+          const totalInterest =
+            revolverInterest +
+            commitmentFeeAmount +
+            tlbInterest +
+            mezzCashInterest;
 
-          // Debt sizing
-          const totalDebt = ltmEBITDA * debtMultiple;
-          const revolverAmount = revolver; // Simplified: direct amount
-          const termLoan = totalDebt - revolverAmount;
+          const ebt = ebit - totalInterest;
+          const taxes = Math.max(0, ebt * inputs.taxRate);
+          const netIncome = ebt - taxes;
 
-          // Equity required
-          const sponsorEquity = totalUses - totalDebt - existingCash;
+          // Cash flow
+          const capex = revenue * inputs.capexPercent;
+          const nwc = revenue * inputs.nwcPercent;
+          const changeInNWC = nwc - prevNWC;
 
-          // Cash adjustment
-          const excessCash = Math.max(0, existingCash - minCash);
-          const netCashRequired = Math.max(0, minCash - existingCash);
+          // Free cash flow
+          const fcf = netIncome + depreciation - capex - changeInNWC;
 
-          // ==================== STEP 2: PROJECT 5-YEAR FINANCIALS ====================
-          const years = [];
-          let currentRevenue = ltmEBITDA / ebitdaMargin; // Back into revenue from LTM EBITDA
-          let prevNWC = currentRevenue * nwcPercent;
+          // Mandatory amortization
+          const tlbAmortization = transaction.tlb * inputs.tlbAmort;
 
-          for (let year = 1; year <= holdPeriod; year++) {
-            const growthRate =
-              year === 1 ? revenueGrowth1 : revenueGrowthSteady;
-            const revenue = currentRevenue * (1 + growthRate);
-            const ebitda = revenue * ebitdaMargin;
-            const depreciation = revenue * daPercent;
-            const ebit = ebitda - depreciation;
+          // Cash sweep (excess FCF to debt paydown)
+          let cashAvailable = fcf - tlbAmortization;
 
-            // Interest expense (on beginning debt balance)
-            const beginningDebt =
-              year === 1 ? totalDebt : years[year - 2].endingDebt;
-            const interestExpense = beginningDebt * interestRate;
+          // Dividend recap
+          let recapAmount = 0;
+          if (inputs.enableRecap && year === inputs.recapYear) {
+            const recapDebt = ebitda * inputs.recapDebtMultiple;
+            const proformaLeverage =
+              (tlbBalance + mezzBalance + recapDebt) / ebitda;
+            const maxLeverage = inputs.maxLevY1 - covenantStepDown * (year - 1);
 
-            const ebt = ebit - interestExpense;
-            const taxes = Math.max(0, ebt * taxRate); // No tax benefit if negative
-            const netIncome = ebt - taxes;
-
-            // Cash flow
-            const capex = revenue * capexPercent;
-            const nwc = revenue * nwcPercent;
-            const changeInNWC = nwc - prevNWC;
-
-            // Unlevered FCF (before debt paydown)
-            const unleveredFCF = ebitda - taxes - capex - changeInNWC;
-
-            // Debt paydown (use all excess cash to pay down debt)
-            const mandatoryAmortization = 0; // Simplified: bullet payment at exit
-            const optionalPaydown = Math.max(0, unleveredFCF - interestExpense);
-            const totalDebtPaydown = mandatoryAmortization + optionalPaydown;
-
-            const endingDebt = Math.max(0, beginningDebt - totalDebtPaydown);
-
-            // Levered FCF (to equity)
-            const leveredFCF =
-              unleveredFCF - interestExpense - totalDebtPaydown;
-
-            years.push({
-              year,
-              revenue,
-              ebitda,
-              depreciation,
-              ebit,
-              interestExpense,
-              ebt,
-              taxes,
-              netIncome,
-              capex,
-              nwc,
-              changeInNWC,
-              unleveredFCF,
-              totalDebtPaydown,
-              beginningDebt,
-              endingDebt,
-              leveredFCF,
-            });
-
-            currentRevenue = revenue;
-            prevNWC = nwc;
-          }
-
-          // ==================== STEP 3: EXIT VALUE & RETURNS ====================
-          const finalYear = years[years.length - 1];
-          const exitEBITDA = finalYear.ebitda;
-          const exitEV = exitEBITDA * exitMultiple;
-          const exitDebt = finalYear.endingDebt;
-          const exitEquityValue = exitEV - exitDebt;
-
-          // Returns
-          const initialEquity = sponsorEquity;
-          const totalEquityReturned = exitEquityValue;
-          const moM = totalEquityReturned / initialEquity; // Money-on-Money Multiple
-
-          // IRR calculation
-          const cashFlows = [-initialEquity]; // Year 0: equity investment
-          for (let i = 0; i < years.length - 1; i++) {
-            cashFlows.push(0); // No interim distributions in this simplified model
-          }
-          cashFlows.push(exitEquityValue); // Final year: exit proceeds
-
-          // Calculate IRR using Newton-Raphson
-          let irr = 0.2; // Initial guess: 20%
-          const maxIterations = 1000;
-          const tolerance = 1e-7;
-
-          for (let iter = 0; iter < maxIterations; iter++) {
-            let npv = 0;
-            let derivative = 0;
-
-            for (let t = 0; t < cashFlows.length; t++) {
-              npv += cashFlows[t] / Math.pow(1 + irr, t);
-              derivative -= (t * cashFlows[t]) / Math.pow(1 + irr, t + 1);
+            if (proformaLeverage <= maxLeverage) {
+              recapAmount = recapDebt;
+              tlbBalance += recapDebt;
+              cashAvailable -= recapAmount;
+              recapDividend = recapAmount;
             }
-
-            if (Math.abs(derivative) < 1e-10) break;
-
-            const delta = npv / derivative;
-            irr -= delta;
-
-            if (Math.abs(delta) < tolerance) break;
           }
 
-          // ==================== DISPLAY RESULTS ====================
+          // Debt paydown waterfall
+          const revolverPaydown = Math.min(
+            revolverBalance,
+            Math.max(0, cashAvailable)
+          );
+          cashAvailable -= revolverPaydown;
+          revolverBalance -= revolverPaydown;
 
-          // Main Results Card
-          const irrColor =
-            irr >= 0.2
-              ? "var(--green-500)"
-              : irr >= 0.15
-              ? "var(--blue-500)"
-              : "var(--orange-500)";
-          const irrLabel =
-            irr >= 0.25
-              ? "🚀 Excellent"
-              : irr >= 0.2
-              ? "✅ Strong"
-              : irr >= 0.15
-              ? "⚠️ Acceptable"
-              : "❌ Below Target";
+          const tlbPaydown =
+            tlbAmortization +
+            Math.min(tlbBalance - tlbAmortization, Math.max(0, cashAvailable));
+          cashAvailable -= tlbPaydown - tlbAmortization;
+          tlbBalance -= tlbPaydown;
 
-          resultsDiv.innerHTML = `
-            <div class="results-grid">
-              <div class="result-card" style="background-color: var(--green-100);">
-                <div class="result-label">IRR</div>
-                <div class="result-value" style="color: ${irrColor};">${(
-            irr * 100
-          ).toFixed(1)}%</div>
-                <div style="font-size: 0.75rem; margin-top: 0.25rem;">${irrLabel}</div>
-              </div>
-              <div class="result-card" style="background-color: var(--blue-100);">
-                <div class="result-label">Money Multiple (MoM)</div>
-                <div class="result-value">${moM.toFixed(2)}x</div>
-              </div>
-              <div class="result-card" style="background-color: var(--cyan-100);">
-                <div class="result-label">Equity Investment</div>
-                <div class="result-value">$${initialEquity.toFixed(1)}M</div>
-              </div>
-              <div class="result-card" style="background-color: var(--indigo-100);">
-                <div class="result-label">Exit Proceeds</div>
-                <div class="result-value">$${exitEquityValue.toFixed(1)}M</div>
-              </div>
-              <div class="result-card" style="background-color: var(--purple-100);">
-                <div class="result-label">Entry EV</div>
-                <div class="result-value">$${purchaseEV.toFixed(1)}M</div>
-              </div>
-              <div class="result-card" style="background-color: var(--pink-100);">
-                <div class="result-label">Exit EV</div>
-                <div class="result-value">$${exitEV.toFixed(1)}M</div>
-              </div>
-            </div>
-          `;
-          resultsDiv.classList.remove("hidden");
+          // Mezz PIK accretion
+          mezzBalance += mezzPIKInterest;
 
-          // ==================== SOURCES & USES TABLE ====================
-          const usesHTML = `
-            <div style="background: var(--slate-50); padding: 1rem; border-radius: 0.5rem;">
-              <h4 style="font-weight: 600; margin-bottom: 0.75rem; color: var(--slate-700);">Uses of Funds</h4>
-              <table style="width: 100%; font-size: 0.875rem;">
-                <tr style="border-bottom: 1px solid var(--slate-200);">
-                  <td style="padding: 0.5rem 0;">Purchase Enterprise Value</td>
-                  <td style="text-align: right; font-weight: 500;">$${purchaseEV.toFixed(
-                    1
-                  )}M</td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--slate-200);">
-                  <td style="padding: 0.5rem 0;">Transaction Fees</td>
-                  <td style="text-align: right; font-weight: 500;">$${transactionFees.toFixed(
-                    1
-                  )}M</td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--slate-200);">
-                  <td style="padding: 0.5rem 0;">Cash to Balance Sheet</td>
-                  <td style="text-align: right; font-weight: 500;">$${minCash.toFixed(
-                    1
-                  )}M</td>
-                </tr>
-                <tr style="border-top: 2px solid var(--slate-400); font-weight: 700;">
-                  <td style="padding: 0.75rem 0;">Total Uses</td>
-                  <td style="text-align: right;">$${(
-                    totalUses + minCash
-                  ).toFixed(1)}M</td>
-                </tr>
-              </table>
-            </div>
-          `;
+          const totalDebtBalance = revolverBalance + tlbBalance + mezzBalance;
+          const netLeverage = totalDebtBalance / ebitda;
+          const maxLeverage = inputs.maxLevY1 - covenantStepDown * (year - 1);
+          const covenantCompliance = netLeverage <= maxLeverage;
 
-          const sourcesHTML = `
-            <div style="background: var(--blue-50); padding: 1rem; border-radius: 0.5rem;">
-              <h4 style="font-weight: 600; margin-bottom: 0.75rem; color: var(--slate-700);">Sources of Funds</h4>
-              <table style="width: 100%; font-size: 0.875rem;">
-                <tr style="border-bottom: 1px solid var(--slate-200);">
-                  <td style="padding: 0.5rem 0;">Revolver</td>
-                  <td style="text-align: right; font-weight: 500;">$${revolverAmount.toFixed(
-                    1
-                  )}M</td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--slate-200);">
-                  <td style="padding: 0.5rem 0;">Term Loan</td>
-                  <td style="text-align: right; font-weight: 500;">$${termLoan.toFixed(
-                    1
-                  )}M</td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--slate-200);">
-                  <td style="padding: 0.5rem 0;">Existing Cash</td>
-                  <td style="text-align: right; font-weight: 500;">$${existingCash.toFixed(
-                    1
-                  )}M</td>
-                </tr>
-                <tr style="border-bottom: 2px solid var(--slate-300); font-weight: 600; background: var(--slate-100);">
-                  <td style="padding: 0.5rem 0;">Total Debt</td>
-                  <td style="text-align: right;">$${totalDebt.toFixed(1)}M</td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--slate-200); background: var(--green-50);">
-                  <td style="padding: 0.5rem 0; font-weight: 600;">Sponsor Equity</td>
-                  <td style="text-align: right; font-weight: 700; color: var(--green-700);">$${sponsorEquity.toFixed(
-                    1
-                  )}M</td>
-                </tr>
-                <tr style="border-top: 2px solid var(--slate-400); font-weight: 700;">
-                  <td style="padding: 0.75rem 0;">Total Sources</td>
-                  <td style="text-align: right;">$${(
-                    totalDebt +
-                    existingCash +
-                    sponsorEquity
-                  ).toFixed(1)}M</td>
-                </tr>
-              </table>
-              <div style="margin-top: 0.75rem; padding: 0.5rem; background: var(--white); border-radius: 0.375rem; font-size: 0.75rem;">
-                <strong>Leverage:</strong> ${(totalDebt / ltmEBITDA).toFixed(
-                  2
-                )}x Debt/EBITDA<br>
-                <strong>Equity %:</strong> ${(
-                  (sponsorEquity / (totalUses + minCash)) *
-                  100
-                ).toFixed(1)}%
-              </div>
-            </div>
-          `;
+          years.push({
+            year,
+            revenue,
+            ebitda,
+            ebitdaMargin,
+            depreciation,
+            ebit,
+            totalInterest,
+            ebt,
+            taxes,
+            netIncome,
+            capex,
+            changeInNWC,
+            fcf,
+            tlbAmortization,
+            revolverPaydown,
+            tlbPaydown,
+            mezzPIKInterest,
+            recapAmount,
+            revolverBalance,
+            tlbBalance,
+            mezzBalance,
+            totalDebtBalance,
+            netLeverage,
+            maxLeverage,
+            covenantCompliance,
+          });
 
-          document.getElementById("usesTable").innerHTML = usesHTML;
-          document.getElementById("sourcesTable").innerHTML = sourcesHTML;
-          sourcesUsesDiv.classList.remove("hidden");
+          currentRevenue = revenue;
+          prevNWC = nwc;
+        }
 
-          // ==================== FINANCIAL PROJECTIONS TABLE ====================
-          let projectionsHTML = `
-            <thead>
-              <tr style="background: var(--slate-100); border-bottom: 2px solid var(--slate-300);">
-                <th style="padding: 0.75rem; text-align: left; font-weight: 600; position: sticky; left: 0; background: var(--slate-100);">Metric</th>
-                <th style="padding: 0.75rem; text-align: right; font-weight: 600;">LTM</th>
-          `;
+        return { years, recapDividend };
+      }
 
-          for (let i = 1; i <= holdPeriod; i++) {
-            projectionsHTML += `<th style="padding: 0.75rem; text-align: right; font-weight: 600;">Year ${i}</th>`;
+      function calculateReturns(inputs, transaction, projections) {
+        const finalYear = projections.years[projections.years.length - 1];
+
+        // Exit value
+        const exitEBITDA = finalYear.ebitda;
+        const exitEV = exitEBITDA * inputs.exitMultipleBase;
+        const exitDebt = finalYear.totalDebtBalance;
+        const exitEquityValue = exitEV - exitDebt;
+
+        // Sponsor returns
+        const sponsorExitValue = exitEquityValue * transaction.sponsorOwnership;
+        const sponsorInvested = transaction.sponsorEquity;
+        const sponsorProfit =
+          sponsorExitValue - sponsorInvested + projections.recapDividend;
+        const sponsorMoM =
+          (sponsorExitValue + projections.recapDividend) / sponsorInvested;
+
+        // IRR calculation
+        const cashFlows = [-sponsorInvested];
+        for (let i = 1; i < inputs.holdPeriod; i++) {
+          const yearCF =
+            i === inputs.recapYear && inputs.enableRecap
+              ? projections.recapDividend
+              : 0;
+          cashFlows.push(yearCF);
+        }
+        cashFlows.push(sponsorExitValue);
+
+        const sponsorIRR = calculateIRR(cashFlows);
+
+        // Value creation bridge
+        const entryEV = transaction.purchaseEV;
+        const ebitdaGrowth = exitEBITDA - inputs.ltmEBITDA;
+        const ebitdaGrowthValue = ebitdaGrowth * inputs.exitMultipleBase;
+        const multipleExpansion =
+          (inputs.exitMultipleBase - inputs.entryMultiple) * exitEBITDA;
+        const deleveraging = transaction.totalDebt - exitDebt;
+
+        return {
+          exitEBITDA,
+          exitEV,
+          exitDebt,
+          exitEquityValue,
+          sponsorExitValue,
+          sponsorInvested,
+          sponsorProfit,
+          sponsorMoM,
+          sponsorIRR,
+          ebitdaGrowth,
+          ebitdaGrowthValue,
+          multipleExpansion,
+          deleveraging,
+        };
+      }
+
+      function calculateManagementReturns(inputs, transaction, returns) {
+        const exitEquityValue = returns.exitEquityValue;
+
+        // Rollover returns (same economics as sponsor on their portion)
+        const rolloverExitValue = exitEquityValue * inputs.mgmtRollover;
+        const rolloverInvested = transaction.rolloverValue;
+        const rolloverMoM = rolloverExitValue / rolloverInvested;
+        const rolloverIRR = Math.pow(rolloverMoM, 1 / inputs.holdPeriod) - 1;
+
+        // Sweet equity returns
+        const sweetEquityExitValue = exitEquityValue * inputs.sweetEquity;
+        const sweetEquityInvested =
+          transaction.sweetEquityStrike * inputs.sweetEquity;
+        const sweetEquityMoM = sweetEquityExitValue / sweetEquityInvested;
+        const sweetEquityIRR =
+          Math.pow(sweetEquityMoM, 1 / inputs.holdPeriod) - 1;
+
+        // Options returns
+        const optionsExitValue =
+          Math.max(0, exitEquityValue - transaction.optionStrike) *
+          inputs.optionsPool;
+        const optionsInvested = 0.01; // Nominal investment
+        const optionsMoM = optionsExitValue / optionsInvested;
+
+        // Blended management returns
+        const totalMgmtExitValue =
+          rolloverExitValue + sweetEquityExitValue + optionsExitValue;
+        const totalMgmtInvested =
+          rolloverInvested + sweetEquityInvested + optionsInvested;
+        const blendedMgmtMoM = totalMgmtExitValue / totalMgmtInvested;
+        const blendedMgmtIRR =
+          Math.pow(blendedMgmtMoM, 1 / inputs.holdPeriod) - 1;
+
+        return {
+          rollover: {
+            exitValue: rolloverExitValue,
+            invested: rolloverInvested,
+            moM: rolloverMoM,
+            irr: rolloverIRR,
+          },
+          sweetEquity: {
+            exitValue: sweetEquityExitValue,
+            invested: sweetEquityInvested,
+            moM: sweetEquityMoM,
+            irr: sweetEquityIRR,
+          },
+          options: {
+            exitValue: optionsExitValue,
+            invested: optionsInvested,
+            moM: optionsMoM,
+          },
+          blended: {
+            exitValue: totalMgmtExitValue,
+            invested: totalMgmtInvested,
+            moM: blendedMgmtMoM,
+            irr: blendedMgmtIRR,
+          },
+        };
+      }
+
+      function calculateIRR(cashFlows) {
+        let irr = 0.15; // Initial guess
+        const maxIterations = 1000;
+        const tolerance = 1e-7;
+
+        for (let iter = 0; iter < maxIterations; iter++) {
+          let npv = 0;
+          let derivative = 0;
+
+          for (let t = 0; t < cashFlows.length; t++) {
+            npv += cashFlows[t] / Math.pow(1 + irr, t);
+            derivative -= (t * cashFlows[t]) / Math.pow(1 + irr, t + 1);
           }
-          projectionsHTML += `</tr></thead><tbody>`;
 
-          // Revenue row
-          projectionsHTML += `<tr style="background: var(--blue-50); border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; font-weight: 600; position: sticky; left: 0; background: var(--blue-50);">Revenue</td>
-            <td style="padding: 0.75rem; text-align: right;">$${(
-              ltmEBITDA / ebitdaMargin
-            ).toFixed(1)}M</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">$${y.revenue.toFixed(
-              1
-            )}M</td>`;
-          });
-          projectionsHTML += `</tr>`;
+          if (Math.abs(derivative) < 1e-10) break;
 
-          // EBITDA row
-          projectionsHTML += `<tr style="border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; font-weight: 600; position: sticky; left: 0; background: var(--white);">EBITDA</td>
-            <td style="padding: 0.75rem; text-align: right;">$${ltmEBITDA.toFixed(
-              1
-            )}M</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">$${y.ebitda.toFixed(
-              1
-            )}M</td>`;
-          });
-          projectionsHTML += `</tr>`;
+          const delta = npv / derivative;
+          irr -= delta;
 
-          // EBITDA Margin
-          projectionsHTML += `<tr style="background: var(--slate-50); border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; padding-left: 1.5rem; position: sticky; left: 0; background: var(--slate-50);">EBITDA Margin</td>
-            <td style="padding: 0.75rem; text-align: right;">${(
-              ebitdaMargin * 100
-            ).toFixed(1)}%</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">${(
-              (y.ebitda / y.revenue) *
-              100
-            ).toFixed(1)}%</td>`;
-          });
-          projectionsHTML += `</tr>`;
+          if (irr < -0.99) irr = -0.99;
+          if (irr > 10) irr = 10;
 
-          // D&A
-          projectionsHTML += `<tr style="border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; padding-left: 1.5rem; position: sticky; left: 0; background: var(--white);">Less: D&A</td>
-            <td style="padding: 0.75rem; text-align: right;">($${(
-              (ltmEBITDA / ebitdaMargin) *
-              daPercent
-            ).toFixed(1)}M)</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">($${y.depreciation.toFixed(
-              1
-            )}M)</td>`;
-          });
-          projectionsHTML += `</tr>`;
+          if (Math.abs(delta) < tolerance) break;
+        }
 
-          // EBIT
-          projectionsHTML += `<tr style="background: var(--slate-50); border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; font-weight: 600; position: sticky; left: 0; background: var(--slate-50);">EBIT</td>
-            <td style="padding: 0.75rem; text-align: right;">$${(
-              ltmEBITDA -
-              (ltmEBITDA / ebitdaMargin) * daPercent
-            ).toFixed(1)}M</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">$${y.ebit.toFixed(
-              1
-            )}M</td>`;
-          });
-          projectionsHTML += `</tr>`;
+        return irr;
+      }
 
-          // Interest
-          projectionsHTML += `<tr style="border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; padding-left: 1.5rem; position: sticky; left: 0; background: var(--white);">Less: Interest</td>
-            <td style="padding: 0.75rem; text-align: right;">-</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">($${y.interestExpense.toFixed(
-              1
-            )}M)</td>`;
-          });
-          projectionsHTML += `</tr>`;
+      function displayScenarioComparison(scenarios) {
+        const resultsDiv = document.getElementById("lboScenarioResults");
 
-          // EBT
-          projectionsHTML += `<tr style="background: var(--slate-50); border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; font-weight: 600; position: sticky; left: 0; background: var(--slate-50);">EBT</td>
-            <td style="padding: 0.75rem; text-align: right;">-</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">$${y.ebt.toFixed(
-              1
-            )}M</td>`;
-          });
-          projectionsHTML += `</tr>`;
+        const getIRRColor = (irr) => {
+          if (irr >= 0.25) return "var(--green-600)";
+          if (irr >= 0.2) return "var(--blue-600)";
+          if (irr >= 0.15) return "var(--orange-500)";
+          return "var(--red-600)";
+        };
 
-          // Taxes
-          projectionsHTML += `<tr style="border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; padding-left: 1.5rem; position: sticky; left: 0; background: var(--white);">Less: Taxes</td>
-            <td style="padding: 0.75rem; text-align: right;">-</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">($${y.taxes.toFixed(
-              1
-            )}M)</td>`;
-          });
-          projectionsHTML += `</tr>`;
+        const getIRRLabel = (irr) => {
+          if (irr >= 0.25) return "🚀 Exceptional";
+          if (irr >= 0.2) return "✅ Strong";
+          if (irr >= 0.15) return "⚠️ Acceptable";
+          return "❌ Below Target";
+        };
 
-          // Net Income
-          projectionsHTML += `<tr style="background: var(--green-50); border-bottom: 2px solid var(--slate-300);">
-            <td style="padding: 0.75rem; font-weight: 700; position: sticky; left: 0; background: var(--green-50);">Net Income</td>
-            <td style="padding: 0.75rem; text-align: right; font-weight: 600;">-</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right; font-weight: 600;">$${y.netIncome.toFixed(
-              1
-            )}M</td>`;
-          });
-          projectionsHTML += `</tr>`;
+        resultsDiv.innerHTML = `
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; color: var(--slate-800);">
+            📊 Three-Scenario Returns Analysis
+          </h3>
 
-          // Cash Flow Section Header
-          projectionsHTML += `<tr style="background: var(--blue-100);">
-            <td colspan="${
-              holdPeriod + 2
-            }" style="padding: 0.5rem 0.75rem; font-weight: 700; color: var(--blue-900);">CASH FLOW ANALYSIS</td>
-          </tr>`;
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+            ${["downside", "base", "upside"]
+              .map((scenario) => {
+                const s = scenarios[scenario];
+                const irrColor = getIRRColor(s.returns.sponsorIRR);
+                const irrLabel = getIRRLabel(s.returns.sponsorIRR);
+                const scenarioColor =
+                  scenario === "base"
+                    ? "blue"
+                    : scenario === "upside"
+                    ? "green"
+                    : "orange";
 
-          // CapEx
-          projectionsHTML += `<tr style="border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; padding-left: 1.5rem; position: sticky; left: 0; background: var(--white);">Less: CapEx</td>
-            <td style="padding: 0.75rem; text-align: right;">-</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">($${y.capex.toFixed(
-              1
-            )}M)</td>`;
-          });
-          projectionsHTML += `</tr>`;
-
-          // Change in NWC
-          projectionsHTML += `<tr style="border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; padding-left: 1.5rem; position: sticky; left: 0; background: var(--white);">Less: Δ NWC</td>
-            <td style="padding: 0.75rem; text-align: right;">-</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">($${y.changeInNWC.toFixed(
-              1
-            )}M)</td>`;
-          });
-          projectionsHTML += `</tr>`;
-
-          // Unlevered FCF
-          projectionsHTML += `<tr style="background: var(--cyan-50); border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; font-weight: 600; position: sticky; left: 0; background: var(--cyan-50);">Unlevered FCF</td>
-            <td style="padding: 0.75rem; text-align: right;">-</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right; font-weight: 600;">$${y.unleveredFCF.toFixed(
-              1
-            )}M</td>`;
-          });
-          projectionsHTML += `</tr>`;
-
-          // Debt Paydown
-          projectionsHTML += `<tr style="border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; padding-left: 1.5rem; position: sticky; left: 0; background: var(--white);">Less: Debt Paydown</td>
-            <td style="padding: 0.75rem; text-align: right;">-</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">($${y.totalDebtPaydown.toFixed(
-              1
-            )}M)</td>`;
-          });
-          projectionsHTML += `</tr>`;
-
-          // Levered FCF
-          projectionsHTML += `<tr style="background: var(--green-50); border-bottom: 2px solid var(--slate-300);">
-            <td style="padding: 0.75rem; font-weight: 700; position: sticky; left: 0; background: var(--green-50);">Levered FCF (to Equity)</td>
-            <td style="padding: 0.75rem; text-align: right;">-</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right; font-weight: 700;">$${y.leveredFCF.toFixed(
-              1
-            )}M</td>`;
-          });
-          projectionsHTML += `</tr>`;
-
-          // Debt Balance Section
-          projectionsHTML += `<tr style="background: var(--orange-100);">
-            <td colspan="${
-              holdPeriod + 2
-            }" style="padding: 0.5rem 0.75rem; font-weight: 700; color: var(--orange-900);">DEBT SCHEDULE</td>
-          </tr>`;
-
-          // Beginning Debt
-          projectionsHTML += `<tr style="border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; position: sticky; left: 0; background: var(--white);">Beginning Debt Balance</td>
-            <td style="padding: 0.75rem; text-align: right;">$${totalDebt.toFixed(
-              1
-            )}M</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">$${y.beginningDebt.toFixed(
-              1
-            )}M</td>`;
-          });
-          projectionsHTML += `</tr>`;
-
-          // Ending Debt
-          projectionsHTML += `<tr style="background: var(--orange-50); border-bottom: 1px solid var(--slate-200);">
-            <td style="padding: 0.75rem; font-weight: 600; position: sticky; left: 0; background: var(--orange-50);">Ending Debt Balance</td>
-            <td style="padding: 0.75rem; text-align: right;">-</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right; font-weight: 600;">$${y.endingDebt.toFixed(
-              1
-            )}M</td>`;
-          });
-          projectionsHTML += `</tr>`;
-
-          // Leverage Ratio
-          projectionsHTML += `<tr style="background: var(--slate-50);">
-            <td style="padding: 0.75rem; padding-left: 1.5rem; position: sticky; left: 0; background: var(--slate-50);">Net Debt / EBITDA</td>
-            <td style="padding: 0.75rem; text-align: right;">${(
-              totalDebt / ltmEBITDA
-            ).toFixed(2)}x</td>`;
-          years.forEach((y) => {
-            projectionsHTML += `<td style="padding: 0.75rem; text-align: right;">${(
-              y.endingDebt / y.ebitda
-            ).toFixed(2)}x</td>`;
-          });
-          projectionsHTML += `</tr>`;
-
-          projectionsHTML += `</tbody>`;
-
-          document.getElementById("projectionsTable").innerHTML =
-            projectionsHTML;
-          projectionsDiv.classList.remove("hidden");
-
-          // ==================== RETURNS WATERFALL ====================
-          const totalDebtPaid = totalDebt - exitDebt;
-          const debtPaydownPercent = (totalDebtPaid / totalDebt) * 100;
-
-          const multipleExpansion = (exitMultiple - entryMultiple) * exitEBITDA;
-          const ebitdaGrowthContribution = exitEV - exitMultiple * ltmEBITDA;
-          const deleveragingContribution = totalDebtPaid;
-
-          const totalValueCreation = exitEquityValue - initialEquity;
-
-          let returnsHTML = `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
-              <div style="background: var(--green-50); padding: 1.25rem; border-radius: 0.5rem; border-left: 4px solid var(--green-500);">
-                <h4 style="font-size: 1rem; font-weight: 700; color: var(--green-900); margin-bottom: 1rem;">📈 Value Creation Bridge</h4>
-                <table style="width: 100%; font-size: 0.875rem;">
-                  <tr style="border-bottom: 1px solid var(--slate-200);">
-                    <td style="padding: 0.5rem 0;">Initial Equity Investment</td>
-                    <td style="text-align: right; font-weight: 600;">$${initialEquity.toFixed(
-                      1
-                    )}M</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--slate-200);">
-                    <td style="padding: 0.5rem 0; color: var(--blue-700);">+ EBITDA Growth</td>
-                    <td style="text-align: right; font-weight: 500;">$${ebitdaGrowthContribution.toFixed(
-                      1
-                    )}M</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--slate-200);">
-                    <td style="padding: 0.5rem 0; color: var(--green-700);">+ Deleveraging (Debt Paydown)</td>
-                    <td style="text-align: right; font-weight: 500;">$${deleveragingContribution.toFixed(
-                      1
-                    )}M</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--slate-200);">
-                    <td style="padding: 0.5rem 0; color: ${
-                      multipleExpansion >= 0
-                        ? "var(--green-700)"
-                        : "var(--red-700)"
-                    };">
-                      ${multipleExpansion >= 0 ? "+" : "−"} Multiple ${
-            multipleExpansion >= 0 ? "Expansion" : "Compression"
-          }
-                    </td>
-                    <td style="text-align: right; font-weight: 500;">$${Math.abs(
-                      multipleExpansion
-                    ).toFixed(1)}M</td>
-                  </tr>
-                  <tr style="border-top: 2px solid var(--green-600); background: var(--green-100);">
-                    <td style="padding: 0.75rem 0; font-weight: 700;">Exit Equity Value</td>
-                    <td style="text-align: right; font-weight: 700;">$${exitEquityValue.toFixed(
-                      1
-                    )}M</td>
-                  </tr>
-                </table>
-              </div>
-
-              <div style="background: var(--blue-50); padding: 1.25rem; border-radius: 0.5rem; border-left: 4px solid var(--blue-500);">
-                <h4 style="font-size: 1rem; font-weight: 700; color: var(--blue-900); margin-bottom: 1rem;">💰 Exit Summary</h4>
-                <table style="width: 100%; font-size: 0.875rem;">
-                  <tr style="border-bottom: 1px solid var(--slate-200);">
-                    <td style="padding: 0.5rem 0;">Exit EBITDA</td>
-                    <td style="text-align: right; font-weight: 600;">$${exitEBITDA.toFixed(
-                      1
-                    )}M</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--slate-200);">
-                    <td style="padding: 0.5rem 0;">Exit Multiple</td>
-                    <td style="text-align: right; font-weight: 500;">${exitMultiple.toFixed(
-                      1
-                    )}x</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--slate-200);">
-                    <td style="padding: 0.5rem 0; font-weight: 600;">Exit Enterprise Value</td>
-                    <td style="text-align: right; font-weight: 600;">$${exitEV.toFixed(
-                      1
-                    )}M</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--slate-200);">
-                    <td style="padding: 0.5rem 0;">Less: Remaining Debt</td>
-                    <td style="text-align: right; font-weight: 500;">($${exitDebt.toFixed(
-                      1
-                    )}M)</td>
-                  </tr>
-                  <tr style="border-top: 2px solid var(--blue-600); background: var(--blue-100);">
-                    <td style="padding: 0.75rem 0; font-weight: 700;">Exit Equity Value</td>
-                    <td style="text-align: right; font-weight: 700;">$${exitEquityValue.toFixed(
-                      1
-                    )}M</td>
-                  </tr>
-                </table>
-                <div style="margin-top: 1rem; padding: 0.75rem; background: var(--white); border-radius: 0.375rem; font-size: 0.75rem;">
-                  <strong>Debt Paydown:</strong> $${totalDebtPaid.toFixed(
-                    1
-                  )}M (${debtPaydownPercent.toFixed(0)}% of initial debt)
-                </div>
-              </div>
-            </div>
-
-            <div style="background: linear-gradient(135deg, var(--indigo-50), var(--purple-50)); padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--indigo-200);">
-              <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--indigo-900); margin-bottom: 1rem; text-align: center;">
-                🎯 Returns Summary
-              </h4>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
-                <div style="text-align: center; padding: 1rem; background: var(--white); border-radius: 0.5rem;">
-                  <div style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 0.5rem;">IRR</div>
-                  <div style="font-size: 2rem; font-weight: 800; color: ${irrColor};">${(
-            irr * 100
-          ).toFixed(1)}%</div>
-                  <div style="font-size: 0.75rem; margin-top: 0.25rem;">${irrLabel}</div>
-                </div>
-                <div style="text-align: center; padding: 1rem; background: var(--white); border-radius: 0.5rem;">
-                  <div style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 0.5rem;">Money Multiple</div>
-                  <div style="font-size: 2rem; font-weight: 800; color: var(--blue-600);">${moM.toFixed(
-                    2
-                  )}x</div>
-                  <div style="font-size: 0.75rem; margin-top: 0.25rem;">
+                return `
+                <div style="background: linear-gradient(135deg, var(--${scenarioColor}-50), var(--${scenarioColor}-100));
+                            padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--${scenarioColor}-300);">
+                  <h4 style="font-size: 1rem; font-weight: 700; text-transform: uppercase;
+                            color: var(--${scenarioColor}-900); margin-bottom: 1rem; text-align: center;">
                     ${
-                      moM >= 3.0
-                        ? "🚀 Exceptional"
-                        : moM >= 2.5
-                        ? "✅ Strong"
-                        : moM >= 2.0
-                        ? "⚠️ Moderate"
-                        : "❌ Weak"
-                    }
+                      scenario === "base"
+                        ? "📍"
+                        : scenario === "upside"
+                        ? "📈"
+                        : "📉"
+                    } ${scenario.toUpperCase()}
+                  </h4>
+
+                  <div style="background: var(--white); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+                    <div style="text-align: center;">
+                      <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.25rem;">Sponsor IRR</div>
+                      <div style="font-size: 2rem; font-weight: 800; color: ${irrColor};">
+                        ${(s.returns.sponsorIRR * 100).toFixed(1)}%
+                      </div>
+                      <div style="font-size: 0.75rem; margin-top: 0.25rem; color: ${irrColor};">
+                        ${irrLabel}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.875rem;">
+                    <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; text-align: center;">
+                      <div style="color: var(--slate-600); font-size: 0.75rem;">MoM</div>
+                      <div style="font-weight: 700; color: var(--slate-800);">${s.returns.sponsorMoM.toFixed(
+                        2
+                      )}x</div>
+                    </div>
+                    <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; text-align: center;">
+                      <div style="color: var(--slate-600); font-size: 0.75rem;">Profit</div>
+                      <div style="font-weight: 700; color: var(--slate-800);">$${s.returns.sponsorProfit.toFixed(
+                        0
+                      )}M</div>
+                    </div>
+                    <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; text-align: center;">
+                      <div style="color: var(--slate-600); font-size: 0.75rem;">Exit EV</div>
+                      <div style="font-weight: 700; color: var(--slate-800);">$${s.returns.exitEV.toFixed(
+                        0
+                      )}M</div>
+                    </div>
+                    <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; text-align: center;">
+                      <div style="color: var(--slate-600); font-size: 0.75rem;">Exit Lev</div>
+                      <div style="font-weight: 700; color: var(--slate-800);">
+                        ${(s.returns.exitDebt / s.returns.exitEBITDA).toFixed(
+                          2
+                        )}x
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="margin-top: 1rem; padding: 0.75rem; background: var(--slate-50);
+                              border-radius: 0.375rem; font-size: 0.75rem;">
+                    <strong>Exit Multiple:</strong> ${s.inputs.exitMultipleBase.toFixed(
+                      1
+                    )}x<br>
+                    <strong>EBITDA Growth:</strong> ${(
+                      (s.returns.exitEBITDA / s.inputs.ltmEBITDA - 1) *
+                      100
+                    ).toFixed(0)}%<br>
+                    <strong>Debt Paydown:</strong> $${s.returns.deleveraging.toFixed(
+                      0
+                    )}M
                   </div>
                 </div>
-                <div style="text-align: center; padding: 1rem; background: var(--white); border-radius: 0.5rem;">
-                  <div style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 0.5rem;">Total Profit</div>
-                  <div style="font-size: 2rem; font-weight: 800; color: var(--green-600);">$${totalValueCreation.toFixed(
+              `;
+              })
+              .join("")}
+          </div>
+
+          <div style="background: linear-gradient(135deg, var(--indigo-50), var(--purple-50));
+                      padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--indigo-200);">
+            <h4 style="font-size: 1rem; font-weight: 700; color: var(--indigo-900); margin-bottom: 1rem; text-align: center;">
+              🎯 Investment Committee Summary
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+              <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">IRR Range</div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--indigo-700);">
+                  ${(scenarios.downside.returns.sponsorIRR * 100).toFixed(
                     1
-                  )}M</div>
-                  <div style="font-size: 0.75rem; margin-top: 0.25rem;">+${(
-                    (totalValueCreation / initialEquity) *
-                    100
-                  ).toFixed(0)}%</div>
+                  )}% – ${(scenarios.upside.returns.sponsorIRR * 100).toFixed(
+          1
+        )}%
+                </div>
+              </div>
+              <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">MoM Range</div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--indigo-700);">
+                  ${scenarios.downside.returns.sponsorMoM.toFixed(
+                    2
+                  )}x – ${scenarios.upside.returns.sponsorMoM.toFixed(2)}x
+                </div>
+              </div>
+              <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Base IRR</div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: ${getIRRColor(
+                  scenarios.base.returns.sponsorIRR
+                )};">
+                  ${(scenarios.base.returns.sponsorIRR * 100).toFixed(1)}%
+                </div>
+              </div>
+              <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Entry Leverage</div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--indigo-700);">
+                  ${scenarios.base.transaction.totalLeverage.toFixed(2)}x
                 </div>
               </div>
             </div>
 
-            <div style="margin-top: 1.5rem; padding: 1rem; background: var(--slate-50); border-radius: 0.5rem; border-left: 3px solid var(--slate-400);">
-              <h5 style="font-weight: 600; color: var(--slate-800); margin-bottom: 0.5rem;">📊 Key Metrics Analysis</h5>
-              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; font-size: 0.875rem;">
-                <div>
-                  <strong>Entry Valuation:</strong> ${entryMultiple.toFixed(
+            <div style="margin-top: 1rem; padding: 1rem; background: var(--white); border-radius: 0.5rem;
+                        border-left: 4px solid var(--indigo-500); font-size: 0.875rem;">
+              <strong>IC Recommendation:</strong>
+              ${
+                scenarios.base.returns.sponsorIRR >= 0.2
+                  ? '✅ <span style="color: var(--green-700);">APPROVE</span> - Strong risk-adjusted returns across scenarios'
+                  : scenarios.base.returns.sponsorIRR >= 0.15
+                  ? '⚠️ <span style="color: var(--orange-700);">CONDITIONAL</span> - Acceptable base case, but limited downside protection'
+                  : '❌ <span style="color: var(--red-700);">REJECT</span> - Insufficient returns relative to risk'
+              }
+            </div>
+          </div>
+        `;
+
+        resultsDiv.classList.remove("hidden");
+      }
+
+      function displayDetailedResults(scenarios, inputs) {
+        const detailsDiv = document.getElementById("lboDetailedResults");
+
+        // Create tabs for each scenario
+        detailsDiv.innerHTML = `
+          <div style="background: var(--white); border-radius: 0.75rem; padding: 1.5rem;
+                      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--slate-800);">
+              📑 Detailed Analysis (Base Case)
+            </h3>
+
+            ${renderSourcesUses(scenarios.base)}
+            ${renderDebtSchedule(scenarios.base)}
+            ${renderFinancialProjections(scenarios.base)}
+            ${renderManagementReturns(scenarios.base)}
+            ${renderValueCreationBridge(scenarios.base)}
+          </div>
+        `;
+
+        detailsDiv.classList.remove("hidden");
+      }
+
+      function renderSourcesUses(scenario) {
+        const t = scenario.transaction;
+
+        return `
+          <div style="margin-top: 2rem;">
+            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--slate-700);">
+              💰 Sources & Uses of Funds
+            </h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+              <div style="background: var(--slate-50); padding: 1.25rem; border-radius: 0.5rem;">
+                <h5 style="font-weight: 600; margin-bottom: 0.75rem; color: var(--slate-700);">Uses</h5>
+                <table style="width: 100%; font-size: 0.875rem;">
+                  <tr style="border-bottom: 1px solid var(--slate-200);">
+                    <td style="padding: 0.5rem 0;">Purchase Enterprise Value</td>
+                    <td style="text-align: right; font-weight: 500;">$${t.purchaseEV.toFixed(
+                      1
+                    )}M</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--slate-200);">
+                    <td style="padding: 0.5rem 0;">Transaction Fees</td>
+                    <td style="text-align: right; font-weight: 500;">$${t.transFees.toFixed(
+                      1
+                    )}M</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--slate-200);">
+                    <td style="padding: 0.5rem 0;">Cash to Balance Sheet</td>
+                    <td style="text-align: right; font-weight: 500;">$${scenario.inputs.minCash.toFixed(
+                      1
+                    )}M</td>
+                  </tr>
+                  <tr style="border-top: 2px solid var(--slate-400); font-weight: 700;">
+                    <td style="padding: 0.75rem 0;">Total Uses</td>
+                    <td style="text-align: right;">$${t.totalUses.toFixed(
+                      1
+                    )}M</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div style="background: var(--blue-50); padding: 1.25rem; border-radius: 0.5rem;">
+                <h5 style="font-weight: 600; margin-bottom: 0.75rem; color: var(--slate-700);">Sources</h5>
+                <table style="width: 100%; font-size: 0.875rem;">
+                  <tr style="border-bottom: 1px solid var(--slate-200);">
+                    <td style="padding: 0.5rem 0;">Revolver</td>
+                    <td style="text-align: right; font-weight: 500;">$${t.revolver.toFixed(
+                      1
+                    )}M</td>
+                    <td style="text-align: right; color: var(--slate-600); font-size: 0.75rem;">
+                      ${(t.revolver / scenario.inputs.ltmEBITDA).toFixed(2)}x
+                    </td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--slate-200);">
+                    <td style="padding: 0.5rem 0;">Term Loan B</td>
+                    <td style="text-align: right; font-weight: 500;">$${t.tlb.toFixed(
+                      1
+                    )}M</td>
+                    <td style="text-align: right; color: var(--slate-600); font-size: 0.75rem;">
+                      ${(t.tlb / scenario.inputs.ltmEBITDA).toFixed(2)}x
+                    </td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--slate-200);">
+                    <td style="padding: 0.5rem 0;">Mezzanine / Sub Debt</td>
+                    <td style="text-align: right; font-weight: 500;">$${t.mezz.toFixed(
+                      1
+                    )}M</td>
+                    <td style="text-align: right; color: var(--slate-600); font-size: 0.75rem;">
+                      ${(t.mezz / scenario.inputs.ltmEBITDA).toFixed(2)}x
+                    </td>
+                  </tr>
+                  <tr style="border-bottom: 2px solid var(--slate-300); font-weight: 600; background: var(--slate-100);">
+                    <td style="padding: 0.5rem 0;">Total Debt</td>
+                    <td style="text-align: right;">$${t.totalDebt.toFixed(
+                      1
+                    )}M</td>
+                    <td style="text-align: right; font-weight: 700; color: var(--slate-700);">
+                      ${t.totalLeverage.toFixed(2)}x
+                    </td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--slate-200);">
+                    <td style="padding: 0.5rem 0;">Existing Cash</td>
+                    <td style="text-align: right; font-weight: 500;">$${scenario.inputs.existingCash.toFixed(
+                      1
+                    )}M</td>
+                    <td></td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--slate-200); background: var(--orange-50);">
+                    <td style="padding: 0.5rem 0;">Management Rollover</td>
+                    <td style="text-align: right; font-weight: 500;">$${t.rolloverValue.toFixed(
+                      1
+                    )}M</td>
+                    <td style="text-align: right; color: var(--slate-600); font-size: 0.75rem;">
+                      ${(scenario.inputs.mgmtRollover * 100).toFixed(0)}%
+                    </td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--slate-200); background: var(--green-50);">
+                    <td style="padding: 0.5rem 0; font-weight: 600;">Sponsor Equity</td>
+                    <td style="text-align: right; font-weight: 700; color: var(--green-700);">$${t.sponsorEquity.toFixed(
+                      1
+                    )}M</td>
+                    <td style="text-align: right; color: var(--slate-600); font-size: 0.75rem;">
+                      ${(t.sponsorOwnership * 100).toFixed(1)}%
+                    </td>
+                  </tr>
+                  <tr style="border-top: 2px solid var(--slate-400); font-weight: 700;">
+                    <td style="padding: 0.75rem 0;">Total Sources</td>
+                    <td style="text-align: right;">$${(
+                      t.totalDebt +
+                      scenario.inputs.existingCash +
+                      t.purchaseEquity
+                    ).toFixed(1)}M</td>
+                    <td></td>
+                  </tr>
+                </table>
+
+                <div style="margin-top: 1rem; padding: 0.75rem; background: var(--white);
+                            border-radius: 0.375rem; font-size: 0.75rem;">
+                  <strong>Equity Breakdown:</strong><br>
+                  Sponsor: ${(t.sponsorOwnership * 100).toFixed(1)}% |
+                  Mgmt Rollover: ${(scenario.inputs.mgmtRollover * 100).toFixed(
                     1
-                  )}x LTM EBITDA<br>
-                  <strong>Exit Valuation:</strong> ${exitMultiple.toFixed(
+                  )}% |
+                  Sweet Equity: ${(scenario.inputs.sweetEquity * 100).toFixed(
                     1
-                  )}x Exit EBITDA<br>
-                  <strong>Multiple Change:</strong> ${
-                    exitMultiple - entryMultiple >= 0 ? "+" : ""
-                  }${(exitMultiple - entryMultiple).toFixed(1)}x
+                  )}% |
+                  Options: ${(scenario.inputs.optionsPool * 100).toFixed(1)}%
                 </div>
-                <div>
-                  <strong>EBITDA CAGR:</strong> ${
-                    (Math.pow(exitEBITDA / ltmEBITDA, 1 / holdPeriod) - 1) * 100
-                  }.toFixed(1)}%<br>
-                  <strong>Initial Leverage:</strong> ${(
-                    totalDebt / ltmEBITDA
-                  ).toFixed(2)}x<br>
-                  <strong>Exit Leverage:</strong> ${(
-                    exitDebt / exitEBITDA
-                  ).toFixed(2)}x
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderDebtSchedule(scenario) {
+        const years = scenario.projections.years;
+
+        let tableHTML = `
+          <div style="margin-top: 2rem;">
+            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--slate-700);">
+              📊 Debt Schedule & Covenant Compliance
+            </h4>
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                  <tr style="background: var(--slate-100); border-bottom: 2px solid var(--slate-300);">
+                    <th style="padding: 0.75rem; text-align: left; font-weight: 600;">Year</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">EBITDA</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">Revolver</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">TLB</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">Mezz</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">Total Debt</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">Net Lev</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">Covenant</th>
+                    <th style="padding: 0.75rem; text-align: center; font-weight: 600;">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+
+        years.forEach((y) => {
+          const complianceIcon = y.covenantCompliance ? "✅" : "❌";
+          const rowStyle = y.covenantCompliance
+            ? ""
+            : "background: var(--red-50);";
+
+          tableHTML += `
+            <tr style="border-bottom: 1px solid var(--slate-200); ${rowStyle}">
+              <td style="padding: 0.75rem; font-weight: 500;">Year ${
+                y.year
+              }</td>
+              <td style="padding: 0.75rem; text-align: right;">$${y.ebitda.toFixed(
+                1
+              )}M</td>
+              <td style="padding: 0.75rem; text-align: right;">$${y.revolverBalance.toFixed(
+                1
+              )}M</td>
+              <td style="padding: 0.75rem; text-align: right;">$${y.tlbBalance.toFixed(
+                1
+              )}M</td>
+              <td style="padding: 0.75rem; text-align: right;">$${y.mezzBalance.toFixed(
+                1
+              )}M</td>
+              <td style="padding: 0.75rem; text-align: right; font-weight: 600;">$${y.totalDebtBalance.toFixed(
+                1
+              )}M</td>
+              <td style="padding: 0.75rem; text-align: right; font-weight: 600;">${y.netLeverage.toFixed(
+                2
+              )}x</td>
+              <td style="padding: 0.75rem; text-align: right;">≤ ${y.maxLeverage.toFixed(
+                2
+              )}x</td>
+              <td style="padding: 0.75rem; text-align: center;">${complianceIcon}</td>
+            </tr>
+          `;
+        });
+
+        tableHTML += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+
+        return tableHTML;
+      }
+
+      function renderFinancialProjections(scenario) {
+        const years = scenario.projections.years;
+        const inputs = scenario.inputs;
+
+        let tableHTML = `
+          <div style="margin-top: 2rem;">
+            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--slate-700);">
+              📈 5-Year Financial Projections
+            </h4>
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                  <tr style="background: var(--slate-100); border-bottom: 2px solid var(--slate-300);">
+                    <th style="padding: 0.75rem; text-align: left; font-weight: 600; position: sticky; left: 0; background: var(--slate-100);">Metric</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">LTM</th>
+        `;
+
+        for (let i = 1; i <= inputs.holdPeriod; i++) {
+          tableHTML += `<th style="padding: 0.75rem; text-align: right; font-weight: 600;">Year ${i}</th>`;
+        }
+
+        tableHTML += `</tr></thead><tbody>`;
+
+        // Revenue
+        tableHTML += `<tr style="background: var(--blue-50); border-bottom: 1px solid var(--slate-200);">
+          <td style="padding: 0.75rem; font-weight: 600; position: sticky; left: 0; background: var(--blue-50);">Revenue</td>
+          <td style="padding: 0.75rem; text-align: right;">$${(
+            inputs.ltmEBITDA / inputs.ebitdaMarginY1
+          ).toFixed(1)}M</td>`;
+        years.forEach((y) => {
+          tableHTML += `<td style="padding: 0.75rem; text-align: right;">$${y.revenue.toFixed(
+            1
+          )}M</td>`;
+        });
+        tableHTML += `</tr>`;
+
+        // EBITDA
+        tableHTML += `<tr style="border-bottom: 1px solid var(--slate-200);">
+          <td style="padding: 0.75rem; font-weight: 600; position: sticky; left: 0; background: var(--white);">EBITDA</td>
+          <td style="padding: 0.75rem; text-align: right;">$${inputs.ltmEBITDA.toFixed(
+            1
+          )}M</td>`;
+        years.forEach((y) => {
+          tableHTML += `<td style="padding: 0.75rem; text-align: right;">$${y.ebitda.toFixed(
+            1
+          )}M</td>`;
+        });
+        tableHTML += `</tr>`;
+
+        // EBITDA Margin
+        tableHTML += `<tr style="background: var(--slate-50); border-bottom: 1px solid var(--slate-200);">
+          <td style="padding: 0.75rem; padding-left: 1.5rem; position: sticky; left: 0; background: var(--slate-50);">EBITDA Margin</td>
+          <td style="padding: 0.75rem; text-align: right;">${(
+            inputs.ebitdaMarginY1 * 100
+          ).toFixed(1)}%</td>`;
+        years.forEach((y) => {
+          tableHTML += `<td style="padding: 0.75rem; text-align: right;">${(
+            y.ebitdaMargin * 100
+          ).toFixed(1)}%</td>`;
+        });
+        tableHTML += `</tr>`;
+
+        // Free Cash Flow
+        tableHTML += `<tr style="background: var(--green-50); border-bottom: 1px solid var(--slate-200);">
+          <td style="padding: 0.75rem; font-weight: 600; position: sticky; left: 0; background: var(--green-50);">Free Cash Flow</td>
+          <td style="padding: 0.75rem; text-align: right;">-</td>`;
+        years.forEach((y) => {
+          tableHTML += `<td style="padding: 0.75rem; text-align: right; font-weight: 600;">$${y.fcf.toFixed(
+            1
+          )}M</td>`;
+        });
+        tableHTML += `</tr>`;
+
+        // Debt Paydown
+        tableHTML += `<tr style="border-bottom: 1px solid var(--slate-200);">
+            <td style="padding: 0.75rem; padding-left: 1.5rem; position: sticky; left: 0; background: var(--white);">Total Debt Paydown</td>
+            <td style="padding: 0.75rem; text-align: right;">-</td>`;
+        years.forEach((y) => {
+          const totalPaydown =
+            y.tlbAmortization +
+            y.revolverPaydown +
+            (y.tlbPaydown - y.tlbAmortization);
+          tableHTML += `<td style="padding: 0.75rem; text-align: right;">$${totalPaydown.toFixed(
+            1
+          )}M</td>`;
+        });
+        tableHTML += `</tr>`;
+
+        // Dividend Recap
+        if (inputs.enableRecap) {
+          tableHTML += `<tr style="background: var(--purple-50); border-bottom: 1px solid var(--slate-200);">
+              <td style="padding: 0.75rem; font-weight: 600; position: sticky; left: 0; background: var(--purple-50);">Dividend Recap</td>
+              <td style="padding: 0.75rem; text-align: right;">-</td>`;
+          years.forEach((y) => {
+            tableHTML += `<td style="padding: 0.75rem; text-align: right; font-weight: 600; color: var(--purple-700);">
+                ${y.recapAmount > 0 ? `$${y.recapAmount.toFixed(1)}M` : "-"}
+              </td>`;
+          });
+          tableHTML += `</tr>`;
+        }
+
+        tableHTML += `</tbody></table></div></div>`;
+
+        return tableHTML;
+      }
+
+      function renderManagementReturns(scenario) {
+        const mgmt = scenario.mgmtReturns;
+        const sponsor = scenario.returns;
+
+        return `
+            <div style="margin-top: 2rem;">
+              <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--slate-700);">
+                👔 Management vs Sponsor Returns Comparison
+              </h4>
+
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <!-- Sponsor Returns -->
+                <div style="background: linear-gradient(135deg, var(--blue-50), var(--blue-100));
+                            padding: 1.25rem; border-radius: 0.5rem; border: 2px solid var(--blue-300);">
+                  <h5 style="font-size: 0.875rem; font-weight: 700; color: var(--blue-900);
+                            margin-bottom: 1rem; text-align: center;">
+                    💼 SPONSOR
+                  </h5>
+                  <div style="text-align: center; margin-bottom: 0.75rem;">
+                    <div style="font-size: 0.75rem; color: var(--slate-600);">IRR</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--blue-700);">
+                      ${(sponsor.sponsorIRR * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                  <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; font-size: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <span>Invested:</span>
+                      <strong>$${sponsor.sponsorInvested.toFixed(1)}M</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <span>Exit Value:</span>
+                      <strong>$${sponsor.sponsorExitValue.toFixed(1)}M</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-top: 0.25rem;
+                                border-top: 1px solid var(--slate-200);">
+                      <span>MoM:</span>
+                      <strong style="color: var(--blue-700);">${sponsor.sponsorMoM.toFixed(
+                        2
+                      )}x</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Management Rollover -->
+                <div style="background: linear-gradient(135deg, var(--cyan-50), var(--cyan-100));
+                            padding: 1.25rem; border-radius: 0.5rem; border: 2px solid var(--cyan-300);">
+                  <h5 style="font-size: 0.875rem; font-weight: 700; color: var(--cyan-900);
+                            margin-bottom: 1rem; text-align: center;">
+                    🔄 ROLLOVER
+                  </h5>
+                  <div style="text-align: center; margin-bottom: 0.75rem;">
+                    <div style="font-size: 0.75rem; color: var(--slate-600);">IRR</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--cyan-700);">
+                      ${(mgmt.rollover.irr * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                  <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; font-size: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <span>Invested:</span>
+                      <strong>$${mgmt.rollover.invested.toFixed(1)}M</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <span>Exit Value:</span>
+                      <strong>$${mgmt.rollover.exitValue.toFixed(1)}M</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-top: 0.25rem;
+                                border-top: 1px solid var(--slate-200);">
+                      <span>MoM:</span>
+                      <strong style="color: var(--cyan-700);">${mgmt.rollover.moM.toFixed(
+                        2
+                      )}x</strong>
+                    </div>
+                  </div>
+                  <div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--cyan-50);
+                              border-radius: 0.25rem; font-size: 0.7rem; text-align: center;">
+                    Same economics as sponsor
+                  </div>
+                </div>
+
+                <!-- Sweet Equity -->
+                <div style="background: linear-gradient(135deg, var(--green-50), var(--green-100));
+                            padding: 1.25rem; border-radius: 0.5rem; border: 2px solid var(--green-300);">
+                  <h5 style="font-size: 0.875rem; font-weight: 700; color: var(--green-900);
+                            margin-bottom: 1rem; text-align: center;">
+                    🍬 SWEET EQUITY
+                  </h5>
+                  <div style="text-align: center; margin-bottom: 0.75rem;">
+                    <div style="font-size: 0.75rem; color: var(--slate-600);">IRR</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--green-700);">
+                      ${(mgmt.sweetEquity.irr * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                  <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; font-size: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <span>Invested:</span>
+                      <strong>$${mgmt.sweetEquity.invested.toFixed(1)}M</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <span>Exit Value:</span>
+                      <strong>$${mgmt.sweetEquity.exitValue.toFixed(
+                        1
+                      )}M</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-top: 0.25rem;
+                                border-top: 1px solid var(--slate-200);">
+                      <span>MoM:</span>
+                      <strong style="color: var(--green-700);">${mgmt.sweetEquity.moM.toFixed(
+                        2
+                      )}x</strong>
+                    </div>
+                  </div>
+                  <div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--green-50);
+                              border-radius: 0.25rem; font-size: 0.7rem; text-align: center;">
+                    ${(scenario.inputs.sweetDiscount * 100).toFixed(
+                      0
+                    )}% discount to FMV
+                  </div>
+                </div>
+
+                <!-- Options -->
+                <div style="background: linear-gradient(135deg, var(--purple-50), var(--purple-100));
+                            padding: 1.25rem; border-radius: 0.5rem; border: 2px solid var(--purple-300);">
+                  <h5 style="font-size: 0.875rem; font-weight: 700; color: var(--purple-900);
+                            margin-bottom: 1rem; text-align: center;">
+                    🎯 OPTIONS
+                  </h5>
+                  <div style="text-align: center; margin-bottom: 0.75rem;">
+                    <div style="font-size: 0.75rem; color: var(--slate-600);">Return</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--purple-700);">
+                      ${
+                        mgmt.options.moM > 1000
+                          ? "∞"
+                          : mgmt.options.moM.toFixed(0) + "x"
+                      }
+                    </div>
+                  </div>
+                  <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; font-size: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <span>Invested:</span>
+                      <strong>$${mgmt.options.invested.toFixed(2)}M</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <span>Exit Value:</span>
+                      <strong>$${mgmt.options.exitValue.toFixed(1)}M</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-top: 0.25rem;
+                                border-top: 1px solid var(--slate-200);">
+                      <span>Profit:</span>
+                      <strong style="color: var(--purple-700);">$${(
+                        mgmt.options.exitValue - mgmt.options.invested
+                      ).toFixed(1)}M</strong>
+                    </div>
+                  </div>
+                  <div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--purple-50);
+                              border-radius: 0.25rem; font-size: 0.7rem; text-align: center;">
+                    Strike: ${(scenario.inputs.optionStrike * 100).toFixed(
+                      0
+                    )}% of FMV
+                  </div>
+                </div>
+              </div>
+
+              <!-- Blended Management Returns -->
+              <div style="margin-top: 1.5rem; background: linear-gradient(135deg, var(--orange-50), var(--orange-100));
+                          padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--orange-300);">
+                <h5 style="font-size: 1rem; font-weight: 700; color: var(--orange-900);
+                          margin-bottom: 1rem; text-align: center;">
+                  📊 Blended Management Returns (Total Package)
+                </h5>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                  <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Total Invested</div>
+                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--orange-700);">
+                      $${mgmt.blended.invested.toFixed(1)}M
+                    </div>
+                  </div>
+                  <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Total Exit Value</div>
+                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--orange-700);">
+                      $${mgmt.blended.exitValue.toFixed(1)}M
+                    </div>
+                  </div>
+                  <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Blended IRR</div>
+                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--orange-700);">
+                      ${(mgmt.blended.irr * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                  <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Blended MoM</div>
+                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--orange-700);">
+                      ${mgmt.blended.moM.toFixed(2)}x
+                    </div>
+                  </div>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 1rem; background: var(--white); border-radius: 0.5rem;
+                            border-left: 4px solid var(--orange-500); font-size: 0.875rem;">
+                  <strong>Key Insight:</strong>
+                  ${
+                    mgmt.blended.irr > sponsor.sponsorIRR
+                      ? `Management's blended IRR of ${(
+                          mgmt.blended.irr * 100
+                        ).toFixed(1)}% outperforms sponsor's ${(
+                          sponsor.sponsorIRR * 100
+                        ).toFixed(
+                          1
+                        )}% due to sweet equity and options leverage. This ${(
+                          (mgmt.blended.irr - sponsor.sponsorIRR) *
+                          100
+                        ).toFixed(
+                          1
+                        )}% premium properly incentivizes management to drive value creation.`
+                      : `Management's blended IRR of ${(
+                          mgmt.blended.irr * 100
+                        ).toFixed(1)}% is aligned with sponsor returns of ${(
+                          sponsor.sponsorIRR * 100
+                        ).toFixed(
+                          1
+                        )}%, indicating strong alignment of interests.`
+                  }
                 </div>
               </div>
             </div>
           `;
+      }
 
-          document.getElementById("returnsBreakdown").innerHTML = returnsHTML;
-          returnsDiv.classList.remove("hidden");
-        });
+      function renderValueCreationBridge(scenario) {
+        const returns = scenario.returns;
+        const inputs = scenario.inputs;
+
+        return `
+            <div style="margin-top: 2rem;">
+              <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--slate-700);">
+                🌉 Value Creation Bridge Analysis
+              </h4>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
+                <!-- Exit Waterfall -->
+                <div style="background: var(--blue-50); padding: 1.25rem; border-radius: 0.5rem;
+                            border-left: 4px solid var(--blue-500);">
+                  <h5 style="font-weight: 600; color: var(--blue-900); margin-bottom: 1rem;">Exit Waterfall</h5>
+                  <table style="width: 100%; font-size: 0.875rem;">
+                    <tr style="border-bottom: 1px solid var(--slate-200);">
+                      <td style="padding: 0.5rem 0;">Exit EBITDA</td>
+                      <td style="text-align: right; font-weight: 600;">$${returns.exitEBITDA.toFixed(
+                        1
+                      )}M</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--slate-200);">
+                      <td style="padding: 0.5rem 0;">Exit Multiple</td>
+                      <td style="text-align: right; font-weight: 500;">${inputs.exitMultipleBase.toFixed(
+                        1
+                      )}x</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--slate-200);">
+                      <td style="padding: 0.5rem 0; font-weight: 600;">Exit Enterprise Value</td>
+                      <td style="text-align: right; font-weight: 700; color: var(--blue-700);">$${returns.exitEV.toFixed(
+                        1
+                      )}M</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--slate-200);">
+                      <td style="padding: 0.5rem 0;">Less: Remaining Debt</td>
+                      <td style="text-align: right; font-weight: 500;">($${returns.exitDebt.toFixed(
+                        1
+                      )}M)</td>
+                    </tr>
+                    <tr style="border-top: 2px solid var(--blue-600); background: var(--blue-100);">
+                      <td style="padding: 0.75rem 0; font-weight: 700;">Exit Equity Value</td>
+                      <td style="text-align: right; font-weight: 700; color: var(--blue-800);">$${returns.exitEquityValue.toFixed(
+                        1
+                      )}M</td>
+                    </tr>
+                  </table>
+
+                  <div style="margin-top: 1rem; padding: 0.75rem; background: var(--white);
+                              border-radius: 0.375rem; font-size: 0.75rem;">
+                    <strong>Exit Leverage:</strong> ${(
+                      returns.exitDebt / returns.exitEBITDA
+                    ).toFixed(2)}x Net Debt/EBITDA<br>
+                    <strong>Total Debt Paydown:</strong> $${returns.deleveraging.toFixed(
+                      1
+                    )}M
+                    (${(
+                      (returns.deleveraging / scenario.transaction.totalDebt) *
+                      100
+                    ).toFixed(0)}%)
+                  </div>
+                </div>
+
+                <!-- Value Creation Sources -->
+                <div style="background: var(--green-50); padding: 1.25rem; border-radius: 0.5rem;
+                            border-left: 4px solid var(--green-500);">
+                  <h5 style="font-weight: 600; color: var(--green-900); margin-bottom: 1rem;">Sources of Value Creation</h5>
+                  <table style="width: 100%; font-size: 0.875rem;">
+                    <tr style="border-bottom: 1px solid var(--slate-200);">
+                      <td style="padding: 0.5rem 0;">Initial Equity</td>
+                      <td style="text-align: right; font-weight: 600;">$${returns.sponsorInvested.toFixed(
+                        1
+                      )}M</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--slate-200);">
+                      <td style="padding: 0.5rem 0; color: var(--blue-700);">
+                        + EBITDA Growth (${inputs.ltmEBITDA.toFixed(
+                          0
+                        )}M → ${returns.exitEBITDA.toFixed(0)}M)
+                      </td>
+                      <td style="text-align: right; font-weight: 500;">$${returns.ebitdaGrowthValue.toFixed(
+                        1
+                      )}M</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--slate-200);">
+                      <td style="padding: 0.5rem 0; color: var(--green-700);">
+                        + Deleveraging (Debt Paydown)
+                      </td>
+                      <td style="text-align: right; font-weight: 500;">$${returns.deleveraging.toFixed(
+                        1
+                      )}M</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--slate-200);">
+                      <td style="padding: 0.5rem 0; color: ${
+                        returns.multipleExpansion >= 0
+                          ? "var(--green-700)"
+                          : "var(--red-700)"
+                      };">
+                        ${
+                          returns.multipleExpansion >= 0 ? "+" : "−"
+                        } Multiple ${
+          returns.multipleExpansion >= 0 ? "Expansion" : "Compression"
+        }
+                        (${inputs.entryMultiple.toFixed(
+                          1
+                        )}x → ${inputs.exitMultipleBase.toFixed(1)}x)
+                      </td>
+                      <td style="text-align: right; font-weight: 500;">$${Math.abs(
+                        returns.multipleExpansion
+                      ).toFixed(1)}M</td>
+                    </tr>
+                    ${
+                      scenario.projections.recapDividend > 0
+                        ? `
+                      <tr style="border-bottom: 1px solid var(--slate-200);">
+                        <td style="padding: 0.5rem 0; color: var(--purple-700);">
+                          + Dividend Recap (Year ${inputs.recapYear})
+                        </td>
+                        <td style="text-align: right; font-weight: 500;">$${scenario.projections.recapDividend.toFixed(
+                          1
+                        )}M</td>
+                      </tr>
+                    `
+                        : ""
+                    }
+                    <tr style="border-top: 2px solid var(--green-600); background: var(--green-100);">
+                      <td style="padding: 0.75rem 0; font-weight: 700;">Exit Equity Value (Sponsor)</td>
+                      <td style="text-align: right; font-weight: 700; color: var(--green-800);">$${returns.sponsorExitValue.toFixed(
+                        1
+                      )}M</td>
+                    </tr>
+                  </table>
+
+                  <div style="margin-top: 1rem; padding: 0.75rem; background: var(--white);
+                              border-radius: 0.375rem; font-size: 0.75rem;">
+                    <strong>Total Profit:</strong> $${returns.sponsorProfit.toFixed(
+                      1
+                    )}M
+                    (+${((returns.sponsorMoM - 1) * 100).toFixed(0)}%)<br>
+                    <strong>CAGR:</strong> ${(
+                      (Math.pow(returns.sponsorMoM, 1 / inputs.holdPeriod) -
+                        1) *
+                      100
+                    ).toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+
+              <!-- Value Attribution Chart -->
+              <div style="background: linear-gradient(135deg, var(--indigo-50), var(--purple-50));
+                          padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--indigo-200);">
+                <h5 style="font-size: 1rem; font-weight: 700; color: var(--indigo-900); margin-bottom: 1rem; text-align: center;">
+                  📊 Value Creation Attribution (% of Total Value Added)
+                </h5>
+
+                ${(() => {
+                  const totalValueAdded = returns.sponsorProfit;
+                  const ebitdaContribution =
+                    (returns.ebitdaGrowthValue / totalValueAdded) * 100;
+                  const deleverageContribution =
+                    (returns.deleveraging / totalValueAdded) * 100;
+                  const multipleContribution =
+                    (returns.multipleExpansion / totalValueAdded) * 100;
+                  const recapContribution =
+                    scenario.projections.recapDividend > 0
+                      ? (scenario.projections.recapDividend / totalValueAdded) *
+                        100
+                      : 0;
+
+                  return `
+                    <div style="display: grid; grid-template-columns: repeat(${
+                      scenario.projections.recapDividend > 0 ? 4 : 3
+                    }, 1fr); gap: 1rem;">
+                      <div style="background: var(--white); padding: 1.25rem; border-radius: 0.5rem; text-align: center;">
+                        <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">EBITDA Growth</div>
+                        <div style="font-size: 2rem; font-weight: 800; color: var(--blue-600);">
+                          ${ebitdaContribution.toFixed(0)}%
+                        </div>
+                        <div style="font-size: 0.75rem; margin-top: 0.5rem; color: var(--slate-600);">
+                          $${returns.ebitdaGrowthValue.toFixed(1)}M
+                        </div>
+                        <div style="margin-top: 0.75rem; height: 100px; background: var(--slate-100); border-radius: 0.375rem; overflow: hidden;">
+                          <div style="height: ${ebitdaContribution}%; background: linear-gradient(to top, var(--blue-500), var(--blue-300));
+                                      width: 100%; transition: height 0.5s;"></div>
+                        </div>
+                      </div>
+
+                      <div style="background: var(--white); padding: 1.25rem; border-radius: 0.5rem; text-align: center;">
+                        <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Deleveraging</div>
+                        <div style="font-size: 2rem; font-weight: 800; color: var(--green-600);">
+                          ${deleverageContribution.toFixed(0)}%
+                        </div>
+                        <div style="font-size: 0.75rem; margin-top: 0.5rem; color: var(--slate-600);">
+                          $${returns.deleveraging.toFixed(1)}M
+                        </div>
+                        <div style="margin-top: 0.75rem; height: 100px; background: var(--slate-100); border-radius: 0.375rem; overflow: hidden;">
+                          <div style="height: ${deleverageContribution}%; background: linear-gradient(to top, var(--green-500), var(--green-300));
+                                      width: 100%; transition: height 0.5s;"></div>
+                        </div>
+                      </div>
+
+                      <div style="background: var(--white); padding: 1.25rem; border-radius: 0.5rem; text-align: center;">
+                        <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Multiple ${
+                          returns.multipleExpansion >= 0
+                            ? "Expansion"
+                            : "Compression"
+                        }</div>
+                        <div style="font-size: 2rem; font-weight: 800; color: ${
+                          returns.multipleExpansion >= 0
+                            ? "var(--purple-600)"
+                            : "var(--red-600)"
+                        };">
+                          ${
+                            returns.multipleExpansion >= 0 ? "+" : ""
+                          }${multipleContribution.toFixed(0)}%
+                        </div>
+                        <div style="font-size: 0.75rem; margin-top: 0.5rem; color: var(--slate-600);">
+                          $${Math.abs(returns.multipleExpansion).toFixed(1)}M
+                        </div>
+                        <div style="margin-top: 0.75rem; height: 100px; background: var(--slate-100); border-radius: 0.375rem; overflow: hidden;">
+                          <div style="height: ${Math.abs(
+                            multipleContribution
+                          )}%; background: linear-gradient(to top, ${
+                    returns.multipleExpansion >= 0
+                      ? "var(--purple-500), var(--purple-300)"
+                      : "var(--red-500), var(--red-300)"
+                  });
+                                      width: 100%; transition: height 0.5s;"></div>
+                        </div>
+                      </div>
+
+                      ${
+                        scenario.projections.recapDividend > 0
+                          ? `
+                        <div style="background: var(--white); padding: 1.25rem; border-radius: 0.5rem; text-align: center;">
+                          <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Dividend Recap</div>
+                          <div style="font-size: 2rem; font-weight: 800; color: var(--orange-600);">
+                            ${recapContribution.toFixed(0)}%
+                          </div>
+                          <div style="font-size: 0.75rem; margin-top: 0.5rem; color: var(--slate-600);">
+                            $${scenario.projections.recapDividend.toFixed(1)}M
+                          </div>
+                          <div style="margin-top: 0.75rem; height: 100px; background: var(--slate-100); border-radius: 0.375rem; overflow: hidden;">
+                            <div style="height: ${recapContribution}%; background: linear-gradient(to top, var(--orange-500), var(--orange-300));
+                                        width: 100%; transition: height 0.5s;"></div>
+                          </div>
+                        </div>
+                      `
+                          : ""
+                      }
+                    </div>
+                  `;
+                })()}
+
+                <div style="margin-top: 1.5rem; padding: 1rem; background: var(--white); border-radius: 0.5rem;
+                            border-left: 4px solid var(--indigo-500); font-size: 0.875rem;">
+                  <strong>Strategic Insight:</strong>
+                  ${(() => {
+                    const totalValueAdded = returns.sponsorProfit;
+                    const ebitdaContribution =
+                      (returns.ebitdaGrowthValue / totalValueAdded) * 100;
+                    const deleverageContribution =
+                      (returns.deleveraging / totalValueAdded) * 100;
+                    const multipleContribution =
+                      (returns.multipleExpansion / totalValueAdded) * 100;
+
+                    if (ebitdaContribution > 50) {
+                      return `This deal is driven primarily by <strong>operational value creation</strong> (${ebitdaContribution.toFixed(
+                        0
+                      )}% of returns),
+                              indicating strong execution on business plan and revenue/margin expansion. This is the most sustainable source of PE returns.`;
+                    } else if (deleverageContribution > 40) {
+                      return `This deal is heavily reliant on <strong>financial engineering</strong> (${deleverageContribution.toFixed(
+                        0
+                      )}% from deleveraging), 
+                                            which is solid but requires strong cash flow generation. Focus on maintaining covenant compliance throughout the hold period.`;
+                    } else if (multipleContribution > 30) {
+                      return `<strong>Multiple expansion</strong> contributes ${Math.abs(
+                        multipleContribution
+                      ).toFixed(0)}% of value. 
+                                            ${
+                                              multipleContribution > 0
+                                                ? "This assumes favorable exit market conditions. Stress test downside scenarios with multiple compression."
+                                                : "Despite multiple compression, operational improvements drive positive returns."
+                                            }`;
+                    } else {
+                      return `Balanced value creation across all three levers: EBITDA growth (${ebitdaContribution.toFixed(
+                        0
+                      )}%), 
+                                            deleveraging (${deleverageContribution.toFixed(
+                                              0
+                                            )}%), and multiple dynamics (${multipleContribution.toFixed(
+                        0
+                      )}%). 
+                                            This diversified approach reduces execution risk.`;
+                    }
+                  })()}
+                              </div>
+                            </div>
+                          </div>
+                        `;
+      }
+
+      // ==================== EXPORT INITIALIZATION ====================
+
+      function initializeLBOModel() {
+        const container = document.getElementById("lboModelContainer");
+        if (!container) {
+          console.error("LBO Model container not found");
+          return;
+        }
+
+        container.innerHTML = renderLBOCalculator();
+        setupLBOCalculator();
+
+        console.log("✅ Advanced LBO Model initialized successfully");
+      }
+
+      // Auto-initialize when DOM is ready
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initializeLBOModel);
+      } else {
+        initializeLBOModel();
       }
 
       // --- Initialize the app when the page loads ---
