@@ -519,6 +519,11 @@
             component: "CAPMCalculator",
           },
           {
+            id: "ccpo",
+            name: "Credit Card Optimizer",
+            component: "CCPOCalculator",
+          },
+          {
             id: "bond-pricing",
             name: "Bond Pricing",
             component: "BondPricingCalculator",
@@ -633,6 +638,10 @@
           case "CAPMCalculator":
             calculatorContent.innerHTML = renderCAPMCalculator();
             setupCAPMCalculator();
+            break;
+          case "CCPOCalculator":
+            calculatorContent.innerHTML = renderCCPOCalculator();
+            setupCCPOCalculator();
             break;
           case "BondPricingCalculator":
             calculatorContent.innerHTML = renderBondPricingCalculator();
@@ -4054,6 +4063,1113 @@
         document.addEventListener("DOMContentLoaded", initializeLBOModel);
       } else {
         initializeLBOModel();
+      }
+
+      // ==================== CREDIT CARD PAYMENT OPTIMIZER ====================
+
+      function renderCCPOCalculator() {
+        return `
+    <h2 class="calculator-title">Credit Card Payment Optimizer (CCPO)</h2>
+    
+    <div class="explanation-box">
+      <div class="explanation-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Smart Debt Elimination Strategy
+      </div>
+      <p class="explanation-text">
+        <strong>Don't just pay minimums.</strong> This optimizer helps you eliminate credit card debt strategically.
+        Compare proven methods: <strong>Avalanche</strong> (highest interest first - saves most money) vs 
+        <strong>Snowball</strong> (smallest balance first - quick psychological wins).
+      </p>
+      <div class="explanation-note">
+        <strong>Financial Insight:</strong> The difference between random payments and optimized strategy can save you 
+        thousands in interest and shave years off your debt-free date. Even $50 extra/month compounds dramatically.
+      </div>
+    </div>
+
+    <!-- Card Input Section -->
+    <div style="background: var(--slate-50); padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--slate-700);">
+          💳 Your Credit Cards
+        </h3>
+        <button class="btn btn-primary" id="addCardBtn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.875rem;">
+          + Add Card
+        </button>
+      </div>
+
+      <div id="cardsContainer">
+        <!-- Cards will be added here -->
+      </div>
+    </div>
+
+    <!-- Payment Strategy Section -->
+    <div class="form-grid" style="margin-bottom: 1.5rem;">
+      <div class="form-group">
+        <label class="form-label">💰 Total Monthly Payment Available</label>
+        <input type="number" id="totalMonthlyPayment" class="form-input" placeholder="500" step="10">
+        <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+          Must be ≥ sum of all minimum payments
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">📅 Extra Payment (Optional)</label>
+        <input type="number" id="extraPayment" class="form-input" placeholder="0" step="50">
+        <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+          One-time injection (bonus, tax refund)
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🎯 When to Apply Extra Payment?</label>
+        <select id="extraPaymentMonth" class="form-select">
+          <option value="0">Not applicable</option>
+          <option value="1">Month 1</option>
+          <option value="3">Month 3</option>
+          <option value="6">Month 6</option>
+          <option value="12">Month 12</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn btn-success" id="optimizeBtn">
+      🚀 Optimize My Payment Strategy
+    </button>
+
+    <!-- Results Section -->
+    <div id="ccpoResults" class="hidden" style="margin-top: 2rem;">
+      <!-- Strategy comparison -->
+      <div id="strategyComparison"></div>
+      
+      <!-- Detailed breakdown tabs -->
+      <div id="detailedBreakdown" class="hidden" style="margin-top: 2rem;"></div>
+    </div>
+  `;
+      }
+
+      function setupCCPOCalculator() {
+        let cards = [];
+        let cardIdCounter = 1;
+
+        // Add initial card
+        addCard();
+
+        // Event listeners
+        document.getElementById("addCardBtn").addEventListener("click", () => {
+          if (cards.length < 10) {
+            addCard();
+          } else {
+            alert("Maximum 10 cards allowed");
+          }
+        });
+
+        document
+          .getElementById("optimizeBtn")
+          .addEventListener("click", optimizePayments);
+
+        function addCard() {
+          const cardId = cardIdCounter++;
+          const card = {
+            id: cardId,
+            balance: 0,
+            apr: 0,
+            minPaymentPercent: 2,
+            name: `Card ${cardId}`,
+          };
+          cards.push(card);
+          renderCards();
+        }
+
+        function removeCard(cardId) {
+          cards = cards.filter((c) => c.id !== cardId);
+          renderCards();
+        }
+
+        function renderCards() {
+          const container = document.getElementById("cardsContainer");
+
+          if (cards.length === 0) {
+            container.innerHTML =
+              '<p style="text-align: center; color: var(--slate-500);">No cards added yet</p>';
+            return;
+          }
+
+          container.innerHTML = cards
+            .map(
+              (card) => `
+      <div class="card-row" data-card-id="${card.id}" style="
+        background: var(--white); 
+        padding: 1rem; 
+        border-radius: 0.5rem; 
+        margin-bottom: 0.75rem;
+        border: 2px solid var(--slate-200);
+      ">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 1rem; align-items: end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Card Name</label>
+            <input type="text" class="form-input card-name" value="${card.name}" 
+                   style="font-weight: 500; color: var(--indigo-700);">
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Balance ($)</label>
+            <input type="number" class="form-input card-balance" value="${card.balance}" 
+                   placeholder="5000" step="100">
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">APR (%)</label>
+            <input type="number" class="form-input card-apr" value="${card.apr}" 
+                   placeholder="18.99" step="0.01">
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Min Payment (%)</label>
+            <input type="number" class="form-input card-minpayment" value="${card.minPaymentPercent}" 
+                   placeholder="2" step="0.1" min="1" max="10">
+          </div>
+          
+          <button class="remove-card-btn" data-card-id="${card.id}" style="
+            background: var(--red-500);
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+          ">
+            🗑️
+          </button>
+        </div>
+      </div>
+    `
+            )
+            .join("");
+
+          // Attach event listeners
+          document.querySelectorAll(".remove-card-btn").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              const cardId = parseInt(e.target.dataset.cardId);
+              removeCard(cardId);
+            });
+          });
+
+          // Update card data on input change
+          document.querySelectorAll(".card-row").forEach((row) => {
+            const cardId = parseInt(row.dataset.cardId);
+            const card = cards.find((c) => c.id === cardId);
+
+            row.querySelector(".card-name").addEventListener("input", (e) => {
+              card.name = e.target.value;
+            });
+
+            row
+              .querySelector(".card-balance")
+              .addEventListener("input", (e) => {
+                card.balance = parseFloat(e.target.value) || 0;
+              });
+
+            row.querySelector(".card-apr").addEventListener("input", (e) => {
+              card.apr = parseFloat(e.target.value) || 0;
+            });
+
+            row
+              .querySelector(".card-minpayment")
+              .addEventListener("input", (e) => {
+                card.minPaymentPercent = parseFloat(e.target.value) || 2;
+              });
+          });
+        }
+
+        function optimizePayments() {
+          // Validate inputs
+          const totalPayment = parseFloat(
+            document.getElementById("totalMonthlyPayment").value
+          );
+          const extraPayment =
+            parseFloat(document.getElementById("extraPayment").value) || 0;
+          const extraPaymentMonth =
+            parseInt(document.getElementById("extraPaymentMonth").value) || 0;
+
+          if (cards.length === 0) {
+            alert("Please add at least one credit card");
+            return;
+          }
+
+          if (isNaN(totalPayment) || totalPayment <= 0) {
+            alert("Please enter a valid total monthly payment");
+            return;
+          }
+
+          // Validate all cards have data
+          for (let card of cards) {
+            if (card.balance <= 0 || card.apr <= 0) {
+              alert(`Please fill in all fields for ${card.name}`);
+              return;
+            }
+          }
+
+          // Calculate minimum payments
+          const totalMinPayment = cards.reduce((sum, card) => {
+            const minPayment = Math.max(
+              25,
+              card.balance * (card.minPaymentPercent / 100)
+            );
+            return sum + minPayment;
+          }, 0);
+
+          if (totalPayment < totalMinPayment) {
+            alert(
+              `Total monthly payment ($${totalPayment.toFixed(
+                2
+              )}) must be at least the sum of minimum payments ($${totalMinPayment.toFixed(
+                2
+              )})`
+            );
+            return;
+          }
+
+          // Run optimizations
+          const minPaymentOnly = simulateStrategy(
+            "minimum",
+            cards,
+            totalMinPayment,
+            extraPayment,
+            extraPaymentMonth
+          );
+          const avalanche = simulateStrategy(
+            "avalanche",
+            cards,
+            totalPayment,
+            extraPayment,
+            extraPaymentMonth
+          );
+          const snowball = simulateStrategy(
+            "snowball",
+            cards,
+            totalPayment,
+            extraPayment,
+            extraPaymentMonth
+          );
+
+          // Display results
+          displayResults({
+            minPaymentOnly,
+            avalanche,
+            snowball,
+            totalPayment,
+            extraPayment,
+            extraPaymentMonth,
+          });
+        }
+
+        function simulateStrategy(
+          strategyType,
+          cards,
+          monthlyPayment,
+          extraPayment,
+          extraPaymentMonth
+        ) {
+          // Clone cards to avoid mutation
+          let remainingCards = cards.map((c) => ({
+            ...c,
+            remainingBalance: c.balance,
+            totalInterestPaid: 0,
+            monthsPaid: 0,
+          }));
+
+          const monthlyBreakdown = [];
+          let month = 0;
+          let totalInterestPaid = 0;
+
+          while (
+            remainingCards.some((c) => c.remainingBalance > 0) &&
+            month < 600
+          ) {
+            // Max 50 years safety
+            month++;
+
+            // Apply interest to all cards
+            remainingCards.forEach((card) => {
+              if (card.remainingBalance > 0) {
+                const monthlyInterest =
+                  (card.remainingBalance * (card.apr / 100)) / 12;
+                card.remainingBalance += monthlyInterest;
+                card.totalInterestPaid += monthlyInterest;
+                totalInterestPaid += monthlyInterest;
+              }
+            });
+
+            // Determine payment allocation
+            let availablePayment = monthlyPayment;
+
+            // Add extra payment if applicable
+            if (month === extraPaymentMonth && extraPayment > 0) {
+              availablePayment += extraPayment;
+            }
+
+            // Sort cards based on strategy
+            let sortedCards;
+            if (strategyType === "avalanche") {
+              sortedCards = [...remainingCards].sort((a, b) => b.apr - a.apr);
+            } else if (strategyType === "snowball") {
+              sortedCards = [...remainingCards].sort(
+                (a, b) => a.remainingBalance - b.remainingBalance
+              );
+            } else {
+              // minimum payment only
+              sortedCards = [...remainingCards];
+            }
+
+            // Pay minimum on all cards first
+            const cardPayments = [];
+            sortedCards.forEach((card) => {
+              if (card.remainingBalance > 0) {
+                const minPayment = Math.max(
+                  25,
+                  card.remainingBalance * (card.minPaymentPercent / 100)
+                );
+                const payment = Math.min(
+                  minPayment,
+                  card.remainingBalance,
+                  availablePayment
+                );
+
+                card.remainingBalance -= payment;
+                availablePayment -= payment;
+
+                cardPayments.push({
+                  cardId: card.id,
+                  cardName: card.name,
+                  payment: payment,
+                  remainingBalance: Math.max(0, card.remainingBalance),
+                });
+
+                if (card.remainingBalance <= 0) {
+                  card.monthsPaid = month;
+                }
+              }
+            });
+
+            // Allocate remaining payment based on strategy
+            if (strategyType !== "minimum" && availablePayment > 0.01) {
+              for (let card of sortedCards) {
+                if (card.remainingBalance > 0) {
+                  const extraPaymentToCard = Math.min(
+                    availablePayment,
+                    card.remainingBalance
+                  );
+                  card.remainingBalance -= extraPaymentToCard;
+                  availablePayment -= extraPaymentToCard;
+
+                  // Update payment in breakdown
+                  const cardPayment = cardPayments.find(
+                    (p) => p.cardId === card.id
+                  );
+                  if (cardPayment) {
+                    cardPayment.payment += extraPaymentToCard;
+                    cardPayment.remainingBalance = Math.max(
+                      0,
+                      card.remainingBalance
+                    );
+                  }
+
+                  if (card.remainingBalance <= 0) {
+                    card.monthsPaid = month;
+                  }
+
+                  if (availablePayment < 0.01) break;
+                }
+              }
+            }
+
+            monthlyBreakdown.push({
+              month,
+              payments: cardPayments,
+              totalPaid:
+                monthlyPayment +
+                (month === extraPaymentMonth ? extraPayment : 0),
+              totalRemaining: remainingCards.reduce(
+                (sum, c) => sum + Math.max(0, c.remainingBalance),
+                0
+              ),
+            });
+
+            // Check if all paid off
+            if (remainingCards.every((c) => c.remainingBalance <= 0)) {
+              break;
+            }
+          }
+
+          return {
+            strategyType,
+            monthsToPayoff: month,
+            totalInterestPaid,
+            cardDetails: remainingCards.map((c) => ({
+              id: c.id,
+              name: c.name,
+              originalBalance: c.balance,
+              totalInterestPaid: c.totalInterestPaid,
+              monthsPaid: c.monthsPaid,
+            })),
+            monthlyBreakdown,
+          };
+        }
+
+        function displayResults(results) {
+          const {
+            minPaymentOnly,
+            avalanche,
+            snowball,
+            totalPayment,
+            extraPayment,
+            extraPaymentMonth,
+          } = results;
+
+          const resultsDiv = document.getElementById("ccpoResults");
+          const comparisonDiv = document.getElementById("strategyComparison");
+
+          // Calculate savings
+          const avalancheSavings =
+            minPaymentOnly.totalInterestPaid - avalanche.totalInterestPaid;
+          const snowballSavings =
+            minPaymentOnly.totalInterestPaid - snowball.totalInterestPaid;
+          const avalancheVsSnowball =
+            snowball.totalInterestPaid - avalanche.totalInterestPaid;
+
+          const bestStrategy =
+            avalanche.totalInterestPaid <= snowball.totalInterestPaid
+              ? "avalanche"
+              : "snowball";
+
+          comparisonDiv.innerHTML = `
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; color: var(--slate-800);">
+        📊 Payment Strategy Comparison
+      </h3>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Minimum Payment Only -->
+        <div style="background: linear-gradient(135deg, var(--red-50), var(--red-100));
+                    padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--red-300);">
+          <h4 style="font-size: 1rem; font-weight: 700; color: var(--red-900); margin-bottom: 1rem; text-align: center;">
+            ⚠️ MINIMUM ONLY
+          </h4>
+          
+          <div style="background: var(--white); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+            <div style="text-align: center;">
+              <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.25rem;">Time to Payoff</div>
+              <div style="font-size: 2rem; font-weight: 800; color: var(--red-600);">
+                ${minPaymentOnly.monthsToPayoff} mo
+              </div>
+              <div style="font-size: 0.75rem; margin-top: 0.25rem; color: var(--red-600);">
+                ${(minPaymentOnly.monthsToPayoff / 12).toFixed(1)} years
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem; font-size: 0.875rem;">
+            <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; text-align: center;">
+              <div style="color: var(--slate-600); font-size: 0.75rem;">Total Interest</div>
+              <div style="font-weight: 700; color: var(--red-700);">$${minPaymentOnly.totalInterestPaid.toFixed(
+                0
+              )}</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1rem; padding: 0.75rem; background: var(--red-50);
+                      border-radius: 0.375rem; font-size: 0.75rem; text-align: center; color: var(--red-800);">
+            ⚠️ Baseline - Not recommended!
+          </div>
+        </div>
+
+        <!-- Avalanche Method -->
+        <div style="background: linear-gradient(135deg, var(--green-50), var(--green-100));
+                    padding: 1.5rem; border-radius: 0.75rem; border: 2px solid ${
+                      bestStrategy === "avalanche"
+                        ? "var(--green-600)"
+                        : "var(--green-300)"
+                    };
+                    box-shadow: ${
+                      bestStrategy === "avalanche"
+                        ? "0 4px 12px rgba(16, 185, 129, 0.3)"
+                        : "none"
+                    };">
+          <h4 style="font-size: 1rem; font-weight: 700; color: var(--green-900); margin-bottom: 1rem; text-align: center;">
+            🎯 AVALANCHE
+            ${
+              bestStrategy === "avalanche"
+                ? '<div style="font-size: 0.75rem; color: var(--green-700); margin-top: 0.25rem;">⭐ RECOMMENDED</div>'
+                : ""
+            }
+          </h4>
+          
+          <div style="background: var(--white); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+            <div style="text-align: center;">
+              <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.25rem;">Time to Payoff</div>
+              <div style="font-size: 2rem; font-weight: 800; color: var(--green-600);">
+                ${avalanche.monthsToPayoff} mo
+              </div>
+              <div style="font-size: 0.75rem; margin-top: 0.25rem; color: var(--green-600);">
+                ${(avalanche.monthsToPayoff / 12).toFixed(1)} years
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.875rem;">
+            <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; text-align: center;">
+              <div style="color: var(--slate-600); font-size: 0.75rem;">Total Interest</div>
+              <div style="font-weight: 700; color: var(--green-700);">$${avalanche.totalInterestPaid.toFixed(
+                0
+              )}</div>
+            </div>
+            <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; text-align: center;">
+              <div style="color: var(--slate-600); font-size: 0.75rem;">vs Minimum</div>
+              <div style="font-weight: 700; color: var(--green-700);">-$${avalancheSavings.toFixed(
+                0
+              )}</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1rem; padding: 0.75rem; background: var(--green-50);
+                      border-radius: 0.375rem; font-size: 0.75rem;">
+            <strong>Strategy:</strong> Pay highest APR first<br>
+            <strong>Saves:</strong> ${
+              minPaymentOnly.monthsToPayoff - avalanche.monthsToPayoff
+            } months
+          </div>
+        </div>
+
+        <!-- Snowball Method -->
+        <div style="background: linear-gradient(135deg, var(--blue-50), var(--blue-100));
+                    padding: 1.5rem; border-radius: 0.75rem; border: 2px solid ${
+                      bestStrategy === "snowball"
+                        ? "var(--blue-600)"
+                        : "var(--blue-300)"
+                    };
+                    box-shadow: ${
+                      bestStrategy === "snowball"
+                        ? "0 4px 12px rgba(59, 130, 246, 0.3)"
+                        : "none"
+                    };">
+          <h4 style="font-size: 1rem; font-weight: 700; color: var(--blue-900); margin-bottom: 1rem; text-align: center;">
+            ⛄ SNOWBALL
+            ${
+              bestStrategy === "snowball"
+                ? '<div style="font-size: 0.75rem; color: var(--blue-700); margin-top: 0.25rem;">⭐ RECOMMENDED</div>'
+                : ""
+            }
+          </h4>
+          
+          <div style="background: var(--white); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+            <div style="text-align: center;">
+              <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.25rem;">Time to Payoff</div>
+              <div style="font-size: 2rem; font-weight: 800; color: var(--blue-600);">
+                ${snowball.monthsToPayoff} mo
+              </div>
+              <div style="font-size: 0.75rem; margin-top: 0.25rem; color: var(--blue-600);">
+                ${(snowball.monthsToPayoff / 12).toFixed(1)} years
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.875rem;">
+            <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; text-align: center;">
+              <div style="color: var(--slate-600); font-size: 0.75rem;">Total Interest</div>
+              <div style="font-weight: 700; color: var(--blue-700);">$${snowball.totalInterestPaid.toFixed(
+                0
+              )}</div>
+            </div>
+            <div style="background: var(--white); padding: 0.75rem; border-radius: 0.375rem; text-align: center;">
+              <div style="color: var(--slate-600); font-size: 0.75rem;">vs Minimum</div>
+              <div style="font-weight: 700; color: var(--blue-700);">-$${snowballSavings.toFixed(
+                0
+              )}</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1rem; padding: 0.75rem; background: var(--blue-50);
+                      border-radius: 0.375rem; font-size: 0.75rem;">
+            <strong>Strategy:</strong> Pay smallest balance first<br>
+            <strong>Saves:</strong> ${
+              minPaymentOnly.monthsToPayoff - snowball.monthsToPayoff
+            } months
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Insights -->
+      <div style="background: linear-gradient(135deg, var(--indigo-50), var(--purple-50));
+                  padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--indigo-200);">
+        <h4 style="font-size: 1rem; font-weight: 700; color: var(--indigo-900); margin-bottom: 1rem; text-align: center;">
+          💡 Key Insights & Recommendations
+        </h4>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+          <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Your Monthly Payment</div>
+            <div style="font-weight: 700; font-size: 1.1rem; color: var(--indigo-700);">
+              $${totalPayment.toFixed(0)}/mo
+            </div>
+            ${
+              extraPayment > 0
+                ? `
+              <div style="font-size: 0.7rem; color: var(--purple-600); margin-top: 0.25rem;">
+                + $${extraPayment} in month ${extraPaymentMonth}
+              </div>
+            `
+                : ""
+            }
+          </div>
+
+          <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Best Strategy</div>
+            <div style="font-weight: 700; font-size: 1.1rem; color: ${
+              bestStrategy === "avalanche"
+                ? "var(--green-700)"
+                : "var(--blue-700)"
+            };">
+              ${bestStrategy === "avalanche" ? "🎯 Avalanche" : "⛄ Snowball"}
+            </div>
+          </div>
+
+          <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Interest Savings</div>
+            <div style="font-weight: 700; font-size: 1.1rem; color: var(--green-700);">
+              $${Math.max(avalancheSavings, snowballSavings).toFixed(0)}
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem; padding: 1rem; background: var(--white); border-radius: 0.5rem;
+                    border-left: 4px solid var(--indigo-500); font-size: 0.875rem;">
+          <strong>Why ${
+            bestStrategy === "avalanche" ? "Avalanche" : "Snowball"
+          }?</strong>
+          ${
+            bestStrategy === "avalanche"
+              ? `
+            Avalanche method saves you <strong>$${avalancheVsSnowball.toFixed(
+              0
+            )} more</strong> than Snowball by targeting high-interest debt first.
+            This is the mathematically optimal strategy for minimizing total interest paid.
+          `
+              : `
+            While Snowball pays slightly more interest ($${avalancheVsSnowball.toFixed(
+              0
+            )} difference), it provides
+            <strong>psychological wins</strong> by eliminating cards faster, which helps maintain motivation.
+            ${
+              Math.abs(avalancheVsSnowball / avalancheSavings) < 0.05
+                ? "The difference is minimal (<5%), so choose what keeps you motivated!"
+                : ""
+            }
+          `
+          }
+        </div>
+
+        <button class="btn btn-primary" id="showDetailedBtn" style="margin-top: 1rem;">
+          📈 Show Detailed Payment Schedule
+        </button>
+      </div>
+    `;
+
+          resultsDiv.classList.remove("hidden");
+
+          // Add event listener for detailed view
+          document
+            .getElementById("showDetailedBtn")
+            .addEventListener("click", () => {
+              displayDetailedBreakdown(avalanche, snowball);
+            });
+        }
+
+        function displayDetailedBreakdown(avalanche, snowball) {
+          const detailedDiv = document.getElementById("detailedBreakdown");
+
+          detailedDiv.innerHTML = `
+      <div style="background: var(--white); border-radius: 0.75rem; padding: 1.5rem;
+                  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--slate-800);">
+          📅 Month-by-Month Payment Schedule
+        </h3>
+
+        <div class="options-toggle" style="margin-bottom: 1.5rem;">
+          <button class="option-btn active" id="avalancheDetailBtn">Avalanche Strategy</button>
+          <button class="option-btn" id="snowballDetailBtn">Snowball Strategy</button>
+        </div>
+
+        <div id="avalancheDetail">
+          ${renderPaymentSchedule(avalanche)}
+        </div>
+
+        <div id="snowballDetail" class="hidden">
+          ${renderPaymentSchedule(snowball)}
+        </div>
+      </div>
+    `;
+
+          detailedDiv.classList.remove("hidden");
+
+          // Toggle between strategies
+          document
+            .getElementById("avalancheDetailBtn")
+            .addEventListener("click", (e) => {
+              document
+                .getElementById("avalancheDetailBtn")
+                .classList.add("active");
+              document
+                .getElementById("snowballDetailBtn")
+                .classList.remove("active");
+              document
+                .getElementById("avalancheDetail")
+                .classList.remove("hidden");
+              document.getElementById("snowballDetail").classList.add("hidden");
+            });
+
+          document
+            .getElementById("snowballDetailBtn")
+            .addEventListener("click", (e) => {
+              document
+                .getElementById("snowballDetailBtn")
+                .classList.add("active");
+              document
+                .getElementById("avalancheDetailBtn")
+                .classList.remove("active");
+              document
+                .getElementById("snowballDetail")
+                .classList.remove("hidden");
+              document
+                .getElementById("avalancheDetail")
+                .classList.add("hidden");
+            });
+        }
+
+        function renderPaymentSchedule(strategy) {
+          const { monthlyBreakdown, cardDetails } = strategy;
+
+          // Group cards by payoff milestone
+          const payoffMilestones = cardDetails
+            .sort((a, b) => a.monthsPaid - b.monthsPaid)
+            .map((card) => ({
+              ...card,
+              payoffMonth: card.monthsPaid,
+            }));
+
+          // Show first 12 months + every 6 months after
+          const monthsToShow = [];
+          for (let i = 1; i <= Math.min(12, monthlyBreakdown.length); i++) {
+            monthsToShow.push(i);
+          }
+          for (let i = 18; i <= monthlyBreakdown.length; i += 6) {
+            monthsToShow.push(i);
+          }
+          // Always include final month
+          if (!monthsToShow.includes(monthlyBreakdown.length)) {
+            monthsToShow.push(monthlyBreakdown.length);
+          }
+
+          return `
+            <!-- Payoff Timeline -->
+            <div style="background: var(--slate-50); padding: 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+              <h4 style="font-size: 1rem; font-weight: 600; color: var(--slate-700); margin-bottom: 1rem;">
+                🎯 Debt Payoff Timeline
+              </h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                ${payoffMilestones
+                  .map(
+                    (card, idx) => `
+                  <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; 
+                              border-left: 4px solid ${getCardColor(idx)};">
+                    <div style="font-weight: 600; color: var(--slate-800); margin-bottom: 0.5rem;">
+                      ${card.name}
+                    </div>
+                    <div style="font-size: 0.875rem; color: var(--slate-600);">
+                      Paid off: <strong>Month ${card.payoffMonth}</strong>
+                      <br>
+                      Interest: <strong>$${card.totalInterestPaid.toFixed(
+                        0
+                      )}</strong>
+                    </div>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+            </div>
+
+            <!-- Monthly Breakdown Table -->
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                  <tr style="background: var(--slate-100); border-bottom: 2px solid var(--slate-300);">
+                    <th style="padding: 0.75rem; text-align: left; font-weight: 600;">Month</th>
+                    ${cardDetails
+                      .map(
+                        (card) => `
+                      <th style="padding: 0.75rem; text-align: right; font-weight: 600;">${card.name}</th>
+                    `
+                      )
+                      .join("")}
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">Total Payment</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">Remaining Debt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${monthsToShow
+                    .map((monthNum) => {
+                      const month = monthlyBreakdown[monthNum - 1];
+
+                      return `
+                      <tr style="border-bottom: 1px solid var(--slate-200); ${
+                        monthNum === monthlyBreakdown.length
+                          ? "background: var(--green-50); font-weight: 600;"
+                          : ""
+                      }">
+                        <td style="padding: 0.75rem; font-weight: 500;">
+                          ${monthNum}
+                          ${
+                            payoffMilestones.find(
+                              (c) => c.payoffMonth === monthNum
+                            )
+                              ? "🎉"
+                              : ""
+                          }
+                        </td>
+                        ${cardDetails
+                          .map((card) => {
+                            const payment = month.payments.find(
+                              (p) => p.cardId === card.id
+                            );
+                            const isPaidOff =
+                              payment && payment.remainingBalance === 0;
+
+                            return `
+                            <td style="padding: 0.75rem; text-align: right; ${
+                              isPaidOff
+                                ? "color: var(--green-700); font-weight: 600;"
+                                : ""
+                            }">
+                              ${
+                                payment ? `$${payment.payment.toFixed(0)}` : "-"
+                              }
+                              ${isPaidOff ? " ✓" : ""}
+                            </td>
+                          `;
+                          })
+                          .join("")}
+                        <td style="padding: 0.75rem; text-align: right; font-weight: 600;">
+                          $${month.totalPaid.toFixed(0)}
+                        </td>
+                        <td style="padding: 0.75rem; text-align: right; font-weight: 600; ${
+                          month.totalRemaining === 0
+                            ? "color: var(--green-700);"
+                            : ""
+                        }">
+                          $${month.totalRemaining.toFixed(0)}
+                        </td>
+                      </tr>
+                    `;
+                    })
+                    .join("")}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Summary Stats -->
+            <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+              <div style="background: var(--blue-50); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Total Debt Paid</div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--blue-700);">
+                  $${cardDetails
+                    .reduce((sum, c) => sum + c.originalBalance, 0)
+                    .toFixed(0)}
+                </div>
+              </div>
+
+              <div style="background: var(--red-50); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Total Interest</div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--red-700);">
+                  $${strategy.totalInterestPaid.toFixed(0)}
+                </div>
+              </div>
+
+              <div style="background: var(--green-50); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Time to Freedom</div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--green-700);">
+                  ${strategy.monthsToPayoff} months
+                </div>
+              </div>
+
+              <div style="background: var(--purple-50); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">First Card Paid</div>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--purple-700);">
+                  Month ${Math.min(...cardDetails.map((c) => c.monthsPaid))}
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Items -->
+            <div style="margin-top: 1.5rem; padding: 1.25rem; background: linear-gradient(135deg, var(--indigo-50), var(--blue-50));
+                        border-radius: 0.75rem; border-left: 4px solid var(--indigo-500);">
+              <h4 style="font-size: 1rem; font-weight: 700; color: var(--indigo-900); margin-bottom: 1rem;">
+                ✅ Action Plan for Success
+              </h4>
+              <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.875rem; line-height: 1.8;">
+                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--indigo-100);">
+                  📌 <strong>Set up automatic payments</strong> on all cards to avoid late fees
+                </li>
+                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--indigo-100);">
+                  🎯 <strong>Focus extra payments</strong> on ${
+                    strategy.strategyType === "avalanche"
+                      ? "highest APR card"
+                      : "smallest balance card"
+                  } each month
+                </li>
+                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--indigo-100);">
+                  💰 <strong>Allocate windfalls</strong> (tax refunds, bonuses) to accelerate payoff
+                </li>
+                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--indigo-100);">
+                  🔒 <strong>Freeze new purchases</strong> on cards being paid down
+                </li>
+                <li style="padding: 0.5rem 0;">
+                  📊 <strong>Review progress monthly</strong> and celebrate milestones (${
+                    payoffMilestones.length
+                  } cards to knock out!)
+                </li>
+              </ul>
+            </div>
+
+            <!-- Progress Visualization -->
+            <div style="margin-top: 1.5rem; padding: 1.25rem; background: var(--white); border-radius: 0.75rem; border: 1px solid var(--slate-200);">
+              <h4 style="font-size: 1rem; font-weight: 700; color: var(--slate-800); margin-bottom: 1rem;">
+                📉 Debt Reduction Progress
+              </h4>
+              ${renderProgressChart(monthlyBreakdown, cardDetails)}
+            </div>
+          `;
+        }
+
+        function renderProgressChart(monthlyBreakdown, cardDetails) {
+          const maxDebt = monthlyBreakdown[0].totalRemaining;
+          const milestones = [0, 25, 50, 75, 100];
+
+          return `
+            <div style="position: relative; height: 300px; background: var(--slate-50); border-radius: 0.5rem; padding: 1rem;">
+              <!-- Y-axis labels -->
+              <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 60px; display: flex; flex-direction: column; justify-content: space-between; padding: 1rem 0;">
+                ${milestones
+                  .reverse()
+                  .map(
+                    (pct) => `
+                  <div style="font-size: 0.75rem; color: var(--slate-600); text-align: right; padding-right: 0.5rem;">
+                    $${((maxDebt * pct) / 100).toFixed(0)}
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+
+              <!-- Chart area -->
+              <div style="position: absolute; left: 70px; right: 20px; top: 20px; bottom: 40px;">
+                ${renderDebtLine(monthlyBreakdown, maxDebt)}
+              </div>
+
+              <!-- X-axis -->
+              <div style="position: absolute; left: 70px; right: 20px; bottom: 10px; display: flex; justify-content: space-between;">
+                ${[0, 25, 50, 75, 100]
+                  .map((pct) => {
+                    const month = Math.floor(
+                      (monthlyBreakdown.length * pct) / 100
+                    );
+                    return `<div style="font-size: 0.75rem; color: var(--slate-600);">Mo ${month}</div>`;
+                  })
+                  .join("")}
+              </div>
+            </div>
+
+            <div style="margin-top: 1rem; text-align: center; font-size: 0.875rem; color: var(--slate-600);">
+              🎯 Debt-free date: <strong>${new Date(
+                Date.now() + monthlyBreakdown.length * 30 * 24 * 60 * 60 * 1000
+              ).toLocaleDateString("en-US", {
+                month: "short",
+                year: "numeric",
+              })}</strong>
+            </div>
+          `;
+        }
+
+        function renderDebtLine(monthlyBreakdown, maxDebt) {
+          const points = monthlyBreakdown
+            .filter(
+              (_, idx) =>
+                idx % Math.ceil(monthlyBreakdown.length / 50) === 0 ||
+                idx === monthlyBreakdown.length - 1
+            )
+            .map((month, idx, arr) => {
+              const x = (idx / (arr.length - 1)) * 100;
+              const y = 100 - (month.totalRemaining / maxDebt) * 100;
+              return `${x},${y}`;
+            })
+            .join(" ");
+
+          return `
+            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style="overflow: visible;">
+              <!-- Grid lines -->
+              ${[0, 25, 50, 75, 100]
+                .map(
+                  (pct) => `
+                <line x1="0" y1="${pct}" x2="100" y2="${pct}" stroke="var(--slate-200)" stroke-width="0.2"/>
+              `
+                )
+                .join("")}
+
+              <!-- Debt line -->
+              <polyline
+                points="${points}"
+                fill="none"
+                stroke="var(--red-500)"
+                stroke-width="1"
+                vector-effect="non-scaling-stroke"
+              />
+
+              <!-- Fill area under line -->
+              <polygon
+                points="0,100 ${points} 100,100"
+                fill="var(--red-100)"
+                opacity="0.3"
+              />
+
+              <!-- End point marker -->
+              <circle
+                cx="${points.split(" ").pop().split(",")[0]}"
+                cy="${points.split(" ").pop().split(",")[1]}"
+                r="1.5"
+                fill="var(--green-600)"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+          `;
+        }
+
+        function getCardColor(index) {
+          const colors = [
+            "var(--blue-500)",
+            "var(--green-500)",
+            "var(--purple-500)",
+            "var(--orange-500)",
+            "var(--cyan-500)",
+            "var(--pink-500)",
+            "var(--indigo-500)",
+            "var(--red-500)",
+            "var(--yellow-500)",
+            "var(--teal-500)",
+          ];
+          return colors[index % colors.length];
+        }
       }
 
       // --- Initialize the app when the page loads ---
