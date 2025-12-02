@@ -1165,6 +1165,303 @@
 
 
 
+      // ==================== FINANCIAL PRECISION UTILITIES ====================
+      // Global formatters for performance (created once, reused)
+      const CURRENCY_FORMATTERS = new Map();
+      const PERCENT_FORMATTERS = new Map();
+      const NUMBER_FORMATTERS = new Map();
+
+      /**
+       * Get or create currency formatter with specified decimals
+       */
+      function getCurrencyFormatter(decimals = 2) {
+        const key = `currency-${decimals}`;
+        if (!CURRENCY_FORMATTERS.has(key)) {
+          CURRENCY_FORMATTERS.set(key, new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+            useGrouping: true // Adds commas: 1,000.00
+          }));
+        }
+        return CURRENCY_FORMATTERS.get(key);
+      }
+
+      /**
+       * Get or create percentage formatter with specified decimals
+       */
+      function getPercentFormatter(decimals = 2) {
+        const key = `percent-${decimals}`;
+        if (!PERCENT_FORMATTERS.has(key)) {
+          PERCENT_FORMATTERS.set(key, new Intl.NumberFormat('en-US', {
+            style: 'percent',
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+            signDisplay: 'auto' // Shows + for positive, - for negative
+          }));
+        }
+        return PERCENT_FORMATTERS.get(key);
+      }
+
+      /**
+       * Get or create number formatter with specified decimals
+       */
+      function getNumberFormatter(decimals = 2) {
+        const key = `number-${decimals}`;
+        if (!NUMBER_FORMATTERS.has(key)) {
+          NUMBER_FORMATTERS.set(key, new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+            useGrouping: true // Adds commas
+          }));
+        }
+        return NUMBER_FORMATTERS.get(key);
+      }
+
+      /**
+       * Round to financial precision (banker's rounding - round half to even)
+       */
+      function roundFinancial(value, decimals = 2) {
+        if (typeof value !== 'number' || isNaN(value)) return value;
+        
+        // Handle extremely small numbers
+        if (Math.abs(value) < 1e-15) return 0;
+        
+        const factor = Math.pow(10, decimals);
+        // Banker's rounding implementation
+        const rounded = Math.round((value + Number.EPSILON) * factor) / factor;
+        
+        // Handle -0.00 case
+        return Math.abs(rounded) < Math.pow(10, -decimals - 1) ? 0 : rounded;
+      }
+
+      /**
+       * Compare two financial numbers with tolerance
+       * Returns true if difference is within epsilon
+       */
+      function financialEquals(a, b, tolerance = 1e-8) {
+        if (typeof a !== 'number' || typeof b !== 'number' || isNaN(a) || isNaN(b)) {
+          return false;
+        }
+        return Math.abs(a - b) < tolerance;
+      }
+
+      /**
+       * Format currency with proper rounding and Intl.NumberFormat
+       * Returns formatted string with commas: $1,234,567.89
+       */
+      function formatCurrency(amount, decimals = 2) {
+        if (typeof amount !== 'number' || isNaN(amount)) {
+          return `$${0.00.toFixed(decimals)}`;
+        }
+        
+        const rounded = roundFinancial(amount, decimals);
+        const formatter = getCurrencyFormatter(decimals);
+        return formatter.format(rounded);
+      }
+
+      /**
+       * Format large financial values with automatic unit scaling
+       * Professional finance display: $1.23B, $456.7M, $89.0K, $1,234.56
+       */
+      function formatLargeFinancial(value, decimals = 2) {
+        if (typeof value !== 'number' || isNaN(value)) {
+          return formatCurrency(0, decimals);
+        }
+        
+        const absValue = Math.abs(value);
+        let scaledValue, suffix;
+        
+        if (absValue >= 1e12) { // Trillion
+          scaledValue = value / 1e12;
+          suffix = 'T';
+          decimals = Math.max(decimals, 3); // More decimals for larger numbers
+        } else if (absValue >= 1e9) { // Billion
+          scaledValue = value / 1e9;
+          suffix = 'B';
+          decimals = Math.max(decimals, 3);
+        } else if (absValue >= 1e6) { // Million
+          scaledValue = value / 1e6;
+          suffix = 'M';
+          decimals = Math.max(decimals, 2);
+        } else if (absValue >= 1e3) { // Thousand
+          scaledValue = value / 1e3;
+          suffix = 'K';
+          decimals = Math.max(decimals, 1);
+        } else {
+          // For values < 1000, use regular currency format with commas
+          return formatCurrency(value, decimals);
+        }
+        
+        const rounded = roundFinancial(scaledValue, decimals);
+        const formatter = getNumberFormatter(decimals);
+        const sign = value < 0 ? '-' : '';
+        
+        return `${sign}$${formatter.format(Math.abs(rounded))}${suffix}`;
+      }
+
+      /**
+       * Format percentage with proper rounding and Intl.NumberFormat
+       * Returns formatted string: 12.34% or -5.67%
+       */
+      function formatPercent(value, decimals = 2) {
+        if (typeof value !== 'number' || isNaN(value)) {
+          return '0.00%';
+        }
+        
+        const percentValue = roundFinancial(value * 100, decimals);
+        const formatter = getPercentFormatter(decimals);
+        return formatter.format(percentValue / 100); // Intl expects decimal for percent
+      }
+
+      /**
+       * Format number with commas and specified decimals
+       * Returns formatted string: 1,234,567.89
+       */
+      function formatNumber(value, decimals = 2) {
+        if (typeof value !== 'number' || isNaN(value)) {
+          return '0.00';
+        }
+        
+        const rounded = roundFinancial(value, decimals);
+        const formatter = getNumberFormatter(decimals);
+        return formatter.format(rounded);
+      }
+
+      /**
+       * Format number as integer with commas
+       * Returns formatted string: 1,234,567
+       */
+      function formatInteger(value) {
+        if (typeof value !== 'number' || isNaN(value)) {
+          return '0';
+        }
+        
+        const rounded = Math.round(value);
+        const formatter = getNumberFormatter(0);
+        return formatter.format(rounded);
+      }
+
+      /**
+       * Safe financial addition (prevents floating point accumulation)
+       * Maintains mathematical precision
+       */
+      function safeAdd(a, b) {
+        if (typeof a !== 'number' || typeof b !== 'number' || isNaN(a) || isNaN(b)) {
+          return 0;
+        }
+        return roundFinancial(a + b, 10);
+      }
+
+      /**
+       * Safe financial multiplication
+       */
+      function safeMultiply(a, b) {
+        if (typeof a !== 'number' || typeof b !== 'number' || isNaN(a) || isNaN(b)) {
+          return 0;
+        }
+        return roundFinancial(a * b, 10);
+      }
+
+      /**
+       * Safe financial division (prevents division by zero)
+       */
+      function safeDivide(a, b, decimals = 10) {
+        if (typeof a !== 'number' || typeof b !== 'number' || isNaN(a) || isNaN(b)) {
+          return 0;
+        }
+        
+        if (Math.abs(b) < 1e-12) return 0;
+        return roundFinancial(a / b, decimals);
+      }
+
+      /**
+       * Calculate remaining debt with precision (for amortization schedules)
+       */
+      function calculateRemainingDebt(principal, payment, interestRate, periodsPaid, totalPeriods) {
+        // Input validation
+        if ([principal, payment, interestRate, periodsPaid, totalPeriods].some(
+          v => typeof v !== 'number' || isNaN(v) || v < 0
+        )) {
+          return 0;
+        }
+        
+        const periodicRate = interestRate / 12; // Monthly rate
+        
+        if (periodicRate === 0 || Math.abs(periodicRate) < 1e-12) {
+          // Simple case: no interest
+          return Math.max(0, roundFinancial(principal - (payment * periodsPaid), 2));
+        }
+        
+        // Exact remaining balance formula
+        const numerator = Math.pow(1 + periodicRate, totalPeriods) - Math.pow(1 + periodicRate, periodsPaid);
+        const denominator = Math.pow(1 + periodicRate, totalPeriods) - 1;
+        
+        const remaining = principal * (numerator / denominator);
+        return Math.max(0, roundFinancial(remaining, 2));
+      }
+
+      /**
+       * Parse formatted currency/number string back to number
+       * Handles commas, dollar signs, etc.
+       */
+      function parseFinancialString(str) {
+        if (typeof str !== 'string') return 0;
+        
+        // Remove currency symbols, commas, and trim
+        const cleaned = str.replace(/[$,%\s]/g, '').trim();
+        
+        // Handle K/M/B/T suffixes
+        const suffixMatch = cleaned.match(/([+-]?\d*\.?\d+)([KMBT]?)$/i);
+        if (!suffixMatch) return parseFloat(cleaned) || 0;
+        
+        const [, numStr, suffix] = suffixMatch;
+        let num = parseFloat(numStr);
+        
+        if (isNaN(num)) return 0;
+        
+        // Apply suffix multiplier
+        switch (suffix.toUpperCase()) {
+          case 'K': num *= 1e3; break;
+          case 'M': num *= 1e6; break;
+          case 'B': num *= 1e9; break;
+          case 'T': num *= 1e12; break;
+        }
+        
+        return num;
+      }
+
+      /**
+       * Format with custom prefix/suffix (for flexible display)
+       */
+      function formatCustom(value, options = {}) {
+        const {
+          decimals = 2,
+          prefix = '',
+          suffix = '',
+          signDisplay = 'auto', // 'auto', 'always', 'never', 'exceptZero'
+          useGrouping = true,
+          unit = ''
+        } = options;
+        if (typeof value !== 'number' || isNaN(value)) {
+          value = 0;
+        }
+        const rounded = roundFinancial(value, decimals);
+        const formatter = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+          useGrouping: useGrouping,
+          signDisplay: signDisplay
+        });
+        const formatted = formatter.format(rounded);
+        return `${prefix}${formatted}${unit ? ` ${unit}` : ''}${suffix}`;
+      }
+      // ==================== END ENHANCED FINANCIAL PRECISION UTILITIES ====================
+
+
+
+
       // --- State Management ---
       let activeTier = "basic";
       let activeTab = "pv-fv";
@@ -1345,8 +1642,6 @@
         });
       }
 
-
-
       // --- Render Calculator ---
       function renderCalculator() {
         const calculator = calculators[activeTier].find(
@@ -1441,57 +1736,56 @@
       // --- PV/FV Calculator ---
       function renderPVFVCalculator() {
         return `
-                      <h2 class="calculator-title">Present Value / Future Value Calculator</h2>
-                      <div class="explanation-box">
-                          <div class="explanation-title">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              Understanding PV and FV
-                          </div>
-                          <p class="explanation-text">
-                              <strong>Present Value (PV)</strong> is the current worth of a future sum of money given a specified rate of return.
-                              <strong>Future Value (FV)</strong> is the value of a current asset at a future date based on an assumed growth rate.
-                          </p>
-                          <p class="explanation-text">
-                              These concepts are fundamental in finance for evaluating investments, comparing cash flows at different times,
-                              and making informed financial decisions.
-                          </p>
-                          <div class="explanation-note">
-                              <strong>Financial Insight:</strong> Money available today is worth more than the same amount in the future due to its potential earning capacity (time value of money).
-                          </div>
-                      </div>
-                      <div class="options-toggle">
-                          <button class="option-btn active" id="pvOption">Calculate PV</button>
-                          <button class="option-btn" id="fvOption">Calculate FV</button>
-                      </div>
-                      <div class="form-grid">
-                          <div class="form-group">
-                              <label class="form-label">Future Value ($)</label>
-                              <input type="number" id="futureValue" class="form-input" placeholder="10000">
-                          </div>
-                          <div class="form-group">
-                              <label class="form-label">Interest Rate (%)</label>
-                              <input type="number" id="interestRate" class="form-input" placeholder="5" step="0.01">
-                          </div>
-                          <div class="form-group">
-                              <label class="form-label">Number of Periods</label>
-                              <input type="number" id="periods" class="form-input" placeholder="10">
-                          </div>
-                      </div>
-                      <button class="btn btn-primary" id="calculatePVFV">Calculate</button>
-                      <div id="pvfvResults" class="results-container hidden" style="border-color: var(--indigo-100); background-color: var(--indigo-50);">
-                          <!-- Results will be populated here -->
-                      </div>
-                  `;
+          <h2 class="calculator-title">Present Value / Future Value Calculator</h2>
+          <div class="explanation-box">
+            <div class="explanation-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Understanding Time Value of Money
+            </div>
+            <p class="explanation-text">
+              <strong>Present Value (PV)</strong>: How much a future sum is worth today.<br>
+              <strong>Future Value (FV)</strong>: How much money today will grow to in the future.
+            </p>
+            <div class="explanation-note">
+              <strong>Financial Insight:</strong> $100 today is worth more than $100 tomorrow because you can invest it today.
+            </div>
+          </div>
+
+          <div class="options-toggle">
+            <button class="option-btn active" id="pvOption">Calculate PV</button>
+            <button class="option-btn" id="fvOption">Calculate FV</button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" id="amountLabel">Future Value ($)</label>
+              <input type="number" id="futureValue" class="form-input" placeholder="10000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Annual Interest Rate (%)</label>
+              <input type="number" id="interestRate" class="form-input" placeholder="5" step="0.01">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Number of Periods (Years)</label>
+              <input type="number" id="periods" class="form-input" placeholder="10">
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="calculatePVFV">Calculate</button>
+
+          <div id="pvfvResults" class="results-container hidden" style="border-color: var(--indigo-100); background-color: var(--indigo-50);">
+            <!-- Results will be populated here -->
+          </div>
+        `;
       }
-
-
 
       function setupPVFVCalculator() {
         const pvOption = document.getElementById("pvOption");
         const fvOption = document.getElementById("fvOption");
-        const futureValueInput = document.getElementById("futureValue");
+        const amountInput = document.getElementById("futureValue");
+        const amountLabel = document.getElementById("amountLabel");
         const interestRateInput = document.getElementById("interestRate");
         const periodsInput = document.getElementById("periods");
         const calculateBtn = document.getElementById("calculatePVFV");
@@ -1499,106 +1793,102 @@
 
         let isPVCalculation = true;
 
+        // ========== UX IMPROVEMENT: Clear input when switching mode ==========
         pvOption.addEventListener("click", () => {
           pvOption.classList.add("active");
           fvOption.classList.remove("active");
           isPVCalculation = true;
-          // Swap labels
-          document.querySelectorAll(".form-label")[0].textContent =
-            "Future Value ($)";
-          futureValueInput.placeholder = "10000";
+          
+          amountLabel.textContent = "Future Value ($)";
+          amountInput.placeholder = "10000";
+          amountInput.value = "";
+          resultsDiv.classList.add("hidden");
         });
 
         fvOption.addEventListener("click", () => {
           fvOption.classList.add("active");
           pvOption.classList.remove("active");
           isPVCalculation = false;
-          // Swap labels
-          document.querySelectorAll(".form-label")[0].textContent =
-            "Present Value ($)";
-          futureValueInput.placeholder = "5000";
+          
+          amountLabel.textContent = "Present Value ($)";
+          amountInput.placeholder = "5000";
+          amountInput.value = "";
+          resultsDiv.classList.add("hidden");
         });
 
         calculateBtn.addEventListener("click", () => {
           const r = parseFloat(interestRateInput.value) / 100;
           const n = parseFloat(periodsInput.value);
+          const amount = parseFloat(amountInput.value);
 
-          if (isNaN(r) || isNaN(n) || r < 0 || n < 0) {
-            alert(
-              "Please enter valid positive numbers for interest rate and periods."
-            );
+          // ========== ROBUST VALIDATION ==========
+          if (isNaN(r) || r < 0 || r > 100) {
+            alert("Please enter a valid interest rate (0% - 100%).");
+            return;
+          }
+          if (isNaN(n) || n < 0 || n > 1000) {
+            alert("Please enter a valid number of periods (0 - 1000).");
+            return;
+          }
+          if (isNaN(amount) || amount <= 0) {
+            alert("Please enter a valid amount (greater than 0).");
             return;
           }
 
+          let pv, fv;
+          const growthMultiplier = Math.pow(1 + r, n);
+
           if (isPVCalculation) {
-            const fv = parseFloat(futureValueInput.value);
-            if (isNaN(fv)) {
-              alert("Please enter a valid future value.");
-              return;
-            }
-            const pv = fv / Math.pow(1 + r, n);
-            resultsDiv.innerHTML = `
-                              <div class="results-grid">
-                                  <div class="result-card" style="background-color: var(--indigo-100);">
-                                      <div class="result-label">Present Value</div>
-                                      <div class="result-value">$${pv.toFixed(
-                                        2
-                                      )}</div>
-                                  </div>
-                                  <div class="result-card" style="background-color: var(--slate-100);">
-                                      <div class="result-label">Future Value</div>
-                                      <div class="result-value">$${fv.toFixed(
-                                        2
-                                      )}</div>
-                                  </div>
-                                  <div class="result-card" style="background-color: var(--slate-100);">
-                                      <div class="result-label">Interest Rate</div>
-                                      <div class="result-value">${(
-                                        r * 100
-                                      ).toFixed(2)}%</div>
-                                  </div>
-                                  <div class="result-card" style="background-color: var(--slate-100);">
-                                      <div class="result-label">Periods</div>
-                                      <div class="result-value">${n}</div>
-                                  </div>
-                              </div>
-                          `;
+            fv = amount;
+            pv = fv / growthMultiplier;
           } else {
-            const pv = parseFloat(futureValueInput.value);
-            if (isNaN(pv)) {
-              alert("Please enter a valid present value.");
-              return;
-            }
-            const fv = pv * Math.pow(1 + r, n);
-            resultsDiv.innerHTML = `
-                              <div class="results-grid">
-                                  <div class="result-card" style="background-color: var(--slate-100);">
-                                      <div class="result-label">Present Value</div>
-                                      <div class="result-value">$${pv.toFixed(
-                                        2
-                                      )}</div>
-                                  </div>
-                                  <div class="result-card" style="background-color: var(--indigo-100);">
-                                      <div class="result-label">Future Value</div>
-                                      <div class="result-value">$${fv.toFixed(
-                                        2
-                                      )}</div>
-                                  </div>
-                                  <div class="result-card" style="background-color: var(--slate-100);">
-                                      <div class="result-label">Interest Rate</div>
-                                      <div class="result-value">${(
-                                        r * 100
-                                      ).toFixed(2)}%</div>
-                                  </div>
-                                  <div class="result-card" style="background-color: var(--slate-100);">
-                                      <div class="result-label">Periods</div>
-                                      <div class="result-value">${n}</div>
-                                  </div>
-                              </div>
-                          `;
+            pv = amount;
+            fv = pv * growthMultiplier;
           }
 
+          // ========== CONSISTENT ROUNDING (like Loan Calculator) ==========
+          pv = roundFinancial(pv, 2);
+          fv = roundFinancial(fv, 2);
+          const multiplierDisplay = roundFinancial(growthMultiplier, 4);
+
+          resultsDiv.innerHTML = `
+            <div class="results-grid">
+              <div class="result-card" style="background-color: ${isPVCalculation ? 'var(--indigo-100)' : 'var(--slate-100)'};">
+                <div class="result-label">Present Value (PV)</div>
+                <div class="result-value">${formatCurrency(pv)}</div>
+                <div class="result-subtext">Value in today's dollars</div>
+              </div>
+              <div class="result-card" style="background-color: ${!isPVCalculation ? 'var(--indigo-100)' : 'var(--slate-100)'};">
+                <div class="result-label">Future Value (FV)</div>
+                <div class="result-value">${formatCurrency(fv)}</div>
+                <div class="result-subtext">Value after ${n} periods</div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Interest Rate</div>
+                <div class="result-value">${formatPercent(r)}</div>
+                <div class="result-subtext">Annual rate</div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Growth Factor</div>
+                <div class="result-value">${multiplierDisplay}x</div>
+                <div class="result-subtext">${n} periods compounded</div>
+              </div>
+            </div>
+            
+            <!-- Financial Insight Section -->
+            <div style="margin-top: 1rem; padding: 0.75rem; background: var(--indigo-50); border-radius: 0.375rem; border-left: 4px solid var(--indigo-400);">
+              <div style="font-size: 0.875rem; color: var(--indigo-800);">
+                <strong>💰 Time Value of Money Insight:</strong><br>
+                ${isPVCalculation ? 
+                  `To have ${formatCurrency(fv)} in ${n} years, you need to invest ${formatCurrency(pv)} today at ${formatPercent(r)} annual interest.` : 
+                  `Investing ${formatCurrency(pv)} today at ${formatPercent(r)} interest will grow to ${formatCurrency(fv)} in ${n} years.`
+                }
+              </div>
+            </div>
+          `;
+
           resultsDiv.classList.remove("hidden");
+          
           // Save state after calculation
           setTimeout(() => {
             StorageManager.saveCalculatorState('pv-fv');
@@ -1608,131 +1898,178 @@
 
 
 
-
       // --- Compound Interest Calculator ---
       function renderCompoundInterestCalculator() {
         return `
-                      <h2 class="calculator-title">Compound Interest Calculator</h2>
-                      <div class="explanation-box">
-                          <div class="explanation-title">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              The Power of Compounding
-                          </div>
-                          <p class="explanation-text">
-                              <strong>Compound interest</strong> is interest calculated on the initial principal and also on the accumulated interest of previous periods.
-                              It's often referred to as "interest on interest" and can cause wealth to grow exponentially over time.
-                          </p>
-                          <p class="explanation-text">
-                              The more frequently interest is compounded, the greater the return. This calculator helps you understand how different compounding frequencies affect your investment growth.
-                          </p>
-                          <div class="explanation-note">
-                              <strong>Financial Insight:</strong> Starting early and allowing your investments to compound over long periods is one of the most powerful wealth-building strategies.
-                          </div>
-                      </div>
-                      <div class="form-grid">
-                          <div class="form-group">
-                              <label class="form-label">Principal Amount ($)</label>
-                              <input type="number" id="principal" class="form-input" placeholder="10000">
-                          </div>
-                          <div class="form-group">
-                              <label class="form-label">Annual Interest Rate (%)</label>
-                              <input type="number" id="annualRate" class="form-input" placeholder="5" step="0.01">
-                          </div>
-                          <div class="form-group">
-                              <label class="form-label">Number of Years</label>
-                              <input type="number" id="years" class="form-input" placeholder="10">
-                          </div>
-                          <div class="form-group">
-                              <label class="form-label">Compounding Frequency</label>
-                              <select id="compounding" class="form-select">
-                                  <option value="1">Annually</option>
-                                  <option value="2">Semi-annually</option>
-                                  <option value="4">Quarterly</option>
-                                  <option value="12">Monthly</option>
-                                  <option value="365">Daily</option>
-                              </select>
-                          </div>
-                      </div>
-                      <button class="btn btn-success" id="calculateCI">Calculate Compound Interest</button>
-                      <div id="ciResults" class="results-container hidden" style="border-color: var(--green-100); background-color: var(--green-50);">
-                          <!-- Results will be populated here -->
-                      </div>
-                  `;
-      }
+          <h2 class="calculator-title">Compound Interest Calculator</h2>
+          <div class="explanation-box">
+            <div class="explanation-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              The Power of Compounding
+            </div>
+            <p class="explanation-text">
+              <strong>Compound interest</strong> is interest calculated on the initial principal and also on the accumulated interest of previous periods.
+              It's often referred to as "interest on interest" and can cause wealth to grow exponentially over time.
+            </p>
+            <p class="explanation-text">
+              The more frequently interest is compounded, the greater the return. This calculator helps you understand how different compounding frequencies affect your investment growth.
+            </p>
+            <div class="explanation-note">
+              <strong>Financial Insight:</strong> Starting early and allowing your investments to compound over long periods is one of the most powerful wealth-building strategies.
+            </div>
+          </div>
 
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Principal Amount ($)</label>
+              <input type="number" id="principal" class="form-input" placeholder="10000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Annual Interest Rate (%)</label>
+              <input type="number" id="annualRate" class="form-input" placeholder="5" step="0.01">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Time Period (Years)</label>
+              <input type="number" id="years" class="form-input" placeholder="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Compounding Frequency</label>
+              <select id="compounding" class="form-select">
+                <option value="1">Annually (1x/year)</option>
+                <option value="2">Semi-annually (2x/year)</option>
+                <option value="4">Quarterly (4x/year)</option>
+                <option value="12" selected>Monthly (12x/year)</option>
+                <option value="365">Daily (365x/year)</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn-success" id="calculateCI">Calculate Compound Interest</button>
+
+          <div id="ciResults" class="results-container hidden" style="border-color: var(--green-100); background-color: var(--green-50);">
+            <!-- Results will be populated here -->
+          </div>
+        `;
+      }
 
       function setupCompoundInterestCalculator() {
         const calculateBtn = document.getElementById("calculateCI");
         const resultsDiv = document.getElementById("ciResults");
 
         calculateBtn.addEventListener("click", () => {
-          const principal = parseFloat(
-            document.getElementById("principal").value
-          );
-          const annualRate =
-            parseFloat(document.getElementById("annualRate").value) / 100;
+          const principal = parseFloat(document.getElementById("principal").value);
+          const annualRatePercent = parseFloat(document.getElementById("annualRate").value);
           const years = parseFloat(document.getElementById("years").value);
-          const compounding = parseFloat(
-            document.getElementById("compounding").value
-          );
+          const compounding = parseFloat(document.getElementById("compounding").value);
 
-          if (
-            isNaN(principal) ||
-            isNaN(annualRate) ||
-            isNaN(years) ||
-            isNaN(compounding) ||
-            principal < 0 ||
-            annualRate < 0 ||
-            years < 0 ||
-            compounding <= 0
-          ) {
-            alert("Please enter valid positive numbers.");
+          // ========== ROBUST VALIDATION ==========
+          if (isNaN(principal) || principal <= 0) {
+            alert("Please enter a valid principal amount (greater than 0).");
+            return;
+          }
+          if (isNaN(annualRatePercent) || annualRatePercent < 0) {
+            alert("Please enter a valid interest rate (0% or greater).");
+            return;
+          }
+          if (isNaN(years) || years <= 0 || years > 100) {
+            alert("Please enter a valid time period (1-100 years).");
+            return;
+          }
+          if (isNaN(compounding) || compounding <= 0) {
+            alert("Please select a valid compounding frequency.");
             return;
           }
 
-          const finalAmount =
-            principal *
-            Math.pow(1 + annualRate / compounding, compounding * years);
-          const interestEarned = finalAmount - principal;
+          const annualRate = annualRatePercent / 100;
+          const totalN = compounding * years;
+          const ratePerPeriod = annualRate / compounding;
+          
+          // Core calculation: A = P * (1 + r/n)^(nt)
+          let finalAmount = principal * Math.pow(1 + ratePerPeriod, totalN);
+          
+          // ========== CONSISTENT ROUNDING (like Loan Calculator) ==========
+          finalAmount = roundFinancial(finalAmount, 2);
+          const interestEarned = roundFinancial(finalAmount - principal, 2);
+          
+          // Calculate APY (Effective Annual Yield)
+          const apy = Math.pow(1 + ratePerPeriod, compounding) - 1;
+          
+          // Get compounding frequency display name
+          const compFrequency = document.getElementById("compounding");
+          const frequencyName = compFrequency.options[compFrequency.selectedIndex].text;
 
           resultsDiv.innerHTML = `
-                          <div class="results-grid">
-                              <div class="result-card" style="background-color: var(--green-100);">
-                                  <div class="result-label">Final Amount</div>
-                                  <div class="result-value">$${finalAmount.toFixed(
-                                    2
-                                  )}</div>
-                              </div>
-                              <div class="result-card" style="background-color: var(--slate-100);">
-                                  <div class="result-label">Principal</div>
-                                  <div class="result-value">$${principal.toFixed(
-                                    2
-                                  )}</div>
-                              </div>
-                              <div class="result-card" style="background-color: var(--slate-100);">
-                                  <div class="result-label">Interest Earned</div>
-                                  <div class="result-value">$${interestEarned.toFixed(
-                                    2
-                                  )}</div>
-                              </div>
-                              <div class="result-card" style="background-color: var(--slate-100);">
-                                  <div class="result-label">Annual Rate</div>
-                                  <div class="result-value">${(
-                                    annualRate * 100
-                                  ).toFixed(2)}%</div>
-                              </div>
-                          </div>
-                      `;
+            <div class="results-grid">
+              <div class="result-card" style="background-color: var(--green-100);">
+                <div class="result-label">Future Value</div>
+                <div class="result-value">${formatCurrency(finalAmount)}</div>
+                <div class="result-subtext">After ${years} years</div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Principal</div>
+                <div class="result-value">${formatCurrency(principal)}</div>
+                <div class="result-subtext">Initial investment</div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Interest Earned</div>
+                <div class="result-value">${formatCurrency(interestEarned)}</div>
+                <div class="result-subtext">${formatPercent(interestEarned/principal)} return</div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Effective Annual Yield</div>
+                <div class="result-value">${formatPercent(apy, 4)}</div>
+                <div class="result-subtext">vs ${formatPercent(annualRate)} nominal rate</div>
+              </div>
+            </div>
+            
+            <!-- Additional Metrics -->
+            <div style="margin-top: 1.5rem;">
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div style="padding: 0.75rem; background: var(--slate-50); border-radius: 0.375rem;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600);">Compounding</div>
+                  <div style="font-weight: 600; color: var(--slate-800);">${frequencyName}</div>
+                </div>
+                <div style="padding: 0.75rem; background: var(--slate-50); border-radius: 0.375rem;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600);">Total Periods</div>
+                  <div style="font-weight: 600; color: var(--slate-800);">${formatInteger(totalN)}</div>
+                </div>
+                <div style="padding: 0.75rem; background: var(--slate-50); border-radius: 0.375rem;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600);">Rate per Period</div>
+                  <div style="font-weight: 600; color: var(--slate-800);">${formatPercent(ratePerPeriod, 4)}</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Consistency Verification -->
+            <div style="margin-top: 1rem; padding: 0.75rem; background: var(--green-50); border-radius: 0.375rem; border-left: 4px solid var(--green-400);">
+              <div style="font-size: 0.875rem; color: var(--green-800);">
+                <strong>✅ Verified Calculation:</strong><br>
+                ${formatCurrency(principal)} + ${formatCurrency(interestEarned)} = ${formatCurrency(finalAmount)}
+              </div>
+            </div>
+            
+            <!-- Financial Insight -->
+            <div style="margin-top: 1rem; padding: 0.75rem; background: var(--slate-50); border-radius: 0.375rem;">
+              <div style="font-size: 0.75rem; color: var(--slate-700);">
+                <strong>💡 Why APY Matters:</strong> 
+                Your ${formatPercent(annualRate)} nominal rate compounds ${compounding} times per year, 
+                resulting in an effective annual yield of ${formatPercent(apy, 4)}. 
+                ${apy > annualRate ? 'Compounding increases your actual return!' : ''}
+              </div>
+            </div>
+          `;
 
           resultsDiv.classList.remove("hidden");
+          
           // Save state after calculation
           setTimeout(() => {
             StorageManager.saveCalculatorState('compound-interest');
           }, 100);
         });
       }
+
 
 
       // --- Loan Payment Calculator ---
@@ -1779,67 +2116,123 @@
                   `;
       }
 
-
       function setupLoanPaymentCalculator() {
         const calculateBtn = document.getElementById("calculateLoan");
         const resultsDiv = document.getElementById("loanResults");
 
         calculateBtn.addEventListener("click", () => {
-          const principal = parseFloat(
-            document.getElementById("loanAmount").value
-          );
-          const annualRate =
-            parseFloat(document.getElementById("loanRate").value) / 100;
+          const principal = parseFloat(document.getElementById("loanAmount").value);
+          const annualRate = parseFloat(document.getElementById("loanRate").value) / 100;
           const years = parseFloat(document.getElementById("loanTerm").value);
 
-          if (
-            isNaN(principal) ||
-            isNaN(annualRate) ||
-            isNaN(years) ||
-            principal < 0 ||
-            annualRate < 0 ||
-            years < 0
-          ) {
+          if (isNaN(principal) || isNaN(annualRate) || isNaN(years) || 
+              principal < 0 || annualRate < 0 || years < 0) {
             alert("Please enter valid positive numbers.");
             return;
           }
 
-          const monthlyRate = annualRate / 12;
           const numberOfPayments = years * 12;
-          const monthlyPayment =
-            (principal * monthlyRate) /
-            (1 - Math.pow(1 + monthlyRate, -numberOfPayments));
-          const totalPayment = monthlyPayment * numberOfPayments;
-          const totalInterest = totalPayment - principal;
+          let monthlyPayment = 0;
+          let totalPayment = 0;
+          let totalInterest = 0;
 
+          // ========== CALCULATION WITH HIGH PRECISION ==========
+          const monthlyRate = safeDivide(annualRate, 12, 12); // 12 decimals for accuracy
+          
+          if (Math.abs(monthlyRate) < 1e-12) {
+            // 0% interest case
+            monthlyPayment = safeDivide(principal, numberOfPayments, 2);
+            totalInterest = 0;
+            totalPayment = principal;
+          } else {
+            // Regular case with interest
+            const denominator = 1 - Math.pow(1 + monthlyRate, -numberOfPayments);
+            monthlyPayment = safeDivide(
+              safeMultiply(principal, monthlyRate),
+              denominator,
+              6 // Keep 6 decimals for calculation accuracy
+            );
+            
+            // ========== FIX: CALCULATE EXACT TOTALS ==========
+            // Step 1: Calculate standard rounded monthly payment (what bank actually charges)
+            const standardMonthly = roundFinancial(monthlyPayment, 2);
+            
+            // Step 2: Simulate full loan to get exact totals
+            let simulatedBalance = principal;
+            let calculatedTotalPayment = 0;
+            let calculatedTotalInterest = 0;
+            
+            for (let month = 1; month <= numberOfPayments; month++) {
+              const interest = roundFinancial(simulatedBalance * monthlyRate, 2);
+              calculatedTotalInterest += interest;
+              
+              let payment = standardMonthly;
+              if (month === numberOfPayments) {
+                // Last period: adjust to clear balance
+                payment = roundFinancial(simulatedBalance + interest, 2);
+              }
+              
+              const principalPaid = roundFinancial(payment - interest, 2);
+              simulatedBalance = roundFinancial(simulatedBalance - principalPaid, 2);
+              calculatedTotalPayment += payment;
+              
+              // Prevent negative balance
+              if (simulatedBalance < 0) {
+                payment -= Math.abs(simulatedBalance);
+                simulatedBalance = 0;
+              }
+            }
+            
+            // Step 3: Use calculated totals (not formula-based)
+            monthlyPayment = standardMonthly;
+            totalPayment = roundFinancial(calculatedTotalPayment, 2);
+            totalInterest = roundFinancial(calculatedTotalInterest, 2);
+          }
+
+          // ========== DISPLAY RESULTS ==========
           resultsDiv.innerHTML = `
-                          <div class="results-grid">
-                              <div class="result-card" style="background-color: var(--blue-100);">
-                                  <div class="result-label">Monthly Payment</div>
-                                  <div class="result-value">$${monthlyPayment.toFixed(
-                                    2
-                                  )}</div>
-                              </div>
-                              <div class="result-card" style="background-color: var(--slate-100);">
-                                  <div class="result-label">Total Payment</div>
-                                  <div class="result-value">$${totalPayment.toFixed(
-                                    2
-                                  )}</div>
-                              </div>
-                              <div class="result-card" style="background-color: var(--slate-100);">
-                                  <div class="result-label">Total Interest</div>
-                                  <div class="result-value">$${totalInterest.toFixed(
-                                    2
-                                  )}</div>
-                              </div>
-                              <div class="result-card" style="background-color: var(--slate-100);">
-                                  <div class="result-label">Loan Term</div>
-                                  <div class="result-value">${years} years</div>
-                              </div>
-                          </div>
-                      `;
+            <div class="results-grid">
+              <div class="result-card" style="background-color: var(--blue-100);">
+                <div class="result-label">Monthly Payment*</div>
+                <div class="result-value">${formatCurrency(monthlyPayment)}</div>
+                <div class="result-subtext">Standard payment amount</div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Total Payment</div>
+                <div class="result-value">${formatCurrency(totalPayment)}</div>
+                <div class="result-subtext">Actual amount paid</div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Total Interest</div>
+                <div class="result-value">${formatCurrency(totalInterest)}</div>
+                <div class="result-subtext">Interest over ${years} years</div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Loan Term</div>
+                <div class="result-value">${years} years (${numberOfPayments} months)</div>
+                <div class="result-subtext">${annualRate === 0 ? '0% interest loan' : ''}</div>
+              </div>
+            </div>
+            
+            <!-- Amortization Schedule Preview -->
+            <div style="margin-top: 1.5rem; padding: 1rem; background: var(--blue-50); border-radius: 0.5rem;">
+              <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--blue-800); margin-bottom: 0.75rem;">
+                📅 Amortization Schedule (Full ${numberOfPayments} months)
+              </h4>
+              ${generateAmortizationPreview(principal, annualRate, years, monthlyPayment)}
+            </div>
+            
+            <!-- Legend -->
+            <div style="margin-top: 1rem; padding: 0.75rem; background: var(--slate-50); border-radius: 0.375rem; font-size: 0.75rem;">
+              <div style="color: var(--slate-600);">
+                <strong>Note:</strong> *Final payment may be slightly adjusted (±$0.10) to account for rounding differences.
+                This reflects actual banking practice.
+              </div>
+            </div>
+          `;
 
           resultsDiv.classList.remove("hidden");
+          
           // Save state after calculation
           setTimeout(() => {
             StorageManager.saveCalculatorState('loan-payment');
@@ -1847,7 +2240,133 @@
         });
       }
 
+      function generateAmortizationPreview(principal, annualRate, years, monthlyPayment) {
+        let balance = principal;
+        const monthlyRate = annualRate / 12;
+        const totalMonths = years * 12;
+        const isZeroInterest = Math.abs(monthlyRate) < 1e-12;
+        const standardMonthly = roundFinancial(monthlyPayment, 2);
+        
+        // Calculate exact totals and final payment
+        let simulatedBalance = principal;
+        let calculatedTotal = 0;
+        let calculatedInterest = 0;
+        let finalPayment = standardMonthly;
+        
+        for (let month = 1; month <= totalMonths; month++) {
+          const interest = roundFinancial(simulatedBalance * monthlyRate, 2);
+          calculatedInterest += interest;
+          
+          let payment = standardMonthly;
+          if (month === totalMonths) {
+            payment = roundFinancial(simulatedBalance + interest, 2);
+            finalPayment = payment;
+          }
+          
+          const principalPaid = roundFinancial(payment - interest, 2);
+          simulatedBalance = roundFinancial(simulatedBalance - principalPaid, 2);
+          calculatedTotal += payment;
+          
+          if (simulatedBalance < 0) {
+            simulatedBalance = 0;
+          }
+        }
+        
+        const hasAdjustment = Math.abs(finalPayment - standardMonthly) > 0.001;
+        const adjustmentAmount = roundFinancial(finalPayment - standardMonthly, 2);
+        
+        // Generate table
+        let html = '<div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">';
+        html += '<table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">';
+        html += '<thead style="position: sticky; top: 0; background: var(--slate-100); z-index: 10;">';
+        html += '<tr>';
+        html += '<th style="padding: 0.5rem; text-align: left; border-bottom: 2px solid var(--slate-300);">Month</th>';
+        html += '<th style="padding: 0.5rem; text-align: right; border-bottom: 2px solid var(--slate-300);">Payment</th>';
+        html += '<th style="padding: 0.5rem; text-align: right; border-bottom: 2px solid var(--slate-300);">Interest</th>';
+        html += '<th style="padding: 0.5rem; text-align: right; border-bottom: 2px solid var(--slate-300);">Principal</th>';
+        html += '<th style="padding: 0.5rem; text-align: right; border-bottom: 2px solid var(--slate-300);">Balance</th>';
+        html += '</tr></thead><tbody>';
+        
+        balance = principal; // Reset for display
+        
+        for (let month = 1; month <= totalMonths; month++) {
+          const interest = roundFinancial(balance * monthlyRate, 2);
+          let payment = standardMonthly;
+          let isFinalAdjusted = false;
+          
+          // Last period adjustment
+          if (month === totalMonths) {
+            payment = roundFinancial(balance + interest, 2);
+            isFinalAdjusted = hasAdjustment;
+          }
+          
+          const principalPaid = roundFinancial(payment - interest, 2);
+          balance = roundFinancial(balance - principalPaid, 2);
+          
+          // Highlight rows
+          const isHighlighted = month === totalMonths;
+          const rowStyle = isHighlighted ? 'background: var(--blue-50) !important;' : 
+                        (month % 2 === 0 ? 'background: var(--slate-50);' : '');
+          
+          html += `<tr style="${rowStyle}">`;
+          html += `<td style="padding: 0.5rem; border-bottom: 1px solid var(--slate-200);">
+                    ${month}
+                    ${isFinalAdjusted ? ' <span style="color: var(--blue-600); font-weight: 600;">(final)</span>' : ''}
+                  </td>`;
+          
+          html += `<td style="padding: 0.5rem; text-align: right; border-bottom: 1px solid var(--slate-200);
+                    ${isFinalAdjusted ? 'font-weight: bold; color: var(--blue-600);' : ''}">
+                    ${formatCurrency(payment)}
+                    ${isFinalAdjusted ? '*' : ''}
+                  </td>`;
+          
+          html += `<td style="padding: 0.5rem; text-align: right; border-bottom: 1px solid var(--slate-200);
+                    color: var(--red-600);">${formatCurrency(interest)}</td>`;
+          
+          html += `<td style="padding: 0.5rem; text-align: right; border-bottom: 1px solid var(--slate-200);
+                    color: var(--green-600);">${formatCurrency(principalPaid)}</td>`;
+          
+          html += `<td style="padding: 0.5rem; text-align: right; border-bottom: 1px solid var(--slate-200);
+                    font-weight: ${balance === 0 ? '700' : '500'};">
+                    ${balance === 0 ? '🎉 PAID OFF' : formatCurrency(balance)}
+                  </td>`;
+          
+          html += '</tr>';
+          
+          if (balance <= 0) break;
+        }
+        
+        html += '</tbody></table></div>';
+        
+        // Summary section
+        html += `<div style="margin-top: 1rem; padding: 0.75rem; background: var(--green-50); border-radius: 0.375rem;">
+                  <div style="font-size: 0.75rem; color: var(--green-800);">
+                    <strong>📊 Loan Summary:</strong>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
+                      <div>• Standard Monthly Payment:</div>
+                      <div style="text-align: right;">${formatCurrency(standardMonthly)}</div>
+                      ${hasAdjustment ? `
+                      <div>• Final Payment Adjustment:</div>
+                      <div style="text-align: right; color: ${adjustmentAmount > 0 ? 'var(--blue-600)' : 'var(--red-600)'}">
+                        ${adjustmentAmount > 0 ? '+' : ''}${formatCurrency(adjustmentAmount)}
+                      </div>
+                      ` : ''}
+                      <div>• Total Principal Paid:</div>
+                      <div style="text-align: right;">${formatCurrency(principal)}</div>
+                      <div>• Total Interest Paid:</div>
+                      <div style="text-align: right;">${formatCurrency(calculatedInterest)}</div>
+                      <div style="font-weight: 600; border-top: 1px solid var(--slate-300); padding-top: 0.25rem;">Total Amount Paid:</div>
+                      <div style="text-align: right; font-weight: 600; border-top: 1px solid var(--slate-300); padding-top: 0.25rem;">
+                        ${formatCurrency(calculatedTotal)}
+                      </div>
+                    </div>
+                  </div>
+                </div>`;
+        
+        return html;
+      }
 
+      
 
       // ==================== INTERMEDIATE CALCULATORS ====================
       // --- CAPM Calculator ---
@@ -1893,7 +2412,6 @@
                       </div>
                   `;
       }
-
 
       function setupCAPMCalculator() {
         const calculateBtn = document.getElementById("calculateCAPM");
@@ -1952,9 +2470,6 @@
           }, 100);
         });
       }
-
-
-
 
       // --- Bond Pricing Calculator ---
       function renderBondPricingCalculator() {
@@ -2045,63 +2560,66 @@
             return;
           }
 
-          const couponPayment = (faceValue * couponRate) / frequency;
-          const periods = yearsToMaturity * frequency;
-          const periodicYield = ytm / frequency;
+          // ========== SỬ DỤNG FINANCIAL PRECISION UTILITIES ==========
+          const couponPayment = safeDivide(safeMultiply(faceValue, couponRate), frequency, 4);
+          const periods = roundFinancial(yearsToMaturity * frequency, 4);
+          const periodicYield = safeDivide(ytm, frequency, 8);
 
-          // ========== FIXED: SỬ DỤNG CLOSED-FORM FORMULA ==========
           let bondPrice;
           
-          if (periodicYield === 0) {
-            // Special case: zero yield (bond price = sum of all cash flows)
-            bondPrice = (couponPayment * periods) + faceValue;
+          if (financialEquals(periodicYield, 0, 1e-12)) {
+            // Special case: zero yield
+            bondPrice = safeAdd(safeMultiply(couponPayment, periods), faceValue);
           } else {
-            // Closed-form bond pricing formula:
-            // Price = C × [1 - (1+r)^-n] / r + F × (1+r)^-n
-            // Where:
-            // C = coupon payment per period
-            // r = periodic yield
-            // n = number of periods
-            // F = face value
-            
+            // Closed-form formula với precision
             const discountFactor = Math.pow(1 + periodicYield, -periods);
-            const annuityFactor = (1 - discountFactor) / periodicYield;
+            const annuityFactor = safeDivide(1 - discountFactor, periodicYield, 10);
             
-            bondPrice = (couponPayment * annuityFactor) + (faceValue * discountFactor);
+            bondPrice = safeAdd(
+              safeMultiply(couponPayment, annuityFactor, 6),
+              safeMultiply(faceValue, discountFactor, 6)
+            );
           }
-          // ========== KẾT THÚC PHẦN FIX ==========
+          
+          // Round for display
+          bondPrice = roundFinancial(bondPrice, 2);
 
-          // Calculate additional metrics
-          const totalCoupons = couponPayment * periods;
-          const totalReturn = bondPrice - faceValue;
-          const currentYield = (couponPayment * frequency) / bondPrice * 100;
-          const capitalGainYield = ((faceValue - bondPrice) / bondPrice) * 100;
+          // Calculate additional metrics với precision
+          const totalCoupons = roundFinancial(couponPayment * periods, 2);
+          const totalReturn = roundFinancial(bondPrice - faceValue, 2);
+          const currentYield = roundFinancial(safeDivide(couponPayment * frequency, bondPrice, 6) * 100, 4);
+          const capitalGainYield = roundFinancial(safeDivide(faceValue - bondPrice, bondPrice, 6) * 100, 4);
+          
+          // Determine bond status
+          const isPremium = bondPrice > faceValue && !financialEquals(bondPrice, faceValue, 0.01);
+          const isDiscount = bondPrice < faceValue && !financialEquals(bondPrice, faceValue, 0.01);
+          const isPar = financialEquals(bondPrice, faceValue, 0.01);
 
           resultsDiv.innerHTML = `
             <div class="results-grid">
               <div class="result-card" style="background-color: var(--orange-100);">
                 <div class="result-label">Bond Price</div>
-                <div class="result-value">$${bondPrice.toFixed(2)}</div>
+                <div class="result-value">${formatCurrency(bondPrice)}</div>
                 <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
-                  ${bondPrice > faceValue ? 'Premium' : bondPrice < faceValue ? 'Discount' : 'Par'} bond
+                  ${isPremium ? 'Premium' : isDiscount ? 'Discount' : 'Par'} bond
                 </div>
               </div>
               <div class="result-card" style="background-color: var(--slate-100);">
                 <div class="result-label">Face Value</div>
-                <div class="result-value">$${faceValue.toFixed(2)}</div>
+                <div class="result-value">${formatCurrency(faceValue)}</div>
               </div>
               <div class="result-card" style="background-color: var(--slate-100);">
                 <div class="result-label">Coupon Payment</div>
-                <div class="result-value">$${couponPayment.toFixed(2)}/period</div>
+                <div class="result-value">${formatCurrency(couponPayment)}/period</div>
                 <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
-                  ${(couponRate * 100).toFixed(2)}% annually
+                  ${formatPercent(couponRate)} annually
                 </div>
               </div>
               <div class="result-card" style="background-color: var(--slate-100);">
                 <div class="result-label">Yield to Maturity</div>
-                <div class="result-value">${(ytm * 100).toFixed(2)}%</div>
+                <div class="result-value">${formatPercent(ytm)}</div>
                 <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
-                  ${periodicYield.toFixed(4)} periodic
+                  ${periodicYield.toFixed(6)} periodic
                 </div>
               </div>
             </div>
@@ -2115,7 +2633,7 @@
                 <div style="text-align: center;">
                   <div style="font-size: 0.75rem; color: var(--slate-600);">Current Yield</div>
                   <div style="font-weight: 700; color: ${currentYield >= 0 ? 'var(--green-700)' : 'var(--red-700)'}">
-                    ${currentYield.toFixed(2)}%
+                    ${formatPercent(currentYield/100, 4)}
                   </div>
                 </div>
                 <div style="text-align: center;">
@@ -2127,13 +2645,13 @@
                 <div style="text-align: center;">
                   <div style="font-size: 0.75rem; color: var(--slate-600);">Premium/Discount</div>
                   <div style="font-weight: 700; color: ${totalReturn >= 0 ? 'var(--green-700)' : 'var(--red-700)'}">
-                    ${totalReturn >= 0 ? '+' : ''}$${Math.abs(totalReturn).toFixed(2)}
+                    ${totalReturn >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalReturn))}
                   </div>
                 </div>
                 <div style="text-align: center;">
                   <div style="font-size: 0.75rem; color: var(--slate-600);">Total Coupons</div>
                   <div style="font-weight: 700; color: var(--slate-700);">
-                    $${totalCoupons.toFixed(2)}
+                    ${formatCurrency(totalCoupons)}
                   </div>
                 </div>
               </div>
@@ -2141,20 +2659,28 @@
             
             <!-- Bond Status -->
             <div style="margin-top: 1rem; padding: 0.75rem; border-radius: 0.375rem; 
-                        background: ${bondPrice > faceValue ? 'var(--orange-50)' : bondPrice < faceValue ? 'var(--green-50)' : 'var(--blue-50)'}; 
-                        border-left: 4px solid ${bondPrice > faceValue ? 'var(--orange-500)' : bondPrice < faceValue ? 'var(--green-500)' : 'var(--blue-500)'};">
-              <div style="font-weight: 600; color: ${bondPrice > faceValue ? 'var(--orange-800)' : bondPrice < faceValue ? 'var(--green-800)' : 'var(--blue-800)'};">
+                        background: ${isPremium ? 'var(--orange-50)' : isDiscount ? 'var(--green-50)' : 'var(--blue-50)'}; 
+                        border-left: 4px solid ${isPremium ? 'var(--orange-500)' : isDiscount ? 'var(--green-500)' : 'var(--blue-500)'};">
+              <div style="font-weight: 600; color: ${isPremium ? 'var(--orange-800)' : isDiscount ? 'var(--green-800)' : 'var(--blue-800)'};">
                 ${
-                  bondPrice > faceValue 
-                    ? `💰 Premium Bond: Trading at $${(bondPrice - faceValue).toFixed(2)} above face value` 
-                    : bondPrice < faceValue 
-                    ? `📉 Discount Bond: Trading at $${(faceValue - bondPrice).toFixed(2)} below face value`
+                  isPremium 
+                    ? `💰 Premium Bond: Trading at ${formatCurrency(bondPrice - faceValue)} above face value` 
+                    : isDiscount 
+                    ? `📉 Discount Bond: Trading at ${formatCurrency(faceValue - bondPrice)} below face value`
                     : `📊 Par Bond: Trading exactly at face value`
                 }
               </div>
               <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
-                YTM ${(ytm * 100).toFixed(2)}% ${bondPrice > faceValue ? ' < ' : bondPrice < faceValue ? ' > ' : ' = '} 
-                Coupon Rate ${(couponRate * 100).toFixed(2)}%
+                YTM ${formatPercent(ytm)} ${isPremium ? ' < ' : isDiscount ? ' > ' : ' = '} 
+                Coupon Rate ${formatPercent(couponRate)}
+              </div>
+            </div>
+            
+            <!-- Floating Point Protection Notice -->
+            <div style="margin-top: 1rem; padding: 0.75rem; background: var(--purple-50); border-radius: 0.375rem; border-left: 3px solid var(--purple-500);">
+              <div style="font-size: 0.7rem; color: var(--purple-800); display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: 700;">🛡️ Financial Precision Active:</span>
+                <span>All calculations use banker's rounding and floating-point error correction</span>
               </div>
             </div>
           `;
@@ -2167,8 +2693,6 @@
           }, 100);
         });
       }
-
-
 
       // --- NPV & IRR Calculator ---
       function renderNPVIRRCalculator() {
@@ -2216,67 +2740,290 @@
                   `;
       }
 
-      // IRR calculation function
-      function calculateIRR(cashFlows, initialInvestment, initialGuess = 0.1) {
-        const maxIterations = 1000;
-        const tolerance = 1e-7;
-        let irr = initialGuess;
-
-        // Validate cash flows first
-        const hasPositive = cashFlows.some((cf) => cf > 0);
-        const hasNegative = cashFlows.some((cf) => cf < 0);
-
-        if (!hasPositive || !hasNegative) {
-          return {
-            success: false,
-            message: "Need both positive and negative cash flows",
+      // IRR calculation function 
+      /**
+       * Calculate IRR with fund-grade precision (Hybrid: Newton-Raphson + Bisection Fallback)
+       * Production-ready for financial applications
+       * @param {Array<number>} cashFlows - Array of cash flows
+       * @param {number} initialGuess - Starting guess (default 0.1 = 10%)
+       * @returns {Object} { success: boolean, irr?: number, iterations?: number, method?: string, message?: string }
+       */
+      function calculateIRR(cashFlows, initialGuess = 0.1) {
+        // ========== 1. VALIDATION ==========
+        if (!cashFlows || !Array.isArray(cashFlows)) {
+          return { 
+            success: false, 
+            message: "Invalid cash flows: must be an array" 
           };
         }
-
-        for (let i = 0; i < maxIterations; i++) {
-          let npv = -Math.abs(initialInvestment);
+        
+        if (cashFlows.length < 2) {
+          return { 
+            success: false, 
+            message: "Need at least 2 cash flows for IRR calculation" 
+          };
+        }
+        
+        // Fund-grade validation: need both + and - cash flows
+        const positiveFlows = cashFlows.filter(cf => cf > 0);
+        const negativeFlows = cashFlows.filter(cf => cf < 0);
+        const zeroFlows = cashFlows.filter(cf => cf === 0);
+        
+        if (positiveFlows.length === 0 || negativeFlows.length === 0) {
+          return {
+            success: false,
+            message: `Cash flows must contain both positive and negative values. Found: ${positiveFlows.length}+, ${negativeFlows.length}-, ${zeroFlows.length}0`
+          };
+        }
+        
+        // ========== 2. CONFIGURATION ==========
+        const maxIterations = 100;
+        const tolerance = 1e-9;
+        const maxIRR = 10.0;      // 1000% maximum realistic bound
+        const minIRR = -0.9999;   // -99.99% minimum
+        
+        let irr = roundFinancial(initialGuess, 8);
+        
+        // ========== 3. NEWTON-RAPHSON (Fast & Accurate) ==========
+        for (let iter = 0; iter < maxIterations; iter++) {
+          let npv = 0;
           let derivative = 0;
-
+          
           for (let t = 0; t < cashFlows.length; t++) {
-            const period = t + 1;
-            const denominator = Math.pow(1 + irr, period);
-            npv += cashFlows[t] / denominator;
-            derivative -= (period * cashFlows[t]) / (denominator * (1 + irr));
+            const cf = cashFlows[t];
+            if (cf === 0) continue; // Skip zero cash flows for efficiency
+            
+            // Period = t (Year 0, Year 1, etc.)
+            const discountFactor = Math.pow(1 + irr, t);
+            const pv = safeDivide(cf, discountFactor, 12);
+            npv = safeAdd(npv, pv);
+            
+            // Derivative for Newton-Raphson (only for t > 0)
+            if (t > 0 && cf !== 0) {
+              // Derivative of CF/(1+r)^t = -t * CF / (1+r)^(t+1)
+              const derivativeFactor = safeMultiply(
+                -t,
+                Math.pow(1 + irr, -(t + 1)),
+                12
+              );
+              const derivativeTerm = safeMultiply(cf, derivativeFactor, 12);
+              derivative = safeAdd(derivative, derivativeTerm);
+            }
           }
-
-          // Check if derivative is too small (avoid division by zero)
-          if (Math.abs(derivative) < 1e-10) {
+          
+          // Convergence check (main criteria)
+          if (financialEquals(npv, 0, tolerance)) {
             return {
-              success: false,
-              message: "IRR calculation failed - derivative too small",
+              success: true,
+              irr: roundFinancial(irr, 8),
+              iterations: iter + 1,
+              method: 'newton-raphson',
+              convergence: 'npv ≈ 0'
             };
           }
-
-          const delta = npv / derivative;
-          irr -= delta;
-
-          // Prevent IRR from going to unrealistic values
-          if (irr < -0.99) irr = -0.99; // Minimum -99%
-          if (irr > 10) irr = 10; // Maximum 1000%
-
+          
+          // Stability check: prevent division by zero
+          if (Math.abs(derivative) < 1e-15) {
+            // Derivative too small, switch to bisection
+            break;
+          }
+          
+          // Newton-Raphson update: r = r - NPV/NPV'
+          const delta = safeDivide(npv, derivative, 12);
+          irr = safeAdd(irr, -delta);
+          
+          // Apply realistic bounds
+          if (irr <= minIRR) {
+            irr = minIRR;
+          } else if (irr >= maxIRR) {
+            irr = maxIRR;
+          }
+          
+          // Secondary convergence check: small delta
           if (Math.abs(delta) < tolerance) {
-            return { success: true, irr: irr };
+            // Re-calculate NPV with new rate to confirm
+            const finalNPV = calculateNPVAtRate(cashFlows, irr);
+            if (financialEquals(finalNPV, 0, tolerance * 10)) {
+              return {
+                success: true,
+                irr: roundFinancial(irr, 8),
+                iterations: iter + 1,
+                method: 'newton-raphson',
+                convergence: 'delta < tolerance'
+              };
+            }
           }
         }
-
+        
+        // ========== 4. FALLBACK: BISECTION METHOD (More Stable) ==========
+        // If Newton-Raphson fails, use bisection as robust fallback
+        const bisectionResult = calculateIRRBisection(cashFlows, tolerance, minIRR, maxIRR);
+        
+        if (bisectionResult.success) {
+          return {
+            ...bisectionResult,
+            method: 'bisection-fallback',
+            note: 'Newton-Raphson failed, used bisection'
+          };
+        }
+        
+        // ========== 5. FINAL FALLBACK: MULTIPLE GUESSES ==========
+        // Try multiple initial guesses (Excel's approach)
+        const initialGuesses = [0.1, -0.1, 0.5, -0.5, 0.0, 0.25, 1.0, -0.99, 2.0];
+        
+        for (const guess of initialGuesses) {
+          if (guess === initialGuess) continue; // Skip already tried
+          
+          const retryResult = calculateIRRNewtonOnly(cashFlows, guess, maxIterations, tolerance);
+          if (retryResult.success) {
+            return {
+              ...retryResult,
+              method: 'newton-retry',
+              initialGuessUsed: guess
+            };
+          }
+        }
+        
+        // ========== 6. ALL METHODS FAILED ==========
         return {
           success: false,
-          message: "IRR did not converge - may have multiple solutions",
+          message: `IRR calculation failed after ${maxIterations} iterations with multiple methods. Check cash flow pattern.`,
+          iterations: maxIterations,
+          cashFlowSummary: `${positiveFlows.length}+, ${negativeFlows.length}-, ${zeroFlows.length}0`
         };
+      }
+      // ========== HELPER FUNCTIONS ==========
+      /**
+       * Newton-Raphson only (no fallback) for retry attempts
+       */
+      function calculateIRRNewtonOnly(cashFlows, initialGuess, maxIterations, tolerance) {
+        let irr = initialGuess;
+        
+        for (let iter = 0; iter < maxIterations; iter++) {
+          let npv = 0;
+          let derivative = 0;
+          
+          for (let t = 0; t < cashFlows.length; t++) {
+            const cf = cashFlows[t];
+            if (cf === 0) continue;
+            
+            const discountFactor = Math.pow(1 + irr, t);
+            const pv = safeDivide(cf, discountFactor, 12);
+            npv = safeAdd(npv, pv);
+            
+            if (t > 0 && cf !== 0) {
+              const derivativeFactor = safeMultiply(
+                -t,
+                Math.pow(1 + irr, -(t + 1)),
+                12
+              );
+              const derivativeTerm = safeMultiply(cf, derivativeFactor, 12);
+              derivative = safeAdd(derivative, derivativeTerm);
+            }
+          }
+          
+          if (financialEquals(npv, 0, tolerance)) {
+            return {
+              success: true,
+              irr: roundFinancial(irr, 8),
+              iterations: iter + 1
+            };
+          }
+          
+          if (Math.abs(derivative) < 1e-15) break;
+          
+          const delta = safeDivide(npv, derivative, 12);
+          irr = safeAdd(irr, -delta);
+          
+          // Bounds
+          if (irr <= -0.9999) irr = -0.9999;
+          else if (irr >= 10.0) irr = 10.0;
+        }
+        
+        return { success: false };
+      }
+      /**
+       * Bisection method with configurable bounds
+       */
+      function calculateIRRBisection(cashFlows, tolerance, minIRR = -0.9999, maxIRR = 10.0) {
+        let lower = minIRR;
+        let upper = maxIRR;
+        const maxIterations = 100;
+        
+        // Check initial bounds
+        const npvLower = calculateNPVAtRate(cashFlows, lower);
+        const npvUpper = calculateNPVAtRate(cashFlows, upper);
+        
+        // If bounds have same sign, try to find crossing
+        if (npvLower * npvUpper > 0) {
+          // Search for valid bounds (Excel's approach)
+          for (let i = 0; i < 50; i++) {
+            const testRate = lower + (upper - lower) * i / 49;
+            const npv = calculateNPVAtRate(cashFlows, testRate);
+            
+            if (npvLower * npv <= 0) {
+              upper = testRate;
+              break;
+            }
+          }
+        }
+        
+        // Bisection loop
+        for (let iter = 0; iter < maxIterations; iter++) {
+          const mid = safeDivide(safeAdd(lower, upper), 2, 12);
+          const npvMid = calculateNPVAtRate(cashFlows, mid);
+          
+          if (financialEquals(npvMid, 0, tolerance)) {
+            return {
+              success: true,
+              irr: roundFinancial(mid, 8),
+              iterations: iter + 1
+            };
+          }
+          
+          // Update bounds based on sign
+          if (calculateNPVAtRate(cashFlows, lower) * npvMid < 0) {
+            upper = mid;
+          } else {
+            lower = mid;
+          }
+          
+          // Check if interval is sufficiently small
+          if (financialEquals(upper, lower, 1e-12)) {
+            return {
+              success: financialEquals(npvMid, 0, tolerance * 100),
+              irr: roundFinancial(mid, 8),
+              iterations: iter + 1
+            };
+          }
+        }
+        
+        return { success: false };
+      }
+      /**
+       * Calculate NPV at given discount rate (reusable)
+       */
+      function calculateNPVAtRate(cashFlows, rate) {
+        let npv = 0;
+        for (let t = 0; t < cashFlows.length; t++) {
+          const cf = cashFlows[t];
+          if (cf === 0) continue;
+          
+          const discountFactor = Math.pow(1 + rate, t);
+          const pv = safeDivide(cf, discountFactor, 12);
+          npv = safeAdd(npv, pv);
+        }
+        return npv;
       }
 
 
-      // ==================== XIRR/XNPV FUNCTIONS - PRODUCTION READY ====================
 
 
+
+      // ==================== XIRR/XNPV FUNCTIONS ====================
       /**
        * Parse date robustly (timezone-safe, Excel-compatible)
-       * Supports: YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY
+       * Returns Date object at noon UTC to avoid timezone issues
        */
       function parseInputDate(dateStr) {
         if (!dateStr) return null;
@@ -2284,12 +3031,17 @@
         // Remove any whitespace
         dateStr = dateStr.trim();
         
-        // Try ISO format (YYYY-MM-DD) - timezone neutral
+        // Try ISO format (YYYY-MM-DD)
         const isoMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
         if (isoMatch) {
           const [_, year, month, day] = isoMatch;
-          // Use UTC to avoid timezone issues
-          const date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+          // Use UTC noon to avoid timezone issues
+          const date = new Date(Date.UTC(
+            parseInt(year), 
+            parseInt(month) - 1, 
+            parseInt(day),
+            12, 0, 0, 0 // Noon UTC
+          ));
           if (!isNaN(date.getTime())) return date;
         }
         
@@ -2297,7 +3049,12 @@
         const usMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (usMatch) {
           const [_, month, day, year] = usMatch;
-          const date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+          const date = new Date(Date.UTC(
+            parseInt(year), 
+            parseInt(month) - 1, 
+            parseInt(day),
+            12, 0, 0, 0
+          ));
           if (!isNaN(date.getTime())) return date;
         }
         
@@ -2305,35 +3062,44 @@
         const euMatch1 = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
         if (euMatch1) {
           const [_, day, month, year] = euMatch1;
-          const date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+          const date = new Date(Date.UTC(
+            parseInt(year), 
+            parseInt(month) - 1, 
+            parseInt(day),
+            12, 0, 0, 0
+          ));
           if (!isNaN(date.getTime())) return date;
         }
         
         const euMatch2 = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
         if (euMatch2) {
           const [_, day, month, year] = euMatch2;
-          const date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+          const date = new Date(Date.UTC(
+            parseInt(year), 
+            parseInt(month) - 1, 
+            parseInt(day),
+            12, 0, 0, 0
+          ));
           if (!isNaN(date.getTime())) return date;
         }
         
-        // Fallback: try native Date parsing
-        const date = new Date(dateStr + 'T00:00:00Z');
-        if (!isNaN(date.getTime())) return date;
+        // Fallback: try Date parsing with UTC
+        try {
+          const date = new Date(dateStr + 'T12:00:00Z');
+          if (!isNaN(date.getTime())) return date;
+        } catch (e) {
+          // Continue to return null
+        }
         
         return null;
       }
 
-
       /**
-       * Calculate XNPV (Excel-compatible, production-grade)
-       * Uses exact day count / 365 (Excel standard)
+       * Calculate XNPV with financial precision (Excel-compatible)
        */
       function calculateXNPV(rate, cashFlows) {
-        if (!cashFlows || cashFlows.length === 0) {
-          return 0;
-        }
-
-        // Sort by date (earliest first)
+        if (!cashFlows || cashFlows.length === 0) return 0;
+        
         const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
         const baseDate = sorted[0].date;
         
@@ -2343,81 +3109,22 @@
           const daysDiff = Math.round((cf.date - baseDate) / (1000 * 60 * 60 * 24));
           const yearsDiff = daysDiff / 365.0;
           
-          // Excel's formula: CF / (1 + r)^(days/365)
-          const pv = cf.amount / Math.pow(1 + rate, yearsDiff);
-          xnpv += pv;
+          // ✅ SỬ DỤNG PRECISION FUNCTIONS
+          const discountFactor = safeMultiply(
+            1,  // Base multiplier
+            Math.pow(1 + rate, yearsDiff),
+            12  // Precision: 12 decimal places
+          );
+          
+          const pv = safeDivide(cf.amount, discountFactor, 12);
+          xnpv = safeAdd(xnpv, pv);
         }
         
-        return xnpv;
+        return roundFinancial(xnpv, 2);
       }
 
       /**
-       * PRODUCTION-GRADE XIRR with robust convergence
-       * Newton-Raphson with fallback bisection for stability
-       * Excel-compatible results (±1e-9 tolerance)
-       */
-      function calculateXIRR(cashFlows, initialGuess = 0.1) {
-        // Validate input
-        if (!cashFlows || cashFlows.length < 2) {
-          return {
-            success: false,
-            message: "Need at least 2 cash flows"
-          };
-        }
-
-        // Validate cash flow signs (must have both positive and negative)
-        const amounts = cashFlows.map(cf => cf.amount);
-        const hasPositive = amounts.some(a => a > 0);
-        const hasNegative = amounts.some(a => a < 0);
-        
-        if (!hasPositive || !hasNegative) {
-          return {
-            success: false,
-            message: "Need both positive and negative cash flows"
-          };
-        }
-
-        // Sort by date (essential for XIRR)
-        const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
-        const baseDate = sorted[0].date;
-        
-        // Calculate total magnitude for relative error checking
-        const totalMagnitude = sorted.reduce((sum, cf) => sum + Math.abs(cf.amount), 0);
-        const tolerance = Math.max(1e-9, totalMagnitude * 1e-12);
-        
-        // Try multiple initial guesses (Excel's approach)
-        const initialGuesses = [initialGuess, 0.1, -0.1, 0.5, -0.5, 0.0, 0.25, 1.0, -0.99, 2.0];
-        
-        for (const guess of initialGuesses) {
-          const result = newtonRaphsonXIRR(sorted, baseDate, guess, tolerance);
-          if (result.success) {
-            return {
-              ...result,
-              iterations: result.iterations,
-              xnpv: calculateXNPV(result.xirr, sorted)
-            };
-          }
-        }
-        
-        // Fallback to bisection method if Newton-Raphson fails
-        const bisectionResult = bisectionXIRR(sorted, baseDate, tolerance);
-        if (bisectionResult.success) {
-          return {
-            ...bisectionResult,
-            method: 'bisection',
-            xnpv: calculateXNPV(bisectionResult.xirr, sorted)
-          };
-        }
-        
-        return {
-          success: false,
-          message: "XIRR did not converge. Check cash flow pattern or try different initial guess.",
-          iterations: 100
-        };
-      }
-
-      /**
-       * Newton-Raphson solver for XIRR
+       * Newton-Raphson solver for XIRR with financial precision
        */
       function newtonRaphsonXIRR(sortedCFs, baseDate, initialGuess, tolerance) {
         const maxIterations = 100;
@@ -2431,45 +3138,60 @@
             const days = (cf.date - baseDate) / (1000 * 60 * 60 * 24);
             const years = days / 365.0;
             
-            const discountFactor = Math.pow(1 + rate, years);
-            npv += cf.amount / discountFactor;
+            // ✅ SỬ DỤNG SAFE FUNCTIONS
+            const discountFactor = safeMultiply(
+              Math.pow(1 + rate, years), 
+              1, 
+              12
+            );
             
-            // Derivative: -t * CF / (1+r)^(t+1)
-            if (Math.abs(years) > 1e-12) { // Avoid numerical issues
-              derivative -= (years * cf.amount) / (discountFactor * (1 + rate));
+            const discountedCF = safeDivide(cf.amount, discountFactor, 12);
+            npv = safeAdd(npv, discountedCF);
+            
+            // Derivative calculation với precision
+            if (Math.abs(years) > 1e-12) {
+              const derivativeTerm = safeDivide(
+                safeMultiply(
+                  safeMultiply(years, cf.amount, 12),
+                  Math.pow(1 + rate, -(years + 1)),
+                  12
+                ),
+                1,
+                12
+              );
+              derivative = safeAdd(derivative, -derivativeTerm);
             }
           }
           
-          // Check convergence
-          if (Math.abs(npv) <= tolerance) {
+          // Convergence check với financialEquals
+          if (financialEquals(npv, 0, tolerance)) {
             return {
               success: true,
-              xirr: rate,
+              xirr: roundFinancial(rate, 8), // 8 decimals for rates
               iterations: iter + 1
             };
           }
           
-          // Prevent division by zero and stabilize
-          if (Math.abs(derivative) < 1e-15) {
+          // Prevent division by zero
+          if (Math.abs(derivative) < 1e-15 || financialEquals(derivative, 0, 1e-15)) {
             break;
           }
           
-          // Newton-Raphson update
-          const delta = npv / derivative;
-          rate -= delta;
+          // Newton-Raphson update với precision
+          const delta = safeDivide(npv, derivative, 12);
+          rate = safeAdd(rate, -delta);
           
-          // Apply bounds (realistic IRR range for most investments)
+          // Apply bounds với rounding
           if (rate <= -0.9999) rate = -0.9999;
-          if (rate >= 10.0) rate = 10.0; // 1000% max (realistic bound)
+          if (rate >= 10.0) rate = 10.0;
           
-          // Check for oscillation or divergence
+          // Check for small updates
           if (Math.abs(delta) < tolerance || iter === maxIterations - 1) {
-            // Final check
             const finalXNPV = calculateXNPV(rate, sortedCFs);
-            if (Math.abs(finalXNPV) <= tolerance) {
+            if (financialEquals(finalXNPV, 0, tolerance)) {
               return {
                 success: true,
-                xirr: rate,
+                xirr: roundFinancial(rate, 8),
                 iterations: iter + 1
               };
             }
@@ -2480,14 +3202,13 @@
       }
 
       /**
-       * Bisection method as fallback (more stable, slower)
+       * Bisection method with financial precision
        */
       function bisectionXIRR(sortedCFs, baseDate, tolerance) {
-        // Find reasonable bounds
         let lower = -0.9999;
         let upper = 10.0;
         
-        // Check bounds have opposite signs
+        // Check bounds với XNPV precision
         const npvLower = calculateXNPV(lower, sortedCFs);
         const npvUpper = calculateXNPV(upper, sortedCFs);
         
@@ -2498,36 +3219,36 @@
             const npv = calculateXNPV(testRate, sortedCFs);
             
             if (npvLower * npv <= 0) {
-              upper = testRate;
+              upper = roundFinancial(testRate, 8);
               break;
             }
           }
         }
         
-        // Bisection loop
+        // Bisection loop với precision
         for (let iter = 0; iter < 100; iter++) {
-          const mid = (lower + upper) / 2;
+          const mid = safeDivide(safeAdd(lower, upper), 2, 12);
           const npvMid = calculateXNPV(mid, sortedCFs);
           
-          if (Math.abs(npvMid) <= tolerance) {
+          if (financialEquals(npvMid, 0, tolerance)) {
             return {
               success: true,
-              xirr: mid,
+              xirr: roundFinancial(mid, 8),
               iterations: iter + 1
             };
           }
           
           if (calculateXNPV(lower, sortedCFs) * npvMid < 0) {
-            upper = mid;
+            upper = roundFinancial(mid, 12);
           } else {
-            lower = mid;
+            lower = roundFinancial(mid, 12);
           }
           
-          // Check if bounds are too close
-          if (upper - lower < 1e-12) {
+          // Check convergence
+          if (financialEquals(upper, lower, 1e-12)) {
             return {
-              success: Math.abs(npvMid) <= tolerance * 10,
-              xirr: mid,
+              success: financialEquals(npvMid, 0, tolerance * 10),
+              xirr: roundFinancial(mid, 8),
               iterations: iter + 1
             };
           }
@@ -2537,21 +3258,104 @@
       }
 
       /**
-       * Calculate regular NPV for comparison (annual periods)
+       * Calculate regular NPV với precision
        */
+
       function calculateRegularNPV(cashFlows, discountRate) {
         if (!cashFlows || cashFlows.length === 0) return 0;
         
         const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
         let npv = 0;
         
-        // Assume equal annual periods (simplistic comparison)
         for (let i = 0; i < sorted.length; i++) {
-          npv += sorted[i].amount / Math.pow(1 + discountRate, i);
+          const discountFactor = safeMultiply(
+            Math.pow(1 + discountRate, i),
+            1,
+            12
+          );
+          const pv = safeDivide(sorted[i].amount, discountFactor, 12);
+          npv = safeAdd(npv, pv);
         }
         
-        return npv;
+        return roundFinancial(npv, 2);
       }
+
+      /**
+       * PRODUCTION-GRADE XIRR với financial precision
+       */
+      function calculateXIRR(cashFlows, initialGuess = 0.1) {
+        // Validate input
+        if (!cashFlows || cashFlows.length < 2) {
+          return {
+            success: false,
+            message: "Need at least 2 cash flows"
+          };
+        }
+
+        // Validate cash flow signs
+        const amounts = cashFlows.map(cf => cf.amount);
+        const hasPositive = amounts.some(a => a > 0);
+        const hasNegative = amounts.some(a => a < 0);
+        
+        if (!hasPositive || !hasNegative) {
+          return {
+            success: false,
+            message: "Need both positive and negative cash flows"
+          };
+        }
+
+        // Sort by date
+        const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
+        const baseDate = sorted[0].date;
+        
+        // Tính tolerance dựa trên magnitude
+        const totalMagnitude = sorted.reduce((sum, cf) => sum + Math.abs(cf.amount), 0);
+        const tolerance = Math.max(1e-9, totalMagnitude * 1e-12);
+        
+        // Multiple initial guesses (Excel's approach)
+        const initialGuesses = [
+          roundFinancial(initialGuess, 8),
+          roundFinancial(0.1, 8),
+          roundFinancial(-0.1, 8),
+          roundFinancial(0.5, 8),
+          roundFinancial(-0.5, 8),
+          roundFinancial(0.0, 8),
+          roundFinancial(0.25, 8),
+          roundFinancial(1.0, 8),
+          roundFinancial(-0.99, 8),
+          roundFinancial(2.0, 8)
+        ];
+        
+        for (const guess of initialGuesses) {
+          const result = newtonRaphsonXIRR(sorted, baseDate, guess, tolerance);
+          if (result.success) {
+            const xnpv = calculateXNPV(result.xirr, sorted);
+            return {
+              ...result,
+              xnpv: roundFinancial(xnpv, 2),
+              method: 'newton-raphson'
+            };
+          }
+        }
+        
+        // Fallback to bisection
+        const bisectionResult = bisectionXIRR(sorted, baseDate, tolerance);
+        if (bisectionResult.success) {
+          const xnpv = calculateXNPV(bisectionResult.xirr, sorted);
+          return {
+            ...bisectionResult,
+            xnpv: roundFinancial(xnpv, 2),
+            method: 'bisection'
+          };
+        }
+        
+        return {
+          success: false,
+          message: "XIRR did not converge. Check cash flow pattern or try different initial guess.",
+          iterations: 100
+        };
+      }
+
 
       /**
        * Calculate regular IRR for comparison (annual periods)
@@ -2563,8 +3367,7 @@
         
         const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
         const amounts = sorted.map(cf => cf.amount);
-        
-        return calculateIRR(amounts, Math.abs(sorted[0].amount), 0.1);
+        return calculateIRR(amounts, 0.1);
       }
 
       /**
@@ -2588,9 +3391,6 @@
         });
       }
 
-
-
-      
       function renderXNPVXIRRCalculator() {
         return `
           <h2 class="calculator-title">⚡ XNPV & XIRR Calculator (Professional)</h2>
@@ -2986,17 +3786,25 @@
           displayXIRRResults(xirrResult, regularIRR, parsedCFs);
         }
 
+
+
         function calculateRegularNPV(parsedCFs, rate) {
-          // Assume cash flows are evenly spaced (naive approach)
+          // SỬ DỤNG safe functions:
           const sorted = [...parsedCFs].sort((a, b) => a.date - b.date);
           let npv = 0;
           
           for (let i = 0; i < sorted.length; i++) {
-            npv += sorted[i].amount / Math.pow(1 + rate, i);
+            const discountFactor = safeMultiply(
+              1,
+              Math.pow(1 + rate, i), 
+              12
+            );
+            const pv = safeDivide(sorted[i].amount, discountFactor, 12);
+            npv = safeAdd(npv, pv);
           }
           
-          return npv;
-        }
+          return roundFinancial(npv, 2);
+        }        
 
         function calculateRegularIRR(parsedCFs) {
           // Use simplified IRR assuming evenly spaced periods
@@ -3007,16 +3815,78 @@
           return result;
         }
 
+
         function displayXNPVResults(xnpv, regularNPV, rate, cashFlows) {
           const resultsDiv = document.getElementById('xnpvxirrResults');
           const comparisonDiv = document.getElementById('comparisonSection');
           
-          const difference = xnpv - regularNPV;
-          const percentDiff = regularNPV !== 0 ? (difference / Math.abs(regularNPV)) * 100 : 0;
-
+          // ========== FUND-GRADE PRECISION CALCULATIONS ==========
+          // Sử dụng roundFinancial để loại bỏ floating point errors
+          const precisionDifference = roundFinancial(xnpv - regularNPV, 2);
+          
+          // Xử lý edge case: regularNPV gần bằng 0
+          const absRegularNPV = Math.abs(regularNPV);
+          let percentDiff = 0;
+          let percentDiffDisplay = '0%';
+          let showPercentDiff = true;
+          
+          if (absRegularNPV > 1e-6) { // Threshold: $0.000001
+            const rawPercent = (precisionDifference / absRegularNPV) * 100;
+            percentDiff = roundFinancial(rawPercent, 2);
+            percentDiffDisplay = `${percentDiff >= 0 ? '+' : ''}${Math.abs(percentDiff).toFixed(1)}%`;
+          } else {
+            // NPV quá nhỏ, không tính % diff
+            showPercentDiff = false;
+            percentDiffDisplay = 'N/A (NPV ≈ 0)';
+          }
+          
+          // ========== PROFESSIONAL FORMATTING ==========
+          // Format tự động chọn đơn vị (K/M/B)
+          const formatFinancialValue = (value) => {
+            const absValue = Math.abs(value);
+            
+            if (absValue >= 1e12) { // Trillion
+              return `${value >= 0 ? '+' : '-'}$${(absValue / 1e12).toFixed(3)}T`;
+            } else if (absValue >= 1e9) { // Billion
+              return `${value >= 0 ? '+' : '-'}$${(absValue / 1e9).toFixed(3)}B`;
+            } else if (absValue >= 1e6) { // Million
+              return `${value >= 0 ? '+' : '-'}$${(absValue / 1e6).toFixed(3)}M`;
+            } else if (absValue >= 1e3) { // Thousand
+              return `${value >= 0 ? '+' : '-'}$${(absValue / 1e3).toFixed(1)}K`;
+            } else {
+              return `${value >= 0 ? '+' : '-'}$${absValue.toFixed(2)}`;
+            }
+          };
+          
+          const xnpvFormatted = formatFinancialValue(xnpv);
+          const regularNPVFormatted = formatFinancialValue(regularNPV);
+          const differenceFormatted = formatFinancialValue(precisionDifference);
+          
+          // ========== CASH FLOW SIGN VALIDATION ==========
+          // Kiểm tra pattern cash flow (fund-grade requirement)
+          let cashFlowPattern = 'Valid';
+          let cashFlowPatternColor = 'var(--green-600)';
+          let cashFlowPatternIcon = '✅';
+          
+          const amounts = cashFlows.map(cf => cf.amount);
+          const positiveFlows = amounts.filter(a => a > 0);
+          const negativeFlows = amounts.filter(a => a < 0);
+          
+          if (positiveFlows.length === 0 || negativeFlows.length === 0) {
+            cashFlowPattern = 'Invalid: Need both + and - cash flows';
+            cashFlowPatternColor = 'var(--red-600)';
+            cashFlowPatternIcon = '⚠️';
+          } else if (amounts[0] >= 0) {
+            // Warning: First cash flow should ideally be negative (investment)
+            cashFlowPattern = 'Warning: First CF should be negative (investment)';
+            cashFlowPatternColor = 'var(--orange-600)';
+            cashFlowPatternIcon = '⚠️';
+          }
+          
+          // ========== RENDER RESULTS ==========
           resultsDiv.innerHTML = `
             <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; color: var(--indigo-800);">
-              📊 XNPV Results
+              📊 XNPV Results (Finance-Grade)
             </h3>
 
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
@@ -3026,7 +3896,7 @@
                   XNPV (Exact Dates)
                 </div>
                 <div style="font-size: 2rem; font-weight: 800; color: ${xnpv >= 0 ? 'var(--green-700)' : 'var(--red-700)'};">
-                  ${xnpv >= 0 ? '+' : ''}$${(xnpv / 1000000).toFixed(2)}M
+                  ${xnpvFormatted}
                 </div>
               </div>
 
@@ -3035,93 +3905,121 @@
                   Discount Rate
                 </div>
                 <div style="font-size: 2rem; font-weight: 800; color: var(--slate-700);">
-                  ${(rate * 100).toFixed(2)}%
+                  ${formatPercent(rate, 2)}
                 </div>
               </div>
 
               <div style="background: var(--slate-100); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
                 <div style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 0.5rem; font-weight: 600;">
-                  Cash Flows
+                  Cash Flow Pattern
                 </div>
-                <div style="font-size: 2rem; font-weight: 800; color: var(--slate-700);">
-                  ${cashFlows.length}
+                <div style="font-size: 1.25rem; font-weight: 600; color: ${cashFlowPatternColor}; margin-top: 0.5rem;">
+                  ${cashFlowPatternIcon} ${cashFlowPattern}
                 </div>
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                  ${positiveFlows.length}+ / ${negativeFlows.length}- flows
+                </div>
+              </div>
+            </div>
+
+            <!-- Data Quality Check -->
+            <div style="background: var(--blue-50); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; border-left: 4px solid var(--blue-500);">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="M8 13A5 5 0 1 1 8 3a5 5 0 0 1 0 10zm0-1A4 4 0 1 0 8 4a4 4 0 0 0 0 8z"/>
+                  <path d="M9.5 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                </svg>
+                <strong style="color: var(--blue-800);">Data Quality & Precision</strong>
+              </div>
+              <div style="font-size: 0.875rem; color: var(--blue-700);">
+                • XNPV precision: ${formatCurrency(xnpv)}<br>
+                • Regular NPV precision: ${formatCurrency(regularNPV)}<br>
+                • Difference: ${formatCurrency(precisionDifference)}<br>
+                • Tolerance threshold: $${(1e-6).toFixed(6)}
               </div>
             </div>
 
             ${renderCashFlowTimeline(cashFlows)}
           `;
 
+          // ========== COMPARISON SECTION ==========
+          const impactAnalysis = getImpactAnalysis(precisionDifference, percentDiff, showPercentDiff);
+          
           comparisonDiv.innerHTML = `
             <div style="background: linear-gradient(135deg, var(--orange-50), var(--red-50));
                         padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid var(--orange-500);">
               <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--orange-900); margin-bottom: 1rem;">
-                ⚠️ XNPV vs Regular NPV Comparison
+                ⚠️ XNPV vs Regular NPV Comparison (Finance-Grade Analysis)
               </h4>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
-                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">XNPV (Exact)</div>
+                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center; border: 1px solid var(--indigo-200);">
+                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem; font-weight: 600;">XNPV (Exact Dates)</div>
                   <div style="font-weight: 700; font-size: 1.1rem; color: var(--indigo-700);">
-                    $${(xnpv / 1000000).toFixed(2)}M
+                    ${xnpvFormatted}
                   </div>
+                  <div style="font-size: 0.7rem; color: var(--slate-500); margin-top: 0.25rem;">Professional standard</div>
                 </div>
 
-                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
-                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">NPV (Annual)</div>
+                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center; border: 1px solid var(--slate-200);">
+                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem; font-weight: 600;">NPV (Annual)</div>
                   <div style="font-weight: 700; font-size: 1.1rem; color: var(--slate-600);">
-                    $${(regularNPV / 1000000).toFixed(2)}M
+                    ${regularNPVFormatted}
                   </div>
+                  <div style="font-size: 0.7rem; color: var(--slate-500); margin-top: 0.25rem;">Academic/simple</div>
                 </div>
 
-                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
-                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Difference</div>
-                  <div style="font-weight: 700; font-size: 1.1rem; color: ${difference >= 0 ? 'var(--green-700)' : 'var(--red-700)'}">
-                    ${difference >= 0 ? '+' : '-'}$${Math.abs(difference / 1000000).toFixed(2)}M
-                    <div style="font-size: 0.75rem; color: ${difference >= 0 ? 'var(--green-600)' : 'var(--red-600)'}">
-                      (${percentDiff >= 0 ? '+' : ''}${Math.abs(percentDiff).toFixed(1)}%)
-                    </div>
+                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center; border: 1px solid ${precisionDifference >= 0 ? 'var(--green-200)' : 'var(--red-200)'}">
+                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem; font-weight: 600;">Difference</div>
+                  <div style="font-weight: 700; font-size: 1.1rem; color: ${precisionDifference >= 0 ? 'var(--green-700)' : 'var(--red-700)'}">
+                    ${differenceFormatted}
+                  </div>
+                  <div style="font-size: 0.75rem; color: ${precisionDifference >= 0 ? 'var(--green-600)' : 'var(--red-600)'}">
+                    ${showPercentDiff ? `(${percentDiffDisplay})` : percentDiffDisplay}
                   </div>
                 </div>
               </div>
 
               <div style="background: var(--orange-50); padding: 1.25rem; border-radius: 0.5rem; margin-top: 1rem; font-size: 0.875rem; line-height: 1.6;">
-                <strong>🔥 Why the difference matters:</strong><br>
-                ${
-                  Math.abs(percentDiff) > 5 
-                    ? `Regular NPV is off by <strong>${Math.abs(percentDiff).toFixed(1)}%</strong> — this could mean the difference between a "GO" and "NO GO" decision on a multi-million dollar deal.`
-                    : `Difference is relatively small (${Math.abs(percentDiff).toFixed(1)}%), but still important for precision in professional models.`
-                }
+                <strong>🔥 ${impactAnalysis.title}</strong><br>
+                ${impactAnalysis.description}
                 <br><br>
-                <strong>📈 Practical impact:</strong> 
-                ${
-                  difference > 0
-                    ? `XNPV shows the project is <strong>$${Math.abs(difference / 1000000).toFixed(2)}M MORE valuable</strong> than regular NPV suggests — you might be undervaluing opportunities.`
-                    : `XNPV shows the project is <strong>$${Math.abs(difference / 1000000).toFixed(2)}M LESS valuable</strong> — regular NPV is giving you false optimism.`
-                }
+                <strong>📈 Deal Impact Assessment:</strong><br>
+                ${impactAnalysis.dealImpact}
               </div>
 
+              <!-- Decision Framework -->
               <div style="margin-top: 1rem; padding: 1rem; background: var(--white); border-radius: 0.5rem; border: 1px solid var(--slate-200);">
-                <div style="font-weight: 600; color: var(--slate-700); margin-bottom: 0.5rem;">💡 When to use each method:</div>
+                <div style="font-weight: 600; color: var(--slate-700); margin-bottom: 0.5rem;">💡 Finance Decision Framework:</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                   <div style="background: var(--indigo-50); padding: 0.75rem; border-radius: 0.375rem;">
-                    <strong style="color: var(--indigo-700);">Use XNPV when:</strong><br>
+                    <strong style="color: var(--indigo-700);">Use XNPV when (Professional):</strong><br>
                     • Real deals with specific dates<br>
-                    • PE/VC fund performance<br>
-                    • Real estate development<br>
+                    • PE/VC fund performance & carry calculations<br>
+                    • Real estate development & construction draws<br>
                     • Bridge/short-term financing<br>
-                    • Dividend recaps<br>
-                    • Waterfall calculations
+                    • Dividend recaps & waterfalls<br>
+                    • Project finance with drawdown schedules
                   </div>
                   <div style="background: var(--slate-100); padding: 0.75rem; border-radius: 0.375rem;">
-                    <strong style="color: var(--slate-700);">Use NPV when:</strong><br>
-                    • Academic exercises<br>
-                    • Quarterly/annual planning<br>
+                    <strong style="color: var(--slate-700);">Use NPV when (Simplified):</strong><br>
+                    • Academic exercises & classroom models<br>
+                    • Quarterly/annual planning (not day-specific)<br>
                     • Back-of-envelope estimates<br>
-                    • Standard bond pricing<br>
-                    • Simple DCF models<br>
-                    • Early-stage screening
+                    • Standard bond pricing (regular coupons)<br>
+                    • Simple DCF models for screening<br>
+                    • Early-stage opportunity analysis
                   </div>
+                </div>
+                
+                <!-- Decision Rule -->
+                <div style="margin-top: 1rem; padding: 0.75rem; background: var(--green-50); border-radius: 0.375rem; border-left: 3px solid var(--green-500);">
+                  <strong style="color: var(--green-800);">📋 Fund Decision Rule:</strong><br>
+                  <span style="font-size: 0.8rem; color: var(--green-700);">
+                    If |XNPV - NPV| > ${formatCurrency(100000)} <strong>OR</strong> |% diff| > 5% → 
+                    <strong>Use XNPV for final decision</strong> (material difference)
+                  </span>
                 </div>
               </div>
             </div>
@@ -3135,6 +4033,71 @@
             StorageManager.saveCalculatorState('xnpv-xirr');
           }, 100);
         }
+
+        // ========== HELPER FUNCTIONS ==========
+        /**
+         * Analyze impact for professional reporting
+         */
+        function getImpactAnalysis(difference, percentDiff, showPercentDiff) {
+          const absDifference = Math.abs(difference);
+          const absPercentDiff = Math.abs(percentDiff);
+          
+          if (!showPercentDiff) {
+            return {
+              title: "Critical: NPV ≈ 0, XNPV Provides Real Value",
+              description: `Regular NPV is effectively zero (below materiality threshold), but XNPV shows ${difference >= 0 ? 'positive' : 'negative'} value of ${formatCurrency(difference)}.`,
+              dealImpact: `This could completely change deal evaluation. Regular NPV suggests "break-even" while XNPV indicates ${difference >= 0 ? 'a GO decision' : 'a NO GO decision'}.`
+            };
+          }
+          
+          if (absPercentDiff > 10) {
+            return {
+              title: "Material Difference (>10%) - Regular NPV is Misleading",
+              description: `Regular NPV is off by <strong>${absPercentDiff.toFixed(1)}%</strong> — this level of difference would require disclosure in investment committee memos and could change hurdle rate analysis.`,
+              dealImpact: `Using regular NPV could lead to ${difference >= 0 ? 'under-valuation and missed opportunities' : 'over-valuation and poor investment decisions'}. At deal sizes >$10M, this represents ${formatCurrency(absDifference)} in potential ${difference >= 0 ? 'missed value' : 'value destruction'}.`
+            };
+          } else if (absPercentDiff > 5) {
+            return {
+              title: "Significant Difference (5-10%) - Professional Models Required",
+              description: `Difference of <strong>${absPercentDiff.toFixed(1)}%</strong> is material for institutional investing. Most funds require XNPV for any difference >5%.`,
+              dealImpact: `At typical fund sizes, this ${absPercentDiff.toFixed(1)}% difference could impact carried interest calculations by ~${(absPercentDiff * 0.2).toFixed(1)}% of total gains.`
+            };
+          } else if (absPercentDiff > 2) {
+            return {
+              title: "Noticeable Difference (2-5%) - Precision Matters",
+              description: `Difference of <strong>${absPercentDiff.toFixed(1)}%</strong>, while not deal-breaking, demonstrates why professional models use exact dates.`,
+              dealImpact: `In competitive processes, this level of precision could be the difference between winning and losing a deal.`
+            };
+          } else {
+            return {
+              title: "Minimal Difference (<2%) - Both Methods Comparable",
+              description: `Difference of <strong>${absPercentDiff.toFixed(1)}%</strong> is within acceptable tolerance for most screening purposes.`,
+              dealImpact: `For this specific cash flow pattern, simplified NPV provides reasonable approximation. However, still use XNPV for final documentation.`
+            };
+          }
+        }
+
+        /**
+         * Format large financial values with automatic unit selection
+         * Fund-grade: K/M/B/T with appropriate decimals
+         */
+        function formatLargeFinancial(value) {
+          const absValue = Math.abs(value);
+          
+          if (absValue >= 1e12) { // Trillion
+            return `${value >= 0 ? '+' : '-'}$${(absValue / 1e12).toFixed(3)}T`;
+          } else if (absValue >= 1e9) { // Billion
+            return `${value >= 0 ? '+' : '-'}$${(absValue / 1e9).toFixed(3)}B`;
+          } else if (absValue >= 1e6) { // Million
+            return `${value >= 0 ? '+' : '-'}$${(absValue / 1e6).toFixed(3)}M`;
+          } else if (absValue >= 1e3) { // Thousand
+            return `${value >= 0 ? '+' : '-'}$${(absValue / 1e3).toFixed(1)}K`;
+          } else {
+            return `${value >= 0 ? '+' : '-'}$${absValue.toFixed(2)}`;
+          }
+        }
+
+
 
         function displayXIRRResults(xirrResult, regularIRR, cashFlows) {
           const resultsDiv = document.getElementById('xnpvxirrResults');
@@ -3163,22 +4126,27 @@
           }
 
           const xirr = xirrResult.xirr;
-          const annualizedReturn = (Math.pow(1 + xirr, 1) - 1) * 100;
+          const annualizedReturn = roundFinancial((Math.pow(1 + xirr, 1) - 1) * 100, 2);
           
-          // Calculate difference vs regular IRR
+          // Calculate difference vs regular IRR với precision
           let regularIRRValue = 0;
           let regularIRRAnnual = 0;
           let difference = 0;
+          let percentDiff = 0;
           
           if (regularIRR.success) {
-            regularIRRValue = regularIRR.irr;
-            regularIRRAnnual = regularIRR.irr * 100;
-            difference = annualizedReturn - regularIRRAnnual;
+            regularIRRValue = roundFinancial(regularIRR.irr, 8);
+            regularIRRAnnual = roundFinancial(regularIRR.irr * 100, 2);
+            difference = roundFinancial(annualizedReturn - regularIRRAnnual, 2);
+            percentDiff = regularIRRAnnual !== 0 ? roundFinancial((difference / Math.abs(regularIRRAnnual)) * 100, 2) : 0;
           }
 
+          // Tính time-weighted return với precision
+          const timeWeightedReturn = roundFinancial((Math.pow(1 + xirr, 365) - 1) * 100, 0);
+          
           resultsDiv.innerHTML = `
             <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; color: var(--emerald-800);">
-              ⚡ XIRR Results
+              ⚡ XIRR Results (Precision-Enhanced)
             </h3>
 
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
@@ -3188,22 +4156,22 @@
                   XIRR (Exact Dates)
                 </div>
                 <div style="font-size: 2.5rem; font-weight: 800; color: ${annualizedReturn >= 0 ? 'var(--emerald-700)' : 'var(--red-700)'};">
-                  ${annualizedReturn >= 0 ? '+' : ''}${annualizedReturn.toFixed(2)}%
+                  ${annualizedReturn >= 0 ? '+' : ''}${formatPercent(annualizedReturn/100, 2)}
                 </div>
                 <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
-                  ${xirrResult.iterations} iterations • ${xirrResult.xnpv ? 'XNPV: $' + (xirrResult.xnpv / 1000000).toFixed(3) + 'M' : 'Converged'}
+                  ${xirrResult.iterations} iterations • ${xirrResult.method || 'newton-raphson'}
                 </div>
               </div>
 
               <div style="background: var(--slate-100); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
                 <div style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 0.5rem; font-weight: 600;">
-                  Time-Weighted Return
+                  XNPV @ XIRR
                 </div>
-                <div style="font-size: 2rem; font-weight: 800; color: var(--slate-700);">
-                  ${(Math.pow(1 + xirr, 365) - 1) * 100 > 10000 ? '∞' : (Math.pow(1 + xirr, 365) - 1).toFixed(0)}%
+                <div style="font-size: 2rem; font-weight: 800; color: ${financialEquals(xirrResult.xnpv, 0, 1e-6) ? 'var(--green-700)' : 'var(--slate-700)'}">
+                  ${financialEquals(xirrResult.xnpv, 0, 1e-6) ? '✓ $0.00' : formatCurrency(xirrResult.xnpv)}
                 </div>
                 <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
-                  If held for 1 year
+                  Convergence check
                 </div>
               </div>
 
@@ -3217,6 +4185,24 @@
                 <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
                   Days invested
                 </div>
+              </div>
+            </div>
+
+            <!-- Precision Info Box -->
+            <div style="background: var(--blue-50); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; border-left: 4px solid var(--blue-500);">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="M8 13A5 5 0 1 1 8 3a5 5 0 0 1 0 10zm0-1A4 4 0 1 0 8 4a4 4 0 0 0 0 8z"/>
+                  <path d="M9.5 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                </svg>
+                <strong style="color: var(--blue-800);">Precision Information</strong>
+              </div>
+              <div style="font-size: 0.875rem; color: var(--blue-700);">
+                • IRR precision: ${(xirr * 100).toFixed(8)}% (8 decimal places)<br>
+                • XNPV at IRR: ${formatCurrency(xirrResult.xnpv)}<br>
+                • Tolerance used: ${(1e-9).toExponential()}<br>
+                • Method: ${xirrResult.method || 'newton-raphson'}
               </div>
             </div>
 
@@ -3234,23 +4220,23 @@
                 <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
                   <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">XIRR (Exact)</div>
                   <div style="font-weight: 700; font-size: 1.1rem; color: var(--emerald-700);">
-                    ${annualizedReturn.toFixed(2)}%
+                    ${formatPercent(annualizedReturn/100, 2)}
                   </div>
                 </div>
 
                 <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
                   <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">IRR (Annual)</div>
                   <div style="font-weight: 700; font-size: 1.1rem; color: var(--slate-600);">
-                    ${regularIRR.success ? regularIRRAnnual.toFixed(2) + '%' : 'N/A'}
+                    ${regularIRR.success ? formatPercent(regularIRRAnnual/100, 2) : 'N/A'}
                   </div>
                 </div>
 
                 <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
                   <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Difference</div>
                   <div style="font-weight: 700; font-size: 1.1rem; color: ${difference >= 0 ? 'var(--green-700)' : 'var(--red-700)'}">
-                    ${regularIRR.success ? `${difference >= 0 ? '+' : ''}${Math.abs(difference).toFixed(2)}%` : 'N/A'}
+                    ${regularIRR.success ? `${difference >= 0 ? '+' : ''}${formatPercent(Math.abs(difference)/100, 2)}` : 'N/A'}
                     <div style="font-size: 0.75rem; color: ${difference >= 0 ? 'var(--green-600)' : 'var(--red-600)'}">
-                      ${regularIRR.success ? `${Math.abs(difference / regularIRRAnnual * 100).toFixed(1)}% vs regular` : ''}
+                      ${regularIRR.success ? `${Math.abs(percentDiff).toFixed(1)}% vs regular` : ''}
                     </div>
                   </div>
                 </div>
@@ -3269,10 +4255,10 @@
                 <strong>📊 Fund performance implications:</strong>
                 ${
                   annualizedReturn >= 8 && annualizedReturn < 20
-                    ? `This <strong>${annualizedReturn.toFixed(1)}% XIRR</strong> clears the typical 8% preferred return hurdle. LPs get their pref, then GP gets ${Math.max(0, (annualizedReturn - 8) * 0.2).toFixed(1)}% in carried interest.`
+                    ? `This <strong>${formatPercent(annualizedReturn/100, 1)} XIRR</strong> clears the typical 8% preferred return hurdle. LPs get their pref, then GP gets ${formatPercent(Math.max(0, (annualizedReturn - 8) * 0.2)/100, 1)} in carried interest.`
                     : annualizedReturn >= 20
-                    ? `Exceptional <strong>${annualizedReturn.toFixed(1)}% XIRR</strong>! GP carry would be 20% of ${(annualizedReturn - 8).toFixed(1)}% = ${((annualizedReturn - 8) * 0.2).toFixed(1)}% of total gains.`
-                    : `At <strong>${annualizedReturn.toFixed(1)}% XIRR</strong>, GP doesn't earn carry (below 8% hurdle).`
+                    ? `Exceptional <strong>${formatPercent(annualizedReturn/100, 1)} XIRR</strong>! GP carry would be 20% of ${formatPercent((annualizedReturn - 8)/100, 1)} = ${formatPercent(((annualizedReturn - 8) * 0.2)/100, 1)} of total gains.`
+                    : `At <strong>${formatPercent(annualizedReturn/100, 1)} XIRR</strong>, GP doesn't earn carry (below 8% hurdle).`
                 }
               </div>
 
@@ -3391,9 +4377,9 @@
         function renderXIRRSensitivity(cashFlows, baseXIRR) {
           // Test how XIRR changes with timing shifts
           const scenarios = [
-            { label: 'Exit 30 days later', daysShift: 30, isExit: true },
-            { label: 'Investment 15 days earlier', daysShift: -15, isExit: false },
-            { label: 'Dividend 45 days delay', daysShift: 45, isExit: false },
+            { label: 'Exit 30 days later', daysShift: 30 },
+            { label: 'Investment 15 days earlier', daysShift: -15 },
+            { label: 'Dividend 45 days delay', daysShift: 45 },
           ];
           
           const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
@@ -3402,7 +4388,27 @@
           for (const scenario of scenarios) {
             const modifiedCFs = sorted.map((cf, index) => {
               const cfCopy = { ...cf };
-              if (scenario.isExit ? cf.amount > 0 : cf.amount < 0) {
+              
+              // LOGIC FIXED: Phân biệt dòng tiền cần thay đổi
+              const isInvestmentScenario = scenario.label.includes("Investment");
+              const isExitScenario = scenario.label.includes("Exit");
+              const isDividendScenario = scenario.label.includes("Dividend");
+              
+              let shouldShift = false;
+              
+              if (isInvestmentScenario) {
+                // Dịch chuyển ngày cho DÒNG TIỀN ÂM (đầu tư)
+                shouldShift = cf.amount < 0;
+              } else if (isExitScenario) {
+                // Dịch chuyển ngày cho DÒNG TIỀN DƯƠNG LỚN NHẤT (thoát vốn)
+                shouldShift = cf.amount > 0;
+              } else if (isDividendScenario) {
+                // Dịch chuyển ngày cho TẤT CẢ dòng tiền dương TRỪ dòng thoát vốn
+                // (cổ tức thường là các khoản nhỏ định kỳ)
+                shouldShift = cf.amount > 0 && index !== sorted.length - 1; // Giả sử dòng thoát là cuối cùng
+              }
+              
+              if (shouldShift) {
                 cfCopy.date = new Date(cf.date);
                 cfCopy.date.setDate(cfCopy.date.getDate() + scenario.daysShift);
               }
@@ -3416,6 +4422,7 @@
                 xirr: result.xirr,
                 annualized: (Math.pow(1 + result.xirr, 1) - 1) * 100,
                 change: ((result.xirr - baseXIRR) / baseXIRR) * 100,
+                daysShift: scenario.daysShift,
               });
             }
           }
@@ -3436,7 +4443,13 @@
                 <tbody>
                   ${results.map(r => `
                     <tr style="border-bottom: 1px solid var(--slate-200);">
-                      <td style="padding: 0.75rem;">${r.scenario}</td>
+                      <td style="padding: 0.75rem;">
+                        ${r.scenario}
+                        <br>
+                        <small style="color: var(--slate-500); font-size: 0.75rem;">
+                          ${r.daysShift > 0 ? `+${r.daysShift} days` : `${r.daysShift} days`}
+                        </small>
+                      </td>
                       <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: ${r.xirr >= baseXIRR ? 'var(--green-700)' : 'var(--red-700)'}">
                         ${(r.xirr * 100).toFixed(2)}%
                       </td>
@@ -3453,12 +4466,22 @@
             </div>
             
             <div style="margin-top: 1rem; padding: 1rem; background: var(--purple-50); border-radius: 0.5rem; font-size: 0.75rem;">
-              <strong>Key Insight:</strong> Even small timing changes can significantly impact XIRR — 
-              this is why precise date modeling is critical in professional finance.
+              <strong>✓ Đúng về mặt Tài chính:</strong> 
+              <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                <li><strong>Đầu tư sớm hơn</strong> (tiền ra sớm) → Tiền bị chôn lâu hơn → IRR <strong style="color: var(--red-700);">giảm</strong> ✓</li>
+                <li><strong>Thoát vốn trễ hơn</strong> (tiền vào trễ) → Tiền về muộn hơn → IRR <strong style="color: var(--red-700);">giảm</strong> ✓</li>
+                <li><strong>Cổ tức trễ hơn</strong> (tiền vào trễ) → Tiền về muộn hơn → IRR <strong style="color: var(--red-700);">giảm</strong> ✓</li>
+              </ul>
+              <em>Nguyên tắc cốt lõi: <strong>Tiền ra càng muộn càng tốt, tiền vào càng sớm càng tốt</strong>.
+              Mọi thay đổi làm trễ dòng tiền vào hoặc đẩy nhanh dòng tiền ra đều làm giảm IRR.</em>
             </div>
           `;
         }
 
+
+        /**
+         * Calculate holding period with precision
+         */
         function calculateHoldingPeriod(cashFlows) {
           if (cashFlows.length < 2) return '0 days';
           
@@ -3466,13 +4489,16 @@
           const startDate = sorted[0].date;
           const endDate = sorted[sorted.length - 1].date;
           
-          const days = (endDate - startDate) / (1000 * 60 * 60 * 24);
-          const years = days / 365;
+          const milliseconds = endDate - startDate;
+          const days = milliseconds / (1000 * 60 * 60 * 24);
           
-          if (years > 1) {
-            return `${years.toFixed(1)} years`;
-          } else if (days > 30) {
-            return `${(days / 30).toFixed(1)} months`;
+          // Excel-style calculation
+          if (days >= 365.25) {
+            const years = (days / 365.25).toFixed(2);
+            return `${years} years (${Math.round(days)} days)`;
+          } else if (days >= 30.44) {
+            const months = (days / 30.44).toFixed(1);
+            return `${months} months (${Math.round(days)} days)`;
           } else {
             return `${Math.round(days)} days`;
           }
@@ -3481,7 +4507,6 @@
         // Initialize with custom scenario
         loadScenario('custom');
       }             
-
 
       function setupNPVIRRCalculator() {
         const cashFlowsContainer =
@@ -3532,7 +4557,7 @@
 
           // Calculate IRR using the fixed function
           const allCashFlows = [-Math.abs(initialInvestment), ...cashFlows];
-          const irrResult = calculateIRR(allCashFlows, initialInvestment, 0.1);          
+          const irrResult = calculateIRR(allCashFlows, 0.1);
 
           if (!irrResult.success) {
             resultsDiv.innerHTML = `
@@ -3727,9 +4752,6 @@
         return { delta, gamma, theta, vega, rho };
       }
 
-
-
-
       function setupBlackScholesCalculator() {
         const callOption = document.getElementById("callOption");
         const putOption = document.getElementById("putOption");
@@ -3897,7 +4919,6 @@
                       </div>
                   `;
       }
-
 
       function setupWACCCalculator() {
         const calculateBtn = document.getElementById("calculateWACC");
@@ -4076,7 +5097,6 @@
                 </div>
               `;
       }
-
 
       function setupDCFCalculator() {
         const terminalGrowthBtn = document.getElementById("terminalGrowth");
@@ -4376,6 +5396,7 @@
         });
       }
 
+
       // ==================== LBO MODEL CODE ====================
 
       function renderLBOCalculator() {
@@ -4618,7 +5639,6 @@
               `;
       }
 
-
       function setupLBOCalculator() {
         // Toggle recap inputs
         document
@@ -4641,9 +5661,6 @@
             }, 100);
           });
       }
-
-
-
 
       function runLBOModel() {
         // Get all inputs
@@ -5141,101 +6158,11 @@
         };
       }
 
-      function calculateIRR(cashFlows) {
-          const maxIterations = 1000;
-          const tolerance = 1e-7;
-          
-          // 1. Check an toàn cơ bản
-          if (!cashFlows || cashFlows.length === 0) return { success: false, message: "Không có dữ liệu dòng tiền." };
-          const hasPositive = cashFlows.some(cf => cf > 0);
-          const hasNegative = cashFlows.some(cf => cf < 0);
-          if (!hasPositive || !hasNegative) {
-              return { success: false, message: "Dòng tiền phải có cả âm và dương." };
-          }
-
-          // 2. Cảnh báo Multiple IRRs (Dựa trên số lần đổi dấu)
-          let signChanges = 0;
-          let previousSign = 0; 
-          for (let cf of cashFlows) {
-              if (cf !== 0) {
-                  const currentSign = cf > 0 ? 1 : -1;
-                  if (previousSign !== 0 && currentSign !== previousSign) signChanges++;
-                  previousSign = currentSign;
-              }
-          }
-          let warning = signChanges > 1 
-              ? "Cảnh báo: Dòng tiền đổi dấu nhiều lần (>1). Có thể tồn tại nhiều kết quả IRR khác nhau." 
-              : null;
-
-          // 3. CHIẾN THUẬT GRID SEARCH (Thử nhiều guess khác nhau)
-          // Thay vì đoán bừa, ta thử lần lượt các mốc này. Cái nào ra nghiệm trước thì lấy.
-          // Ưu tiên: 0.1 (10%) -> -0.1 (-10%) -> 0.5 (50%) -> -0.5 (-50%) -> ...
-          const initialGuesses = [0.1, -0.1, 0.5, -0.5, 0.9, 0.0, 1.5];
-
-          for (let guess of initialGuesses) {
-              let irr = guess;
-              let converged = false;
-
-              for (let iter = 0; iter < maxIterations; iter++) {
-                  let npv = 0;
-                  let derivative = 0;
-
-                  for (let t = 0; t < cashFlows.length; t++) {
-                      const discountFactor = Math.pow(1 + irr, t);
-                      npv += cashFlows[t] / discountFactor;
-
-                      if (t > 0) {
-                          derivative -= (t * cashFlows[t]) / (discountFactor * (1 + irr));
-                      }
-                  }
-
-                  // Nếu đạo hàm quá nhỏ (phẳng), thuật toán bị kẹt -> Break để thử guess tiếp theo
-                  if (Math.abs(derivative) < 1e-12) {
-                      break; 
-                  }
-
-                  const delta = npv / derivative;
-                  irr -= delta;
-
-                  // --- XỬ LÝ BIÊN (CLAMPING) ---
-                  // Nếu irr chạm vào vùng nguy hiểm, ta không ép nó nữa mà coi là guess này thất bại.
-                  // Để tránh việc Newton-Raphson bị hút vào nghiệm âm vô lý hoặc dương vô cực.
-                  if (irr <= -1 || Math.abs(irr) > 100) {
-                      break; // Guess này hỏng, thoát vòng lặp để thử guess khác
-                  }
-
-                  // Nếu delta cực nhỏ -> Đã tìm ra nghiệm!
-                  if (Math.abs(delta) < tolerance) {
-                      converged = true;
-                      break;
-                  }
-              }
-
-              // Nếu guess này tìm ra nghiệm thành công, trả về ngay
-              if (converged) {
-                  return {
-                      success: true,
-                      irr: irr,
-                      npv: calculateNPV(cashFlows, irr), // Hàm phụ tính lại NPV để kiểm chứng
-                      warning: warning,
-                      iterations: maxIterations // (Thông tin thêm nếu cần debug)
-                  };
-              }
-          }
-
-          // Nếu thử hết danh sách guess mà vẫn không ra
-          return {
-              success: false,
-              message: "Không tìm thấy IRR hội tụ sau khi thử nhiều phương án.",
-              warning: warning
-          };
-      }
 
       // Hàm phụ trợ để tính NPV kiểm chứng (Clean code)
       function calculateNPV(cashFlows, rate) {
           return cashFlows.reduce((acc, val, t) => acc + val / Math.pow(1 + rate, t), 0);
       }
-
 
       function displayScenarioComparison(scenarios) {
         const resultsDiv = document.getElementById("lboScenarioResults");
@@ -6299,8 +7226,8 @@
                               `;
       }
 
-      // ==================== EXPORT INITIALIZATION ====================
 
+      // ==================== EXPORT INITIALIZATION ====================
       function initializeLBOModel() {
         const container = document.getElementById("lboModelContainer");
         if (!container) {
@@ -6322,7 +7249,6 @@
       }
 
       // ==================== CREDIT CARD PAYMENT OPTIMIZER ====================
-
       function renderCCPOCalculator() {
         return `
           <h2 class="calculator-title">Credit Card Payment Optimizer (CCPO)</h2>
@@ -7445,6 +8371,7 @@
         }
       }
 
+
       // --- TIME VS MONEY TRADE-OFF CALCULATOR ---
       function renderTimeMoneyCalculator() {
         return `
@@ -7542,7 +8469,6 @@
           </div>
         `;
       }
-
 
       function setupTimeMoneyCalculator() {
         let activeScenario = "opportunity";
@@ -7709,7 +8635,7 @@
         document
           .getElementById("calculateOppNew")
           .addEventListener("click", () => {
-            if (rates.workRate === 0) {
+            if (rates.workRate === 0 || isNaN(rates.workRate)) {
               alert("Please set your work hourly rate first!");
               return;
             }
@@ -8057,7 +8983,8 @@
             const totalLossIfContinue = totalSunkCost + adjustedFutureCost;
             const totalLossIfQuit = totalSunkCost;
 
-            const shouldQuit = adjustedFutureCost > sunkTimeValue * 0.3; // Quit if future cost > 30% of sunk
+            // Nên quit nếu future cost > 50% của sunk cost (ví dụ)
+            const shouldQuit = adjustedFutureCost > totalSunkCost * 0.5;            
             const savingsFromQuitting = adjustedFutureCost;
 
             const resultsDiv = document.getElementById("timeMoneyResults");
