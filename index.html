@@ -6,48 +6,108 @@
     <title>Finance Calculators</title>
     <style>
       :root {
+        /* Color Palette - Enhanced */
         --indigo-50: #eef2ff;
         --indigo-100: #e0e7ff;
+        --indigo-200: #c7d2fe;
+        --indigo-300: #a5b4fc;
+        --indigo-400: #818cf8;
         --indigo-500: #6366f1;
         --indigo-600: #4f46e5;
         --indigo-700: #4338ca;
+        --indigo-800: #3730a3;
+        
         --blue-50: #eff6ff;
         --blue-100: #dbeafe;
+        --blue-200: #bfdbfe;
+        --blue-300: #93c5fd;
+        --blue-400: #60a5fa;
         --blue-500: #3b82f6;
         --blue-600: #2563eb;
         --blue-700: #1d4ed8;
+        --blue-800: #1e40af;
+        
         --cyan-50: #ecfeff;
         --cyan-100: #cffafe;
+        --cyan-200: #a5f3fc;
+        --cyan-300: #67e8f9;
+        --cyan-400: #22d3ee;
         --cyan-500: #06b6d4;
         --cyan-600: #0891b2;
+        --cyan-700: #0e7490;
+        
         --green-50: #f0fdf4;
         --green-100: #dcfce7;
+        --green-200: #bbf7d0;
+        --green-300: #86efac;
+        --green-400: #4ade80;
         --green-500: #10b981;
         --green-600: #059669;
+        --green-700: #047857;
+        --green-800: #065f46;
+        
         --emerald-50: #ecfdf5;
         --emerald-100: #d1fae5;
+        --emerald-200: #a7f3d0;
+        --emerald-300: #6ee7b7;
+        --emerald-400: #34d399;
         --emerald-500: #059669;
         --emerald-600: #047857;
+        --emerald-700: #065f46;
+        
         --rose-50: #fff1f2;
         --rose-100: #ffe4e6;
+        --rose-200: #fecdd3;
+        --rose-300: #fda4af;
+        --rose-400: #fb7185;
         --rose-500: #f43f5e;
         --rose-600: #e11d48;
+        --rose-700: #be123c;
+        
         --pink-50: #fdf2f8;
         --pink-100: #fce7f3;
+        --pink-200: #fbcfe8;
+        --pink-300: #f9a8d4;
+        --pink-400: #f472b6;
         --pink-500: #ec4899;
         --pink-600: #db2777;
+        --pink-700: #be185d;
+        
         --orange-50: #fff7ed;
         --orange-100: #ffedd5;
+        --orange-200: #fed7aa;
+        --orange-300: #fdba74;
+        --orange-400: #fb923c;
         --orange-500: #f97316;
         --orange-600: #ea580c;
+        --orange-700: #c2410c;
+        
         --red-50: #fef2f2;
         --red-100: #fee2e2;
+        --red-200: #fecaca;
+        --red-300: #fca5a5;
+        --red-400: #f87171;
         --red-500: #ef4444;
         --red-600: #dc2626;
+        --red-700: #b91c1c;
+        
         --purple-50: #faf5ff;
         --purple-100: #f3e8ff;
+        --purple-200: #e9d5ff;
+        --purple-300: #d8b4fe;
+        --purple-400: #c084fc;
         --purple-500: #a855f7;
         --purple-600: #9333ea;
+        --purple-700: #7e22ce;
+        
+        --yellow-50: #fefce8;
+        --yellow-100: #fef9c3;
+        --yellow-200: #fef08a;
+        --yellow-300: #fde047;
+        --yellow-400: #facc15;
+        --yellow-500: #eab308;
+        --yellow-600: #ca8a04;
+        
         --slate-50: #f8fafc;
         --slate-100: #f1f5f9;
         --slate-200: #e2e8f0;
@@ -57,22 +117,42 @@
         --slate-600: #475569;
         --slate-700: #334155;
         --slate-800: #1e293b;
+        --slate-900: #0f172a;
+        
         --white: #ffffff;
         --black: #000000;
+        
+        /* Border Radius */
+        --radius-sm: 0.375rem;
+        --radius-md: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
+        
+        /* Shadows */
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        
+        /* Transitions */
+        --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
 
       body {
-        background: linear-gradient(135deg, var(--slate-50), var(--indigo-100));
+        background: linear-gradient(135deg, var(--slate-50), var(--blue-50));
         min-height: 100vh;
         padding: 20px;
         color: var(--slate-700);
+        line-height: 1.5;
       }
 
       .container {
@@ -80,14 +160,19 @@
         margin: 0 auto;
       }
 
-      /* Header */
+      /* Header - Enhanced */
       .header {
         background: var(--white);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        box-shadow: var(--shadow-md);
         border-bottom: 1px solid var(--slate-200);
         padding: 1rem 0;
         margin-bottom: 2rem;
+        border-radius: var(--radius-lg);
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
       }
 
       .header-content {
@@ -96,65 +181,83 @@
         align-items: center;
         max-width: 1200px;
         margin: 0 auto;
-        padding: 0 1rem;
+        padding: 0 1.5rem;
+        gap: 1.5rem;
       }
 
       .logo {
         font-size: 1.5rem;
         font-weight: 700;
-        background: linear-gradient(
-          to right,
-          var(--indigo-600),
-          var(--blue-600)
-        );
+        background: linear-gradient(135deg, var(--indigo-600), var(--blue-600));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        letter-spacing: -0.025em;
       }
 
       .tier-selector {
         display: flex;
         background: var(--slate-100);
-        border-radius: 0.5rem;
+        border-radius: var(--radius-md);
         padding: 0.25rem;
+        border: 1px solid var(--slate-200);
       }
 
       .tier-btn {
         padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
+        border-radius: var(--radius-sm);
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: var(--transition-fast);
+        background: transparent;
+        border: none;
+        color: var(--slate-600);
+        white-space: nowrap;
+      }
+
+      .tier-btn:hover {
+        background: var(--slate-200);
+        color: var(--slate-800);
       }
 
       .tier-btn.active {
         background: var(--white);
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
-          0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        color: var(--indigo-600);
+        box-shadow: var(--shadow-sm);
+        font-weight: 600;
       }
 
-      /* Tabs */
+      /* Tabs - Enhanced */
       .tabs {
         display: flex;
         background: var(--white);
-        border-radius: 0.75rem;
+        border-radius: var(--radius-lg);
         padding: 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        box-shadow: var(--shadow-md);
         margin-bottom: 2rem;
         overflow-x: auto;
+        scrollbar-width: none;
+        border: 1px solid var(--slate-200);
+      }
+
+      .tabs::-webkit-scrollbar {
+        display: none;
       }
 
       .tab-btn {
         padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
+        border-radius: var(--radius-md);
         font-weight: 500;
         cursor: pointer;
         white-space: nowrap;
-        transition: all 0.2s;
+        transition: var(--transition-fast);
+        background: transparent;
+        border: none;
+        color: var(--slate-600);
       }
 
       .tab-btn:hover {
         background: var(--slate-100);
+        color: var(--slate-800);
       }
 
       .tab-btn.active {
@@ -163,70 +266,79 @@
         font-weight: 600;
       }
 
-      /* Calculator Container */
+      /* Calculator Container - Enhanced */
       .calculator-container {
         background: var(--white);
-        border-radius: 1rem;
+        border-radius: var(--radius-xl);
         padding: 2rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        box-shadow: var(--shadow-xl);
+        margin-bottom: 2rem;
+        border: 1px solid var(--slate-200);
       }
 
       .calculator-title {
         font-size: 1.5rem;
         font-weight: 700;
         margin-bottom: 1.5rem;
-        color: var(--slate-700);
+        color: var(--slate-800);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
       }
 
-      /* Explanation Box */
+      .calculator-title::before {
+        content: '🧮';
+        font-size: 1.25rem;
+      }
+
+      /* Explanation Box - Enhanced */
       .explanation-box {
         background: var(--slate-50);
         border-left: 4px solid var(--indigo-500);
-        border-radius: 0.5rem;
-        padding: 1.25rem;
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
         margin-bottom: 1.5rem;
+        border: 1px solid var(--slate-200);
       }
 
       .explanation-title {
         font-weight: 600;
         color: var(--slate-800);
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
+        font-size: 1.1rem;
       }
 
       .explanation-title svg {
         width: 1.25rem;
         height: 1.25rem;
         color: var(--indigo-500);
+        flex-shrink: 0;
       }
 
       .explanation-text {
         color: var(--slate-600);
-        line-height: 1.5;
+        line-height: 1.6;
         margin-bottom: 0.75rem;
       }
 
       .explanation-note {
         background: var(--blue-50);
-        border-radius: 0.375rem;
-        padding: 0.75rem;
-        margin-top: 0.75rem;
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        margin-top: 1rem;
         font-size: 0.875rem;
         border-left: 3px solid var(--blue-500);
+        color: var(--blue-800);
       }
 
-      .explanation-note strong {
-        color: var(--blue-700);
-      }
-
-      /* Form Grid */
+      /* Form Grid - Enhanced */
       .form-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
+        gap: 1.25rem;
         margin-bottom: 1.5rem;
       }
 
@@ -240,15 +352,24 @@
         font-weight: 500;
         color: var(--slate-700);
         margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .form-label::after {
+        content: ':';
       }
 
       .form-input {
         width: 100%;
         padding: 0.75rem 1rem;
-        border: 1px solid var(--slate-200);
-        border-radius: 0.5rem;
+        border: 2px solid var(--slate-200);
+        border-radius: var(--radius-md);
         font-size: 1rem;
-        transition: all 0.2s;
+        transition: var(--transition-fast);
+        background: var(--white);
+        color: var(--slate-800);
       }
 
       .form-input:focus {
@@ -257,14 +378,20 @@
         box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
       }
 
+      .form-input::placeholder {
+        color: var(--slate-400);
+      }
+
       .form-select {
         width: 100%;
         padding: 0.75rem 1rem;
-        border: 1px solid var(--slate-200);
-        border-radius: 0.5rem;
+        border: 2px solid var(--slate-200);
+        border-radius: var(--radius-md);
         font-size: 1rem;
         background-color: var(--white);
-        transition: all 0.2s;
+        transition: var(--transition-fast);
+        color: var(--slate-800);
+        cursor: pointer;
       }
 
       .form-select:focus {
@@ -273,238 +400,468 @@
         box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
       }
 
-      /* Buttons */
+      /* Buttons - Enhanced */
       .btn {
-        width: 100%;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
+        padding: 0.875rem 1.75rem;
+        border-radius: var(--radius-md);
         font-weight: 600;
         font-size: 1rem;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: var(--transition-fast);
         border: none;
         color: var(--white);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+      }
+
+      .btn:hover::before {
+        left: 100%;
       }
 
       .btn-primary {
-        background: linear-gradient(
-          to right,
-          var(--indigo-600),
-          var(--blue-700)
-        );
+        background: linear-gradient(135deg, var(--indigo-600), var(--blue-700));
       }
 
       .btn-primary:hover {
-        background: linear-gradient(
-          to right,
-          var(--indigo-700),
-          var(--blue-700)
-        );
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        background: linear-gradient(135deg, var(--indigo-700), var(--blue-800));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
       }
 
       .btn-secondary {
-        background: linear-gradient(to right, var(--blue-500), var(--cyan-600));
+        background: linear-gradient(135deg, var(--blue-500), var(--cyan-600));
       }
 
       .btn-secondary:hover {
-        background: linear-gradient(to right, var(--blue-600), var(--cyan-600));
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        background: linear-gradient(135deg, var(--blue-600), var(--cyan-700));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
       }
 
       .btn-success {
-        background: linear-gradient(
-          to right,
-          var(--green-500),
-          var(--emerald-600)
-        );
+        background: linear-gradient(135deg, var(--green-500), var(--emerald-600));
       }
 
       .btn-success:hover {
-        background: linear-gradient(
-          to right,
-          var(--green-600),
-          var(--emerald-600)
-        );
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        background: linear-gradient(135deg, var(--green-600), var(--emerald-700));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
       }
 
       .btn-danger {
-        background: linear-gradient(to right, var(--rose-500), var(--pink-600));
+        background: linear-gradient(135deg, var(--rose-500), var(--pink-600));
       }
 
       .btn-danger:hover {
-        background: linear-gradient(to right, var(--rose-600), var(--pink-600));
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        background: linear-gradient(135deg, var(--rose-600), var(--pink-700));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
       }
 
       .btn-warning {
-        background: linear-gradient(
-          to right,
-          var(--orange-500),
-          var(--red-600)
-        );
+        background: linear-gradient(135deg, var(--orange-500), var(--red-600));
       }
 
       .btn-warning:hover {
-        background: linear-gradient(
-          to right,
-          var(--orange-600),
-          var(--red-600)
-        );
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        background: linear-gradient(135deg, var(--orange-600), var(--red-700));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
       }
 
-      /* Results */
+      /* Results - Enhanced */
       .results-container {
         margin-top: 2rem;
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-        border: 1px solid;
+        padding: 1.75rem;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--slate-200);
+        background: var(--slate-50);
+        animation: slideUp 0.3s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .results-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
       }
 
       .result-card {
         text-align: center;
-        padding: 1rem;
-        border-radius: 0.5rem;
+        padding: 1.25rem;
+        border-radius: var(--radius-md);
+        background: var(--white);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--slate-200);
+        transition: var(--transition-fast);
+      }
+
+      .result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
       }
 
       .result-label {
         font-size: 0.875rem;
         font-weight: 500;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        color: var(--slate-600);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
 
       .result-value {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
         font-weight: 700;
+        color: var(--slate-800);
       }
 
       .result-error {
         font-size: 0.9rem;
         color: var(--red-600);
         font-weight: 500;
-      }
-
-      /* Cash Flows */
-      .cash-flows-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-      }
-
-      .cash-flow-input {
         padding: 0.5rem;
-        border: 1px solid var(--slate-200);
-        border-radius: 0.375rem;
-        font-size: 0.875rem;
+        background: var(--red-50);
+        border-radius: var(--radius-sm);
+        border-left: 3px solid var(--red-500);
       }
 
-      /* Options */
+      /* Options - Enhanced */
       .options-toggle {
         display: flex;
         background: var(--slate-100);
-        border-radius: 0.5rem;
+        border-radius: var(--radius-md);
         padding: 0.25rem;
         margin-bottom: 1.5rem;
         width: fit-content;
+        border: 1px solid var(--slate-200);
       }
 
       .option-btn {
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-sm);
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: var(--transition-fast);
+        background: transparent;
+        border: none;
+        color: var(--slate-600);
+        white-space: nowrap;
+      }
+
+      .option-btn:hover {
+        background: var(--slate-200);
+        color: var(--slate-800);
       }
 
       .option-btn.active {
         background: var(--white);
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
-          0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        color: var(--indigo-600);
+        box-shadow: var(--shadow-sm);
+        font-weight: 600;
       }
 
       /* Hidden Class */
       .hidden {
-        display: none;
+        display: none !important;
       }
 
-      /* Responsive */
-      @media (max-width: 768px) {
-        .header-content {
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .calculator-container {
-          padding: 1.5rem;
-        }
-
-        .form-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      /* Scenario Buttons */
+      /* Scenario Buttons - Enhanced */
       .scenario-btn {
-        padding: 1rem;
-        border-radius: 0.5rem;
+        padding: 1.25rem;
+        border-radius: var(--radius-md);
         border: 2px solid var(--slate-200);
         background: var(--white);
         cursor: pointer;
-        transition: all 0.2s;
+        transition: var(--transition-fast);
         font-weight: 600;
         text-align: center;
         font-size: 0.875rem;
+        color: var(--slate-700);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
       }
 
       .scenario-btn:hover {
         border-color: var(--indigo-400);
         background: var(--indigo-50);
         transform: translateY(-2px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-md);
       }
 
       .scenario-btn.active {
         border-color: var(--indigo-600);
-        background: linear-gradient(135deg, var(--indigo-100), var(--blue-100));
+        background: linear-gradient(135deg, var(--indigo-50), var(--blue-100));
         color: var(--indigo-900);
         box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
       }
+
+      /* Toast Notification - Enhanced */
+      .toast {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: linear-gradient(135deg, var(--green-500), var(--emerald-600));
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-xl);
+        font-weight: 600;
+        font-size: 0.875rem;
+        z-index: 10000;
+        opacity: 0;
+        transform: translateX(100%) scale(0.9);
+        transition: var(--transition-normal);
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        max-width: 350px;
+        border-left: 4px solid rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px);
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+
+      .toast.error {
+        background: linear-gradient(135deg, var(--red-500), var(--rose-600));
+      }
+
+      /* Clear Data Button - Enhanced */
+      .clear-data-btn {
+        background: linear-gradient(135deg, var(--slate-600), var(--slate-700));
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: var(--transition-normal);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .clear-data-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.6s;
+      }
+
+      .clear-data-btn:hover {
+        background: linear-gradient(135deg, var(--red-500), var(--rose-600));
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+      }
+
+      .clear-data-btn:hover::before {
+        left: 100%;
+      }
+
+      .clear-data-btn:active {
+        transform: translateY(0);
+      }
+
+      /* Last Saved Indicator - Enhanced */
+      .last-saved {
+        font-size: 0.75rem;
+        color: var(--slate-500);
+        margin-left: 1.5rem;
+        font-weight: 400;
+        background: var(--slate-100);
+        padding: 0.5rem 0.875rem;
+        border-radius: 2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: var(--transition-fast);
+        border: 1px solid var(--slate-200);
+      }
+
+      .last-saved::before {
+        content: '⏱️';
+        font-size: 0.7rem;
+      }
+
+      .last-saved:hover {
+        background: var(--slate-200);
+        color: var(--slate-700);
+        border-color: var(--slate-300);
+      }
+
+      /* Responsive Design - Enhanced */
+      @media (max-width: 768px) {
+        body {
+          padding: 12px;
+        }
+        
+        .header {
+          position: static;
+          margin-bottom: 1.5rem;
+        }
+        
+        .header-content {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 1rem;
+          padding: 0 1rem;
+        }
+        
+        .calculator-container {
+          padding: 1.5rem;
+        }
+        
+        .calculator-title {
+          font-size: 1.25rem;
+        }
+        
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .results-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .tabs {
+          margin-bottom: 1.5rem;
+        }
+        
+        .tab-btn {
+          padding: 0.5rem 1rem;
+          font-size: 0.875rem;
+        }
+        
+        .btn {
+          padding: 0.75rem 1.5rem;
+          font-size: 0.875rem;
+        }
+        
+        .toast {
+          bottom: 1rem;
+          right: 1rem;
+          left: 1rem;
+          max-width: calc(100% - 2rem);
+        }
+        
+        .clear-data-btn {
+          width: 100%;
+          justify-content: center;
+          margin-top: 0.5rem;
+        }
+        
+        .last-saved {
+          margin-left: 0;
+          margin-top: 0.5rem;
+          justify-content: center;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .results-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .scenario-btn {
+          padding: 1rem;
+          font-size: 0.75rem;
+        }
+      }
+
+      /* Loading States */
+      .loading {
+        opacity: 0.7;
+        pointer-events: none;
+      }
+
+      .loading::after {
+        content: '';
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        border: 2px solid var(--slate-300);
+        border-top-color: var(--indigo-500);
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        margin-left: 0.5rem;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* Focus Styles for Accessibility */
+      *:focus {
+        outline: 2px solid var(--indigo-500);
+        outline-offset: 2px;
+      }
+
+      /* Smooth Scrolling */
+      html {
+        scroll-behavior: smooth;
+      }
     </style>
   </head>
+
   <body>
     <div class="container">
       <!-- Header -->
       <div class="header">
         <div class="header-content">
-          <div class="logo">Finance Calculators</div>
-          <div class="tier-selector">
-            <button class="tier-btn active" data-tier="basic">Basic</button>
-            <button class="tier-btn" data-tier="intermediate">
-              Intermediate
+          <div style="display: flex; align-items: center;">
+            <div class="logo">Finance Calculators</div>
+            <span class="last-saved" id="lastSaved"></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="tier-selector">
+              <button class="tier-btn active" data-tier="basic">Basic</button>
+              <button class="tier-btn" data-tier="intermediate">Intermediate</button>
+              <button class="tier-btn" data-tier="advanced">Advanced</button>
+            </div>
+            <button class="clear-data-btn" id="clearDataBtn">
+              🗑️ Clear All Data
             </button>
-            <button class="tier-btn" data-tier="advanced">Advanced</button>
           </div>
         </div>
       </div>
+
 
       <!-- Tabs -->
       <div class="tabs" id="tabsContainer">
@@ -546,6 +903,16 @@
             component: "CAPMCalculator",
           },
           {
+            id: "xnpv-xirr",  
+            name: "XNPV & XIRR",
+            component: "XNPVXIRRCalculator",
+          },
+          {
+            id: "npv-irr",
+            name: "NPV & IRR (Academic)",  
+            component: "NPVIRRCalculator",
+          },
+          {
             id: "ccpo",
             name: "Credit Card Optimizer",
             component: "CCPOCalculator",
@@ -554,11 +921,6 @@
             id: "bond-pricing",
             name: "Bond Pricing",
             component: "BondPricingCalculator",
-          },
-          {
-            id: "npv-irr",
-            name: "NPV & IRR",
-            component: "NPVIRRCalculator",
           },
           {
             id: "time-money",
@@ -590,6 +952,219 @@
         ],
       };
 
+
+      // --- Storage Manager ---
+      const StorageManager = {
+        STORAGE_KEY: 'financeCalculatorState',
+        AUTO_SAVE_DELAY: 2000, // 2 seconds
+        saveTimeouts: {},
+
+        // Save state to localStorage
+        saveState(state) {
+          try {
+            const timestamp = new Date().toISOString();
+            const savedState = {
+              ...state,
+              timestamp,
+              version: '1.0'
+            };
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(savedState));
+            this.updateLastSavedDisplay(timestamp);
+            this.showToast('💾 Saved!');
+            return true;
+          } catch (error) {
+            console.error('Failed to save state:', error);
+            this.showToast('⚠️ Save failed', 'error');
+            return false;
+          }
+        },
+
+        // Load state from localStorage
+        loadState() {
+          try {
+            const saved = localStorage.getItem(this.STORAGE_KEY);
+            if (!saved) return null;
+            
+            const state = JSON.parse(saved);
+            if (state.timestamp) {
+              this.updateLastSavedDisplay(state.timestamp);
+            }
+            return state;
+          } catch (error) {
+            console.error('Failed to load state:', error);
+            return null;
+          }
+        },
+
+        // Clear all saved data
+        clearState() {
+          try {
+            localStorage.removeItem(this.STORAGE_KEY);
+            this.showToast('🗑️ All data cleared', 'success');
+            return true;
+          } catch (error) {
+            console.error('Failed to clear state:', error);
+            return false;
+          }
+        },
+
+        // Auto-save with debounce
+        autoSave(key, data) {
+          clearTimeout(this.saveTimeouts[key]);
+          this.saveTimeouts[key] = setTimeout(() => {
+            const currentState = this.loadState() || {};
+            currentState[key] = data;
+            this.saveState(currentState);
+          }, this.AUTO_SAVE_DELAY);
+        },
+
+        // Show toast notification
+        showToast(message, type = 'success') {
+          const toast = document.getElementById('saveToast');
+          const toastMessage = document.getElementById('toastMessage');
+          
+          if (!toast || !toastMessage) return;
+          
+          toastMessage.textContent = message;
+          
+          // Update colors based on type
+          if (type === 'error') {
+            toast.style.background = 'linear-gradient(135deg, var(--red-500), var(--rose-600))';
+          } else {
+            toast.style.background = 'linear-gradient(135deg, var(--green-500), var(--emerald-600))';
+          }
+          
+          toast.classList.add('show');
+          
+          setTimeout(() => {
+            toast.classList.remove('show');
+          }, 1500);
+        },
+
+        // Update last saved display
+        updateLastSavedDisplay(timestamp) {
+          const lastSavedEl = document.getElementById('lastSaved');
+          if (!lastSavedEl) return;
+          
+          const date = new Date(timestamp);
+          const now = new Date();
+          const diffMs = now - date;
+          const diffMins = Math.floor(diffMs / 60000);
+          
+          let timeText;
+          if (diffMins < 1) {
+            timeText = 'just now';
+          } else if (diffMins < 60) {
+            timeText = `${diffMins} min ago`;
+          } else {
+            const diffHours = Math.floor(diffMins / 60);
+            timeText = `${diffHours}h ago`;
+          }
+          
+          lastSavedEl.textContent = `Last saved: ${timeText}`;
+        },
+
+        // Get all form inputs from a container
+        getFormInputs(container) {
+          const inputs = {};
+          
+          // Get all input fields
+          container.querySelectorAll('input[type="number"], input[type="text"], input[type="range"]').forEach(input => {
+            if (input.id) {
+              inputs[input.id] = input.value;
+            }
+          });
+          
+          // Get all select fields
+          container.querySelectorAll('select').forEach(select => {
+            if (select.id) {
+              inputs[select.id] = select.value;
+            }
+          });
+          
+          // Get all checkboxes
+          container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            if (checkbox.id) {
+              inputs[checkbox.id] = checkbox.checked;
+            }
+          });
+          
+          return inputs;
+        },
+
+        // Set form inputs from saved data
+        setFormInputs(container, inputs) {
+          if (!inputs) return;
+          
+          Object.entries(inputs).forEach(([id, value]) => {
+            const element = container.querySelector(`#${id}`);
+            if (!element) return;
+            
+            if (element.type === 'checkbox') {
+              element.checked = value;
+            } else {
+              element.value = value;
+            }
+            
+            // Trigger change event for any dependent logic
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+        },
+
+        // Save current calculator state
+        saveCalculatorState(calculatorId) {
+          const container = document.getElementById('calculatorContent');
+          if (!container) return;
+          
+          const inputs = this.getFormInputs(container);
+          const resultsDiv = container.querySelector('[id$="Results"]');
+          const hasResults = resultsDiv && !resultsDiv.classList.contains('hidden');
+          
+          const state = this.loadState() || {};
+          state.activeTier = activeTier;
+          state.activeTab = activeTab;
+          state.calculators = state.calculators || {};
+          state.calculators[calculatorId] = {
+            inputs,
+            hasResults,
+            resultsHTML: hasResults ? resultsDiv.innerHTML : null
+          };
+          
+          this.saveState(state);
+        },
+
+        // Restore calculator state
+        restoreCalculatorState(calculatorId) {
+          const state = this.loadState();
+          if (!state || !state.calculators || !state.calculators[calculatorId]) {
+            return false;
+          }
+          
+          const calculatorState = state.calculators[calculatorId];
+          const container = document.getElementById('calculatorContent');
+          if (!container) return false;
+          
+          // Wait for DOM to be ready
+          setTimeout(() => {
+            // Restore inputs
+            this.setFormInputs(container, calculatorState.inputs);
+            
+            // Restore results if they existed
+            if (calculatorState.hasResults && calculatorState.resultsHTML) {
+              const resultsDiv = container.querySelector('[id$="Results"]');
+              if (resultsDiv) {
+                resultsDiv.innerHTML = calculatorState.resultsHTML;
+                resultsDiv.classList.remove('hidden');
+              }
+            }
+          }, 100);
+          
+          return true;
+        }
+      };
+
+
+
       // --- State Management ---
       let activeTier = "basic";
       let activeTab = "pv-fv";
@@ -599,18 +1174,87 @@
       const calculatorContent = document.getElementById("calculatorContent");
       const tierButtons = document.querySelectorAll(".tier-btn");
 
+
+      // Utility: Setup auto-save for a calculator
+      function setupCalculatorAutoSave(calculatorId, calculateBtnId, resultsDivId) {
+        const calculateBtn = document.getElementById(calculateBtnId);
+        if (!calculateBtn) return;
+        
+        const originalHandler = calculateBtn.onclick;
+        
+        calculateBtn.onclick = function() {
+          // Call original handler
+          if (originalHandler) originalHandler.call(this);
+          
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState(calculatorId);
+          }, 100);
+        };
+      }
+
       // --- Initialize App ---
       function initApp() {
+        // Try to restore previous state
+        const savedState = StorageManager.loadState();
+        
+        if (savedState) {
+          // Restore tier and tab
+          if (savedState.activeTier) {
+            activeTier = savedState.activeTier;
+            // Update tier button states
+            tierButtons.forEach(btn => {
+              btn.classList.toggle('active', btn.dataset.tier === activeTier);
+            });
+          }
+          
+          if (savedState.activeTab) {
+            activeTab = savedState.activeTab;
+          }
+        }
+        
         renderTabs();
         renderCalculator();
         setupEventListeners();
+        
+        // Restore calculator state after a short delay
+        if (savedState && savedState.activeTab) {
+          setTimeout(() => {
+            StorageManager.restoreCalculatorState(activeTab);
+          }, 200);
+        }
+
+        // Update "last saved" display every minute
+        setInterval(() => {
+          const state = StorageManager.loadState();
+          if (state && state.timestamp) {
+            StorageManager.updateLastSavedDisplay(state.timestamp);
+          }
+        }, 60000); // Every 1 minute
+        
+        // Update immediately on load
+        setTimeout(() => {
+          const state = StorageManager.loadState();
+          if (state && state.timestamp) {
+            StorageManager.updateLastSavedDisplay(state.timestamp);
+          }
+        }, 500);
       }
+      // --- Initialize the app when the page loads ---
+      document.addEventListener("DOMContentLoaded", initApp);     
 
       // --- Event Listeners ---
       function setupEventListeners() {
         // Tier selection
         tierButtons.forEach((button) => {
           button.addEventListener("click", () => {
+            // Save current calculator state before switching
+            const currentState = StorageManager.loadState();
+            if (currentState && currentState.activeTab) {
+              StorageManager.saveCalculatorState(currentState.activeTab);
+            }
+            
+            // Switch to new tier
             tierButtons.forEach((btn) => btn.classList.remove("active"));
             button.classList.add("active");
             activeTier = button.dataset.tier;
@@ -623,10 +1267,64 @@
 
             renderTabs();
             renderCalculator();
+            
+            // Save new state
+            const state = StorageManager.loadState() || {};
+            state.activeTier = activeTier;
+            state.activeTab = activeTab;
+            StorageManager.saveState(state);
           });
         });
-      }
 
+        // Clear data button
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        if (clearDataBtn) {
+          clearDataBtn.addEventListener('click', () => {
+            const confirmed = confirm(
+              '⚠️ Are you sure you want to clear all saved data?\n\n' +
+              'This will delete:\n' +
+              '• All saved calculator inputs\n' +
+              '• All saved results\n' +
+              '• Your last session state\n\n' +
+              'This action cannot be undone!'
+            );
+            
+            if (confirmed) {
+              StorageManager.clearState();
+              // Refresh page to reset everything
+              setTimeout(() => {
+                location.reload();
+              }, 500);
+            }
+          });
+        }
+        
+        // Auto-save when switching tabs (delegated)
+        tabsContainer.addEventListener('click', (e) => {
+          if (e.target.classList.contains('tab-btn')) {
+            // Save current calculator state before switching
+            const currentState = StorageManager.loadState();
+            if (currentState && currentState.activeTab) {
+              StorageManager.saveCalculatorState(currentState.activeTab);
+            }
+            
+            // Get the new tab ID
+            const tabId = Array.from(tabsContainer.children).indexOf(e.target);
+            if (tabId >= 0) {
+              const tierCalculators = calculators[activeTier];
+              if (tierCalculators[tabId]) {
+                activeTab = tierCalculators[tabId].id;
+                
+                // Save new state
+                const state = StorageManager.loadState() || {};
+                state.activeTab = activeTab;
+                StorageManager.saveState(state);
+              }
+            }
+          }
+        });
+      }
+      
       // --- Render Tabs ---
       function renderTabs() {
         tabsContainer.innerHTML = "";
@@ -646,6 +1344,8 @@
           tabsContainer.appendChild(tabButton);
         });
       }
+
+
 
       // --- Render Calculator ---
       function renderCalculator() {
@@ -687,6 +1387,10 @@
             calculatorContent.innerHTML = renderNPVIRRCalculator();
             setupNPVIRRCalculator();
             break;
+          case "XNPVXIRRCalculator":
+            calculatorContent.innerHTML = renderXNPVXIRRCalculator();
+            setupXNPVXIRRCalculator();
+            break;
           case "BlackScholesCalculator":
             calculatorContent.innerHTML = renderBlackScholesCalculator();
             setupBlackScholesCalculator();
@@ -706,7 +1410,33 @@
           default:
             calculatorContent.innerHTML = "<p>Calculator not found</p>";
         }
-      }
+        
+        // Setup auto-save for all inputs
+        setTimeout(() => {
+          const container = document.getElementById('calculatorContent');
+          if (!container) return;
+          
+          // Auto-save on input change
+          container.addEventListener('input', (e) => {
+            if (e.target.matches('input, select')) {
+              StorageManager.saveCalculatorState(activeTab);
+            }
+          });
+          
+          // Auto-save on button click (for calculate buttons)
+          container.addEventListener('click', (e) => {
+            if (e.target.matches('.btn, button')) {
+              // Save after calculation (delay to allow results to render)
+              setTimeout(() => {
+                StorageManager.saveCalculatorState(activeTab);
+              }, 300);
+            }
+          });
+        }, 100);
+      }      
+
+
+      // ==================== BASIC CALCULATORS ====================
 
       // --- PV/FV Calculator ---
       function renderPVFVCalculator() {
@@ -755,6 +1485,8 @@
                       </div>
                   `;
       }
+
+
 
       function setupPVFVCalculator() {
         const pvOption = document.getElementById("pvOption");
@@ -867,8 +1599,15 @@
           }
 
           resultsDiv.classList.remove("hidden");
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('pv-fv');
+          }, 100);
         });
       }
+
+
+
 
       // --- Compound Interest Calculator ---
       function renderCompoundInterestCalculator() {
@@ -922,6 +1661,7 @@
                       </div>
                   `;
       }
+
 
       function setupCompoundInterestCalculator() {
         const calculateBtn = document.getElementById("calculateCI");
@@ -987,8 +1727,13 @@
                       `;
 
           resultsDiv.classList.remove("hidden");
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('compound-interest');
+          }, 100);
         });
       }
+
 
       // --- Loan Payment Calculator ---
       function renderLoanPaymentCalculator() {
@@ -1033,6 +1778,7 @@
                       </div>
                   `;
       }
+
 
       function setupLoanPaymentCalculator() {
         const calculateBtn = document.getElementById("calculateLoan");
@@ -1094,9 +1840,16 @@
                       `;
 
           resultsDiv.classList.remove("hidden");
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('loan-payment');
+          }, 100);
         });
       }
 
+
+
+      // ==================== INTERMEDIATE CALCULATORS ====================
       // --- CAPM Calculator ---
       function renderCAPMCalculator() {
         return `
@@ -1140,6 +1893,7 @@
                       </div>
                   `;
       }
+
 
       function setupCAPMCalculator() {
         const calculateBtn = document.getElementById("calculateCAPM");
@@ -1191,8 +1945,16 @@
                       `;
 
           resultsDiv.classList.remove("hidden");
+
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('capm');
+          }, 100);
         });
       }
+
+
+
 
       // --- Bond Pricing Calculator ---
       function renderBondPricingCalculator() {
@@ -1287,44 +2049,126 @@
           const periods = yearsToMaturity * frequency;
           const periodicYield = ytm / frequency;
 
-          let bondPrice = 0;
-          for (let t = 1; t <= periods; t++) {
-            bondPrice += couponPayment / Math.pow(1 + periodicYield, t);
+          // ========== FIXED: SỬ DỤNG CLOSED-FORM FORMULA ==========
+          let bondPrice;
+          
+          if (periodicYield === 0) {
+            // Special case: zero yield (bond price = sum of all cash flows)
+            bondPrice = (couponPayment * periods) + faceValue;
+          } else {
+            // Closed-form bond pricing formula:
+            // Price = C × [1 - (1+r)^-n] / r + F × (1+r)^-n
+            // Where:
+            // C = coupon payment per period
+            // r = periodic yield
+            // n = number of periods
+            // F = face value
+            
+            const discountFactor = Math.pow(1 + periodicYield, -periods);
+            const annuityFactor = (1 - discountFactor) / periodicYield;
+            
+            bondPrice = (couponPayment * annuityFactor) + (faceValue * discountFactor);
           }
-          bondPrice += faceValue / Math.pow(1 + periodicYield, periods);
+          // ========== KẾT THÚC PHẦN FIX ==========
+
+          // Calculate additional metrics
+          const totalCoupons = couponPayment * periods;
+          const totalReturn = bondPrice - faceValue;
+          const currentYield = (couponPayment * frequency) / bondPrice * 100;
+          const capitalGainYield = ((faceValue - bondPrice) / bondPrice) * 100;
 
           resultsDiv.innerHTML = `
-                          <div class="results-grid">
-                              <div class="result-card" style="background-color: var(--orange-100);">
-                                  <div class="result-label">Bond Price</div>
-                                  <div class="result-value">$${bondPrice.toFixed(
-                                    2
-                                  )}</div>
-                              </div>
-                              <div class="result-card" style="background-color: var(--slate-100);">
-                                  <div class="result-label">Face Value</div>
-                                  <div class="result-value">$${faceValue.toFixed(
-                                    2
-                                  )}</div>
-                              </div>
-                              <div class="result-card" style="background-color: var(--slate-100);">
-                                  <div class="result-label">Coupon Payment</div>
-                                  <div class="result-value">$${couponPayment.toFixed(
-                                    2
-                                  )}</div>
-                              </div>
-                              <div class="result-card" style="background-color: var(--slate-100);">
-                                  <div class="result-label">Yield to Maturity</div>
-                                  <div class="result-value">${(
-                                    ytm * 100
-                                  ).toFixed(2)}%</div>
-                              </div>
-                          </div>
-                      `;
+            <div class="results-grid">
+              <div class="result-card" style="background-color: var(--orange-100);">
+                <div class="result-label">Bond Price</div>
+                <div class="result-value">$${bondPrice.toFixed(2)}</div>
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                  ${bondPrice > faceValue ? 'Premium' : bondPrice < faceValue ? 'Discount' : 'Par'} bond
+                </div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Face Value</div>
+                <div class="result-value">$${faceValue.toFixed(2)}</div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Coupon Payment</div>
+                <div class="result-value">$${couponPayment.toFixed(2)}/period</div>
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                  ${(couponRate * 100).toFixed(2)}% annually
+                </div>
+              </div>
+              <div class="result-card" style="background-color: var(--slate-100);">
+                <div class="result-label">Yield to Maturity</div>
+                <div class="result-value">${(ytm * 100).toFixed(2)}%</div>
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                  ${periodicYield.toFixed(4)} periodic
+                </div>
+              </div>
+            </div>
+            
+            <!-- Additional Metrics -->
+            <div style="margin-top: 1.5rem; background: var(--blue-50); padding: 1rem; border-radius: 0.5rem;">
+              <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--blue-800); margin-bottom: 0.75rem;">
+                📊 Additional Bond Metrics
+              </h4>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem;">
+                <div style="text-align: center;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600);">Current Yield</div>
+                  <div style="font-weight: 700; color: ${currentYield >= 0 ? 'var(--green-700)' : 'var(--red-700)'}">
+                    ${currentYield.toFixed(2)}%
+                  </div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600);">Periods</div>
+                  <div style="font-weight: 700; color: var(--slate-700);">
+                    ${periods.toFixed(1)}
+                  </div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600);">Premium/Discount</div>
+                  <div style="font-weight: 700; color: ${totalReturn >= 0 ? 'var(--green-700)' : 'var(--red-700)'}">
+                    ${totalReturn >= 0 ? '+' : ''}$${Math.abs(totalReturn).toFixed(2)}
+                  </div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600);">Total Coupons</div>
+                  <div style="font-weight: 700; color: var(--slate-700);">
+                    $${totalCoupons.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Bond Status -->
+            <div style="margin-top: 1rem; padding: 0.75rem; border-radius: 0.375rem; 
+                        background: ${bondPrice > faceValue ? 'var(--orange-50)' : bondPrice < faceValue ? 'var(--green-50)' : 'var(--blue-50)'}; 
+                        border-left: 4px solid ${bondPrice > faceValue ? 'var(--orange-500)' : bondPrice < faceValue ? 'var(--green-500)' : 'var(--blue-500)'};">
+              <div style="font-weight: 600; color: ${bondPrice > faceValue ? 'var(--orange-800)' : bondPrice < faceValue ? 'var(--green-800)' : 'var(--blue-800)'};">
+                ${
+                  bondPrice > faceValue 
+                    ? `💰 Premium Bond: Trading at $${(bondPrice - faceValue).toFixed(2)} above face value` 
+                    : bondPrice < faceValue 
+                    ? `📉 Discount Bond: Trading at $${(faceValue - bondPrice).toFixed(2)} below face value`
+                    : `📊 Par Bond: Trading exactly at face value`
+                }
+              </div>
+              <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                YTM ${(ytm * 100).toFixed(2)}% ${bondPrice > faceValue ? ' < ' : bondPrice < faceValue ? ' > ' : ' = '} 
+                Coupon Rate ${(couponRate * 100).toFixed(2)}%
+              </div>
+            </div>
+          `;
 
           resultsDiv.classList.remove("hidden");
+
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('bond-pricing');
+          }, 100);
         });
       }
+
+
 
       // --- NPV & IRR Calculator ---
       function renderNPVIRRCalculator() {
@@ -1372,7 +2216,7 @@
                   `;
       }
 
-      // Fixed IRR calculation function
+      // IRR calculation function
       function calculateIRR(cashFlows, initialInvestment, initialGuess = 0.1) {
         const maxIterations = 1000;
         const tolerance = 1e-7;
@@ -1426,6 +2270,1219 @@
         };
       }
 
+
+      // ==================== XIRR/XNPV FUNCTIONS - PRODUCTION READY ====================
+
+
+      /**
+       * Parse date robustly (timezone-safe, Excel-compatible)
+       * Supports: YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY
+       */
+      function parseInputDate(dateStr) {
+        if (!dateStr) return null;
+        
+        // Remove any whitespace
+        dateStr = dateStr.trim();
+        
+        // Try ISO format (YYYY-MM-DD) - timezone neutral
+        const isoMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (isoMatch) {
+          const [_, year, month, day] = isoMatch;
+          // Use UTC to avoid timezone issues
+          const date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+          if (!isNaN(date.getTime())) return date;
+        }
+        
+        // Try US format (MM/DD/YYYY)
+        const usMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (usMatch) {
+          const [_, month, day, year] = usMatch;
+          const date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+          if (!isNaN(date.getTime())) return date;
+        }
+        
+        // Try European format (DD.MM.YYYY or DD-MM-YYYY)
+        const euMatch1 = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+        if (euMatch1) {
+          const [_, day, month, year] = euMatch1;
+          const date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+          if (!isNaN(date.getTime())) return date;
+        }
+        
+        const euMatch2 = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+        if (euMatch2) {
+          const [_, day, month, year] = euMatch2;
+          const date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+          if (!isNaN(date.getTime())) return date;
+        }
+        
+        // Fallback: try native Date parsing
+        const date = new Date(dateStr + 'T00:00:00Z');
+        if (!isNaN(date.getTime())) return date;
+        
+        return null;
+      }
+
+
+      /**
+       * Calculate XNPV (Excel-compatible, production-grade)
+       * Uses exact day count / 365 (Excel standard)
+       */
+      function calculateXNPV(rate, cashFlows) {
+        if (!cashFlows || cashFlows.length === 0) {
+          return 0;
+        }
+
+        // Sort by date (earliest first)
+        const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
+        const baseDate = sorted[0].date;
+        
+        let xnpv = 0;
+        
+        for (const cf of sorted) {
+          const daysDiff = Math.round((cf.date - baseDate) / (1000 * 60 * 60 * 24));
+          const yearsDiff = daysDiff / 365.0;
+          
+          // Excel's formula: CF / (1 + r)^(days/365)
+          const pv = cf.amount / Math.pow(1 + rate, yearsDiff);
+          xnpv += pv;
+        }
+        
+        return xnpv;
+      }
+
+      /**
+       * PRODUCTION-GRADE XIRR with robust convergence
+       * Newton-Raphson with fallback bisection for stability
+       * Excel-compatible results (±1e-9 tolerance)
+       */
+      function calculateXIRR(cashFlows, initialGuess = 0.1) {
+        // Validate input
+        if (!cashFlows || cashFlows.length < 2) {
+          return {
+            success: false,
+            message: "Need at least 2 cash flows"
+          };
+        }
+
+        // Validate cash flow signs (must have both positive and negative)
+        const amounts = cashFlows.map(cf => cf.amount);
+        const hasPositive = amounts.some(a => a > 0);
+        const hasNegative = amounts.some(a => a < 0);
+        
+        if (!hasPositive || !hasNegative) {
+          return {
+            success: false,
+            message: "Need both positive and negative cash flows"
+          };
+        }
+
+        // Sort by date (essential for XIRR)
+        const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
+        const baseDate = sorted[0].date;
+        
+        // Calculate total magnitude for relative error checking
+        const totalMagnitude = sorted.reduce((sum, cf) => sum + Math.abs(cf.amount), 0);
+        const tolerance = Math.max(1e-9, totalMagnitude * 1e-12);
+        
+        // Try multiple initial guesses (Excel's approach)
+        const initialGuesses = [initialGuess, 0.1, -0.1, 0.5, -0.5, 0.0, 0.25, 1.0, -0.99, 2.0];
+        
+        for (const guess of initialGuesses) {
+          const result = newtonRaphsonXIRR(sorted, baseDate, guess, tolerance);
+          if (result.success) {
+            return {
+              ...result,
+              iterations: result.iterations,
+              xnpv: calculateXNPV(result.xirr, sorted)
+            };
+          }
+        }
+        
+        // Fallback to bisection method if Newton-Raphson fails
+        const bisectionResult = bisectionXIRR(sorted, baseDate, tolerance);
+        if (bisectionResult.success) {
+          return {
+            ...bisectionResult,
+            method: 'bisection',
+            xnpv: calculateXNPV(bisectionResult.xirr, sorted)
+          };
+        }
+        
+        return {
+          success: false,
+          message: "XIRR did not converge. Check cash flow pattern or try different initial guess.",
+          iterations: 100
+        };
+      }
+
+      /**
+       * Newton-Raphson solver for XIRR
+       */
+      function newtonRaphsonXIRR(sortedCFs, baseDate, initialGuess, tolerance) {
+        const maxIterations = 100;
+        let rate = initialGuess;
+        
+        for (let iter = 0; iter < maxIterations; iter++) {
+          let npv = 0;
+          let derivative = 0;
+          
+          for (const cf of sortedCFs) {
+            const days = (cf.date - baseDate) / (1000 * 60 * 60 * 24);
+            const years = days / 365.0;
+            
+            const discountFactor = Math.pow(1 + rate, years);
+            npv += cf.amount / discountFactor;
+            
+            // Derivative: -t * CF / (1+r)^(t+1)
+            if (Math.abs(years) > 1e-12) { // Avoid numerical issues
+              derivative -= (years * cf.amount) / (discountFactor * (1 + rate));
+            }
+          }
+          
+          // Check convergence
+          if (Math.abs(npv) <= tolerance) {
+            return {
+              success: true,
+              xirr: rate,
+              iterations: iter + 1
+            };
+          }
+          
+          // Prevent division by zero and stabilize
+          if (Math.abs(derivative) < 1e-15) {
+            break;
+          }
+          
+          // Newton-Raphson update
+          const delta = npv / derivative;
+          rate -= delta;
+          
+          // Apply bounds (realistic IRR range for most investments)
+          if (rate <= -0.9999) rate = -0.9999;
+          if (rate >= 10.0) rate = 10.0; // 1000% max (realistic bound)
+          
+          // Check for oscillation or divergence
+          if (Math.abs(delta) < tolerance || iter === maxIterations - 1) {
+            // Final check
+            const finalXNPV = calculateXNPV(rate, sortedCFs);
+            if (Math.abs(finalXNPV) <= tolerance) {
+              return {
+                success: true,
+                xirr: rate,
+                iterations: iter + 1
+              };
+            }
+          }
+        }
+        
+        return { success: false };
+      }
+
+      /**
+       * Bisection method as fallback (more stable, slower)
+       */
+      function bisectionXIRR(sortedCFs, baseDate, tolerance) {
+        // Find reasonable bounds
+        let lower = -0.9999;
+        let upper = 10.0;
+        
+        // Check bounds have opposite signs
+        const npvLower = calculateXNPV(lower, sortedCFs);
+        const npvUpper = calculateXNPV(upper, sortedCFs);
+        
+        if (npvLower * npvUpper > 0) {
+          // Try to find better bounds
+          for (let i = 0; i < 20; i++) {
+            const testRate = lower + (upper - lower) * i / 19;
+            const npv = calculateXNPV(testRate, sortedCFs);
+            
+            if (npvLower * npv <= 0) {
+              upper = testRate;
+              break;
+            }
+          }
+        }
+        
+        // Bisection loop
+        for (let iter = 0; iter < 100; iter++) {
+          const mid = (lower + upper) / 2;
+          const npvMid = calculateXNPV(mid, sortedCFs);
+          
+          if (Math.abs(npvMid) <= tolerance) {
+            return {
+              success: true,
+              xirr: mid,
+              iterations: iter + 1
+            };
+          }
+          
+          if (calculateXNPV(lower, sortedCFs) * npvMid < 0) {
+            upper = mid;
+          } else {
+            lower = mid;
+          }
+          
+          // Check if bounds are too close
+          if (upper - lower < 1e-12) {
+            return {
+              success: Math.abs(npvMid) <= tolerance * 10,
+              xirr: mid,
+              iterations: iter + 1
+            };
+          }
+        }
+        
+        return { success: false };
+      }
+
+      /**
+       * Calculate regular NPV for comparison (annual periods)
+       */
+      function calculateRegularNPV(cashFlows, discountRate) {
+        if (!cashFlows || cashFlows.length === 0) return 0;
+        
+        const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
+        let npv = 0;
+        
+        // Assume equal annual periods (simplistic comparison)
+        for (let i = 0; i < sorted.length; i++) {
+          npv += sorted[i].amount / Math.pow(1 + discountRate, i);
+        }
+        
+        return npv;
+      }
+
+      /**
+       * Calculate regular IRR for comparison (annual periods)
+       */
+      function calculateRegularIRR(cashFlows) {
+        if (!cashFlows || cashFlows.length < 2) {
+          return { success: false, message: "Need at least 2 cash flows" };
+        }
+        
+        const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
+        const amounts = sorted.map(cf => cf.amount);
+        
+        return calculateIRR(amounts, Math.abs(sorted[0].amount), 0.1);
+      }
+
+      /**
+       * Format date for display (locale-aware)
+       */
+      function formatDate(date) {
+        if (!date) return '';
+        
+        // Use UTC to avoid timezone shifts in display
+        const utcDate = new Date(Date.UTC(
+          date.getUTCFullYear(),
+          date.getUTCMonth(),
+          date.getUTCDate()
+        ));
+        
+        return utcDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          timeZone: 'UTC'
+        });
+      }
+
+
+
+      
+      function renderXNPVXIRRCalculator() {
+        return `
+          <h2 class="calculator-title">⚡ XNPV & XIRR Calculator (Professional)</h2>
+          
+          <div class="explanation-box">
+            <div class="explanation-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Why XIRR/XNPV? The Real Deal Standard
+            </div>
+            <p class="explanation-text">
+              <strong>Regular IRR/NPV = Academic.</strong> <strong>XIRR/XNPV = What PE funds actually use.</strong>
+              Real cash flows don't arrive on "Year 1, Year 2" — they happen on specific dates (Day 47, Q3 end, etc.).
+              Every day changes discounting ⇒ Regular IRR can be off by <strong>50-150bps</strong> on large deals.
+            </p>
+            <p class="explanation-text">
+              <strong>Use cases:</strong> Dividend recaps, bridge loans, irregular distributions, construction capex,
+              preferred return waterfalls, carried interest calculations, refinancing analysis.
+            </p>
+            <div class="explanation-note">
+              <strong>PE/IB Insight:</strong> If your model doesn't use XIRR/XNPV with exact dates, 
+              it looks like an internship-level model. Funds calculate performance fees, promotes, 
+              and waterfalls using XIRR down to the day.
+            </div>
+          </div>
+
+          <!-- Scenario Selector -->
+          <div style="background: var(--slate-50); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1rem; font-weight: 600; color: var(--slate-700); margin-bottom: 1rem;">
+              📋 Choose Your Scenario
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
+              <button class="scenario-btn active" data-scenario="custom">
+                ✍️ Custom<br>
+                <span style="font-size: 0.75rem; font-weight: normal;">Enter your cash flows</span>
+              </button>
+              <button class="scenario-btn" data-scenario="pe-investment">
+                💼 PE Investment<br>
+                <span style="font-size: 0.75rem; font-weight: normal;">LBO with dividend recap</span>
+              </button>
+              <button class="scenario-btn" data-scenario="real-estate">
+                🏢 Real Estate<br>
+                <span style="font-size: 0.75rem; font-weight: normal;">Construction + rent + sale</span>
+              </button>
+              <button class="scenario-btn" data-scenario="bridge-loan">
+                🌉 Bridge Loan<br>
+                <span style="font-size: 0.75rem; font-weight: normal;">45-day refinancing</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Cash Flow Input -->
+          <div style="background: var(--white); padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--slate-200); margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 1rem; font-weight: 600; color: var(--slate-700);">
+                💸 Cash Flows (Date-Specific)
+              </h3>
+              <button class="btn btn-primary" id="addCashFlowBtn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                ➕ Add Cash Flow
+              </button>
+            </div>
+
+            <div style="background: var(--blue-50); padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; font-size: 0.875rem; border-left: 3px solid var(--blue-500);">
+              <strong>💡 Pro Tip:</strong> Negative = Outflow (investment), Positive = Inflow (returns).
+              Date format: <strong>YYYY-MM-DD</strong> or <strong>MM/DD/YYYY</strong>
+            </div>
+
+            <div id="cashFlowsContainer">
+              <!-- Cash flows will be added here -->
+            </div>
+
+            <div style="margin-top: 1rem; padding: 1rem; background: var(--slate-50); border-radius: 0.5rem; font-size: 0.875rem;">
+              <strong>Quick actions:</strong>
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                <button class="btn btn-secondary" id="sortByDateBtn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.75rem;">
+                  📅 Sort by Date
+                </button>
+                <button class="btn btn-danger" id="clearAllBtn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.75rem;">
+                  🗑️ Clear All
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Discount Rate (for XNPV) -->
+          <div class="form-grid" style="margin-bottom: 1.5rem;">
+            <div class="form-group">
+              <label class="form-label">📊 Discount Rate for XNPV (%)</label>
+              <input type="number" id="xnpvDiscountRate" class="form-input" placeholder="10" step="0.1" value="10">
+              <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                Target return or WACC (e.g., 10% = 0.10)
+              </div>
+            </div>
+          </div>
+
+          <!-- Calculate Button -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <button class="btn btn-primary" id="calculateXNPV">
+              📊 Calculate XNPV
+            </button>
+            <button class="btn btn-success" id="calculateXIRR">
+              ⚡ Calculate XIRR
+            </button>
+          </div>
+
+          <!-- Results -->
+          <div id="xnpvxirrResults" class="results-container hidden" style="border-color: var(--indigo-100); background-color: var(--indigo-50); margin-top: 2rem;">
+            <!-- Results will be populated here -->
+          </div>
+
+          <!-- Comparison with Regular IRR/NPV -->
+          <div id="comparisonSection" class="hidden" style="margin-top: 2rem;">
+            <!-- Comparison will be populated here -->
+          </div>
+        `;
+      }    
+              
+      function setupXNPVXIRRCalculator() {
+        let cashFlows = [];
+        let cashFlowIdCounter = 1;
+
+        // Add initial cash flow
+        addCashFlow();
+
+        // Scenario buttons
+        document.querySelectorAll('.scenario-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadScenario(btn.dataset.scenario);
+          });
+        });
+
+        // Add cash flow button
+        document.getElementById('addCashFlowBtn').addEventListener('click', () => {
+          if (cashFlows.length < 50) {
+            addCashFlow();
+          } else {
+            alert('Maximum 50 cash flows allowed');
+          }
+        });
+
+        // Sort by date
+        document.getElementById('sortByDateBtn').addEventListener('click', () => {
+          cashFlows.sort((a, b) => {
+            const dateA = parseInputDate(a.date);
+            const dateB = parseInputDate(b.date);
+            if (!dateA || !dateB) return 0;
+            return dateA - dateB;
+          });
+          renderCashFlows();
+        });
+
+        // Clear all
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+          if (confirm('Clear all cash flows?')) {
+            cashFlows = [];
+            addCashFlow();
+          }
+        });
+
+        // Calculate XNPV
+        document.getElementById('calculateXNPV').addEventListener('click', () => {
+          calculateAndDisplayXNPV();
+        });
+
+        // Calculate XIRR
+        document.getElementById('calculateXIRR').addEventListener('click', () => {
+          calculateAndDisplayXIRR();
+        });
+
+        function addCashFlow(date = '', amount = '') {
+          cashFlows.push({
+            id: cashFlowIdCounter++,
+            date: date,
+            amount: amount
+          });
+          renderCashFlows();
+        }
+
+        function removeCashFlow(id) {
+          cashFlows = cashFlows.filter(cf => cf.id !== id);
+          if (cashFlows.length === 0) {
+            addCashFlow(); // Keep at least one
+          }
+          renderCashFlows();
+        }
+
+        function renderCashFlows() {
+          const container = document.getElementById('cashFlowsContainer');
+          
+          if (cashFlows.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--slate-500);">No cash flows</p>';
+            return;
+          }
+
+          container.innerHTML = cashFlows.map((cf, index) => `
+            <div class="cash-flow-row" data-cf-id="${cf.id}" style="
+              background: ${index % 2 === 0 ? 'var(--slate-50)' : 'var(--white)'};
+              padding: 1rem;
+              border-radius: 0.5rem;
+              margin-bottom: 0.75rem;
+              border: 1px solid var(--slate-200);
+            ">
+              <div style="display: grid; grid-template-columns: 50px 2fr 2fr auto; gap: 1rem; align-items: center;">
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--slate-600); text-align: center;">
+                  #${index + 1}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Date</label>
+                  <input type="date" class="form-input cf-date" value="${cf.date}" 
+                        placeholder="YYYY-MM-DD" style="font-size: 0.875rem;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Amount ($)</label>
+                  <input type="number" class="form-input cf-amount" value="${cf.amount}" 
+                        placeholder="e.g., -100000 or 50000" step="1000">
+                </div>
+
+                <button class="remove-cf-btn" data-cf-id="${cf.id}" style="
+                  background: var(--red-500);
+                  color: white;
+                  border: none;
+                  border-radius: 0.375rem;
+                  padding: 0.75rem;
+                  cursor: pointer;
+                  font-weight: 600;
+                  font-size: 1.2rem;
+                  line-height: 1;
+                  transition: all 0.2s;
+                " title="Remove">
+                  ✕
+                </button>
+              </div>
+            </div>
+          `).join('');
+
+          // Attach event listeners
+          document.querySelectorAll('.remove-cf-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const cfId = parseInt(e.target.dataset.cfId);
+              removeCashFlow(cfId);
+            });
+          });
+
+          document.querySelectorAll('.cash-flow-row').forEach(row => {
+            const cfId = parseInt(row.dataset.cfId);
+            const cf = cashFlows.find(c => c.id === cfId);
+
+            row.querySelector('.cf-date').addEventListener('change', (e) => {
+              cf.date = e.target.value;
+            });
+
+            row.querySelector('.cf-amount').addEventListener('change', (e) => {
+              cf.amount = e.target.value;
+            });
+          });
+        }
+
+        function loadScenario(scenario) {
+          cashFlows = [];
+          cashFlowIdCounter = 1;
+
+          const today = new Date();
+          const formatDate = (date) => date.toISOString().split('T')[0];
+
+          switch (scenario) {
+            case 'pe-investment':
+              // Realistic PE deal: Investment → Dividend Recap → Exit
+              addCashFlow(formatDate(today), '-50000000'); // $50M investment today
+              
+              const recap = new Date(today);
+              recap.setMonth(recap.getMonth() + 18);
+              addCashFlow(formatDate(recap), '15000000'); // $15M dividend recap after 18mo
+              
+              const exit = new Date(today);
+              exit.setFullYear(exit.getFullYear() + 4);
+              exit.setMonth(exit.getMonth() + 3);
+              addCashFlow(formatDate(exit), '95000000'); // $95M exit after 4.25 years
+              break;
+
+            case 'real-estate':
+              // Real estate development
+              const landPurchase = new Date(today);
+              addCashFlow(formatDate(landPurchase), '-10000000'); // Land
+              
+              // Construction capex over 18 months
+              for (let i = 1; i <= 6; i++) {
+                const capexDate = new Date(today);
+                capexDate.setMonth(capexDate.getMonth() + i * 3);
+                addCashFlow(formatDate(capexDate), '-3000000'); // Quarterly capex
+              }
+              
+              // Rental income for 3 years
+              for (let i = 24; i <= 60; i += 3) {
+                const rentDate = new Date(today);
+                rentDate.setMonth(rentDate.getMonth() + i);
+                addCashFlow(formatDate(rentDate), '500000'); // Quarterly rent
+              }
+              
+              // Sale after 5 years
+              const saleDate = new Date(today);
+              saleDate.setFullYear(saleDate.getFullYear() + 5);
+              addCashFlow(formatDate(saleDate), '35000000'); // Property sale
+              break;
+
+            case 'bridge-loan':
+              // 45-day bridge financing
+              addCashFlow(formatDate(today), '-5000000'); // Lend $5M today
+              
+              const repay = new Date(today);
+              repay.setDate(repay.getDate() + 45);
+              addCashFlow(formatDate(repay), '5075000'); // Repay with interest after 45 days
+              break;
+
+            default: // custom
+              addCashFlow();
+          }
+        }
+
+        function calculateAndDisplayXNPV() {
+          // Validate and parse cash flows
+          const parsedCFs = [];
+          for (const cf of cashFlows) {
+            const date = parseInputDate(cf.date);
+            const amount = parseFloat(cf.amount);
+            
+            if (!date) {
+              alert(`Invalid date: ${cf.date}`);
+              return;
+            }
+            if (isNaN(amount)) {
+              alert(`Invalid amount: ${cf.amount}`);
+              return;
+            }
+            
+            parsedCFs.push({ date, amount });
+          }
+
+          if (parsedCFs.length < 2) {
+            alert('Need at least 2 cash flows');
+            return;
+          }
+
+          const discountRate = parseFloat(document.getElementById('xnpvDiscountRate').value) / 100;
+          if (isNaN(discountRate)) {
+            alert('Invalid discount rate');
+            return;
+          }
+
+          // Calculate XNPV
+          const xnpv = calculateXNPV(discountRate, parsedCFs);
+          
+          // Calculate regular NPV for comparison (assuming annual periods)
+          const regularNPV = calculateRegularNPV(parsedCFs, discountRate);
+          
+          displayXNPVResults(xnpv, regularNPV, discountRate, parsedCFs);
+        }
+
+        function calculateAndDisplayXIRR() {
+          // Validate and parse
+          const parsedCFs = [];
+          for (const cf of cashFlows) {
+            const date = parseInputDate(cf.date);
+            const amount = parseFloat(cf.amount);
+            
+            if (!date) {
+              alert(`Invalid date: ${cf.date}`);
+              return;
+            }
+            if (isNaN(amount)) {
+              alert(`Invalid amount: ${cf.amount}`);
+              return;
+            }
+            
+            parsedCFs.push({ date, amount });
+          }
+
+          if (parsedCFs.length < 2) {
+            alert('Need at least 2 cash flows');
+            return;
+          }
+
+          // Calculate XIRR
+          const xirrResult = calculateXIRR(parsedCFs, 0.1);
+          
+          // Calculate regular IRR for comparison
+          const regularIRR = calculateRegularIRR(parsedCFs);
+          
+          displayXIRRResults(xirrResult, regularIRR, parsedCFs);
+        }
+
+        function calculateRegularNPV(parsedCFs, rate) {
+          // Assume cash flows are evenly spaced (naive approach)
+          const sorted = [...parsedCFs].sort((a, b) => a.date - b.date);
+          let npv = 0;
+          
+          for (let i = 0; i < sorted.length; i++) {
+            npv += sorted[i].amount / Math.pow(1 + rate, i);
+          }
+          
+          return npv;
+        }
+
+        function calculateRegularIRR(parsedCFs) {
+          // Use simplified IRR assuming evenly spaced periods
+          const sorted = [...parsedCFs].sort((a, b) => a.date - b.date);
+          const amounts = sorted.map(cf => cf.amount);
+          
+          const result = calculateIRR(amounts, sorted[0].amount, 0.1);
+          return result;
+        }
+
+        function displayXNPVResults(xnpv, regularNPV, rate, cashFlows) {
+          const resultsDiv = document.getElementById('xnpvxirrResults');
+          const comparisonDiv = document.getElementById('comparisonSection');
+          
+          const difference = xnpv - regularNPV;
+          const percentDiff = regularNPV !== 0 ? (difference / Math.abs(regularNPV)) * 100 : 0;
+
+          resultsDiv.innerHTML = `
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; color: var(--indigo-800);">
+              📊 XNPV Results
+            </h3>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+              <div style="background: linear-gradient(135deg, var(--indigo-100), var(--indigo-200));
+                          padding: 1.5rem; border-radius: 0.75rem; text-align: center; border: 2px solid var(--indigo-400);">
+                <div style="font-size: 0.875rem; color: var(--indigo-700); margin-bottom: 0.5rem; font-weight: 600;">
+                  XNPV (Exact Dates)
+                </div>
+                <div style="font-size: 2rem; font-weight: 800; color: ${xnpv >= 0 ? 'var(--green-700)' : 'var(--red-700)'};">
+                  ${xnpv >= 0 ? '+' : ''}$${(xnpv / 1000000).toFixed(2)}M
+                </div>
+              </div>
+
+              <div style="background: var(--slate-100); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
+                <div style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 0.5rem; font-weight: 600;">
+                  Discount Rate
+                </div>
+                <div style="font-size: 2rem; font-weight: 800; color: var(--slate-700);">
+                  ${(rate * 100).toFixed(2)}%
+                </div>
+              </div>
+
+              <div style="background: var(--slate-100); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
+                <div style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 0.5rem; font-weight: 600;">
+                  Cash Flows
+                </div>
+                <div style="font-size: 2rem; font-weight: 800; color: var(--slate-700);">
+                  ${cashFlows.length}
+                </div>
+              </div>
+            </div>
+
+            ${renderCashFlowTimeline(cashFlows)}
+          `;
+
+          comparisonDiv.innerHTML = `
+            <div style="background: linear-gradient(135deg, var(--orange-50), var(--red-50));
+                        padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid var(--orange-500);">
+              <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--orange-900); margin-bottom: 1rem;">
+                ⚠️ XNPV vs Regular NPV Comparison
+              </h4>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">XNPV (Exact)</div>
+                  <div style="font-weight: 700; font-size: 1.1rem; color: var(--indigo-700);">
+                    $${(xnpv / 1000000).toFixed(2)}M
+                  </div>
+                </div>
+
+                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">NPV (Annual)</div>
+                  <div style="font-weight: 700; font-size: 1.1rem; color: var(--slate-600);">
+                    $${(regularNPV / 1000000).toFixed(2)}M
+                  </div>
+                </div>
+
+                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Difference</div>
+                  <div style="font-weight: 700; font-size: 1.1rem; color: ${difference >= 0 ? 'var(--green-700)' : 'var(--red-700)'}">
+                    ${difference >= 0 ? '+' : '-'}$${Math.abs(difference / 1000000).toFixed(2)}M
+                    <div style="font-size: 0.75rem; color: ${difference >= 0 ? 'var(--green-600)' : 'var(--red-600)'}">
+                      (${percentDiff >= 0 ? '+' : ''}${Math.abs(percentDiff).toFixed(1)}%)
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="background: var(--orange-50); padding: 1.25rem; border-radius: 0.5rem; margin-top: 1rem; font-size: 0.875rem; line-height: 1.6;">
+                <strong>🔥 Why the difference matters:</strong><br>
+                ${
+                  Math.abs(percentDiff) > 5 
+                    ? `Regular NPV is off by <strong>${Math.abs(percentDiff).toFixed(1)}%</strong> — this could mean the difference between a "GO" and "NO GO" decision on a multi-million dollar deal.`
+                    : `Difference is relatively small (${Math.abs(percentDiff).toFixed(1)}%), but still important for precision in professional models.`
+                }
+                <br><br>
+                <strong>📈 Practical impact:</strong> 
+                ${
+                  difference > 0
+                    ? `XNPV shows the project is <strong>$${Math.abs(difference / 1000000).toFixed(2)}M MORE valuable</strong> than regular NPV suggests — you might be undervaluing opportunities.`
+                    : `XNPV shows the project is <strong>$${Math.abs(difference / 1000000).toFixed(2)}M LESS valuable</strong> — regular NPV is giving you false optimism.`
+                }
+              </div>
+
+              <div style="margin-top: 1rem; padding: 1rem; background: var(--white); border-radius: 0.5rem; border: 1px solid var(--slate-200);">
+                <div style="font-weight: 600; color: var(--slate-700); margin-bottom: 0.5rem;">💡 When to use each method:</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                  <div style="background: var(--indigo-50); padding: 0.75rem; border-radius: 0.375rem;">
+                    <strong style="color: var(--indigo-700);">Use XNPV when:</strong><br>
+                    • Real deals with specific dates<br>
+                    • PE/VC fund performance<br>
+                    • Real estate development<br>
+                    • Bridge/short-term financing<br>
+                    • Dividend recaps<br>
+                    • Waterfall calculations
+                  </div>
+                  <div style="background: var(--slate-100); padding: 0.75rem; border-radius: 0.375rem;">
+                    <strong style="color: var(--slate-700);">Use NPV when:</strong><br>
+                    • Academic exercises<br>
+                    • Quarterly/annual planning<br>
+                    • Back-of-envelope estimates<br>
+                    • Standard bond pricing<br>
+                    • Simple DCF models<br>
+                    • Early-stage screening
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          resultsDiv.classList.remove('hidden');
+          comparisonDiv.classList.remove('hidden');
+          
+          // Save state
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('xnpv-xirr');
+          }, 100);
+        }
+
+        function displayXIRRResults(xirrResult, regularIRR, cashFlows) {
+          const resultsDiv = document.getElementById('xnpvxirrResults');
+          const comparisonDiv = document.getElementById('comparisonSection');
+          
+          if (!xirrResult.success) {
+            resultsDiv.innerHTML = `
+              <div style="background: var(--red-50); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
+                <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--red-800); margin-bottom: 0.75rem;">
+                  XIRR Calculation Failed
+                </h4>
+                <p style="color: var(--red-700); margin-bottom: 1rem;">
+                  ${xirrResult.message}
+                </p>
+                <div style="font-size: 0.875rem; color: var(--slate-600);">
+                  Common issues:<br>
+                  • All cash flows have same sign<br>
+                  • Extreme/unrealistic cash flow patterns<br>
+                  • Date parsing errors
+                </div>
+              </div>
+            `;
+            resultsDiv.classList.remove('hidden');
+            return;
+          }
+
+          const xirr = xirrResult.xirr;
+          const annualizedReturn = (Math.pow(1 + xirr, 1) - 1) * 100;
+          
+          // Calculate difference vs regular IRR
+          let regularIRRValue = 0;
+          let regularIRRAnnual = 0;
+          let difference = 0;
+          
+          if (regularIRR.success) {
+            regularIRRValue = regularIRR.irr;
+            regularIRRAnnual = regularIRR.irr * 100;
+            difference = annualizedReturn - regularIRRAnnual;
+          }
+
+          resultsDiv.innerHTML = `
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; color: var(--emerald-800);">
+              ⚡ XIRR Results
+            </h3>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+              <div style="background: linear-gradient(135deg, var(--emerald-100), var(--green-200));
+                          padding: 1.5rem; border-radius: 0.75rem; text-align: center; border: 2px solid var(--emerald-400);">
+                <div style="font-size: 0.875rem; color: var(--emerald-700); margin-bottom: 0.5rem; font-weight: 600;">
+                  XIRR (Exact Dates)
+                </div>
+                <div style="font-size: 2.5rem; font-weight: 800; color: ${annualizedReturn >= 0 ? 'var(--emerald-700)' : 'var(--red-700)'};">
+                  ${annualizedReturn >= 0 ? '+' : ''}${annualizedReturn.toFixed(2)}%
+                </div>
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                  ${xirrResult.iterations} iterations • ${xirrResult.xnpv ? 'XNPV: $' + (xirrResult.xnpv / 1000000).toFixed(3) + 'M' : 'Converged'}
+                </div>
+              </div>
+
+              <div style="background: var(--slate-100); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
+                <div style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 0.5rem; font-weight: 600;">
+                  Time-Weighted Return
+                </div>
+                <div style="font-size: 2rem; font-weight: 800; color: var(--slate-700);">
+                  ${(Math.pow(1 + xirr, 365) - 1) * 100 > 10000 ? '∞' : (Math.pow(1 + xirr, 365) - 1).toFixed(0)}%
+                </div>
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                  If held for 1 year
+                </div>
+              </div>
+
+              <div style="background: var(--slate-100); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
+                <div style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 0.5rem; font-weight: 600;">
+                  Cash Flow Period
+                </div>
+                <div style="font-size: 2rem; font-weight: 800; color: var(--slate-700);">
+                  ${calculateHoldingPeriod(cashFlows)}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                  Days invested
+                </div>
+              </div>
+            </div>
+
+            ${renderCashFlowTimeline(cashFlows, xirr)}
+          `;
+
+          comparisonDiv.innerHTML = `
+            <div style="background: linear-gradient(135deg, var(--purple-50), var(--indigo-50));
+                        padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid var(--purple-500);">
+              <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--purple-900); margin-bottom: 1rem;">
+                ⚡ XIRR vs Regular IRR Comparison
+              </h4>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">XIRR (Exact)</div>
+                  <div style="font-weight: 700; font-size: 1.1rem; color: var(--emerald-700);">
+                    ${annualizedReturn.toFixed(2)}%
+                  </div>
+                </div>
+
+                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">IRR (Annual)</div>
+                  <div style="font-weight: 700; font-size: 1.1rem; color: var(--slate-600);">
+                    ${regularIRR.success ? regularIRRAnnual.toFixed(2) + '%' : 'N/A'}
+                  </div>
+                </div>
+
+                <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+                  <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Difference</div>
+                  <div style="font-weight: 700; font-size: 1.1rem; color: ${difference >= 0 ? 'var(--green-700)' : 'var(--red-700)'}">
+                    ${regularIRR.success ? `${difference >= 0 ? '+' : ''}${Math.abs(difference).toFixed(2)}%` : 'N/A'}
+                    <div style="font-size: 0.75rem; color: ${difference >= 0 ? 'var(--green-600)' : 'var(--red-600)'}">
+                      ${regularIRR.success ? `${Math.abs(difference / regularIRRAnnual * 100).toFixed(1)}% vs regular` : ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="background: var(--purple-50); padding: 1.25rem; border-radius: 0.5rem; margin-top: 1rem; font-size: 0.875rem; line-height: 1.6;">
+                <strong>🎯 Why XIRR is the professional standard:</strong><br>
+                ${
+                  Math.abs(difference) > 50 
+                    ? `Regular IRR is off by <strong>${Math.abs(difference).toFixed(1)} bps</strong> — in PE/VC, this determines whether you hit your hurdle rate and earn carry.`
+                    : Math.abs(difference) > 20
+                    ? `Difference of <strong>${Math.abs(difference).toFixed(1)} bps</strong> could mean millions in performance fees on a large fund.`
+                    : `Even a ${Math.abs(difference).toFixed(1)} bps difference matters for performance benchmarking in institutional investing.`
+                }
+                <br><br>
+                <strong>📊 Fund performance implications:</strong>
+                ${
+                  annualizedReturn >= 8 && annualizedReturn < 20
+                    ? `This <strong>${annualizedReturn.toFixed(1)}% XIRR</strong> clears the typical 8% preferred return hurdle. LPs get their pref, then GP gets ${Math.max(0, (annualizedReturn - 8) * 0.2).toFixed(1)}% in carried interest.`
+                    : annualizedReturn >= 20
+                    ? `Exceptional <strong>${annualizedReturn.toFixed(1)}% XIRR</strong>! GP carry would be 20% of ${(annualizedReturn - 8).toFixed(1)}% = ${((annualizedReturn - 8) * 0.2).toFixed(1)}% of total gains.`
+                    : `At <strong>${annualizedReturn.toFixed(1)}% XIRR</strong>, GP doesn't earn carry (below 8% hurdle).`
+                }
+              </div>
+
+              <!-- XIRR Sensitivity Analysis -->
+              <div style="margin-top: 1.5rem; padding: 1.5rem; background: var(--white); border-radius: 0.75rem; border: 1px solid var(--slate-200);">
+                <h5 style="font-size: 1rem; font-weight: 600; color: var(--slate-700); margin-bottom: 1rem;">
+                  🔬 XIRR Sensitivity Analysis
+                </h5>
+                ${renderXIRRSensitivity(cashFlows, xirr)}
+              </div>
+
+              <!-- Professional Insights -->
+              <div style="margin-top: 1.5rem; padding: 1.25rem; background: linear-gradient(135deg, var(--blue-50), var(--cyan-50));
+                          border-radius: 0.75rem; border-left: 4px solid var(--blue-600);">
+                <h5 style="font-size: 1rem; font-weight: 700; color: var(--blue-900); margin-bottom: 0.75rem;">
+                  💼 Professional Insights
+                </h5>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                  <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem;">
+                    <strong style="color: var(--blue-700); display: block; margin-bottom: 0.5rem;">PE/VC Funds</strong>
+                    <div style="font-size: 0.75rem; line-height: 1.4;">
+                      • XIRR determines carry (typically 20% above 8% pref)<br>
+                      • Quarterly performance reporting to LPs<br>
+                      • Waterfall calculations<br>
+                      • TVPI calculation component
+                    </div>
+                  </div>
+                  
+                  <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem;">
+                    <strong style="color: var(--green-700); display: block; margin-bottom: 0.5rem;">Real Estate</strong>
+                    <div style="font-size: 0.75rem; line-height: 1.4;">
+                      • Equity multiple vs IRR analysis<br>
+                      • Construction draw schedule impact<br>
+                      • Refinancing timing optimization<br>
+                      • Lease commencement dates
+                    </div>
+                  </div>
+                  
+                  <div style="background: var(--white); padding: 1rem; border-radius: 0.5rem;">
+                    <strong style="color: var(--purple-700); display: block; margin-bottom: 0.5rem;">Project Finance</strong>
+                    <div style="font-size: 0.75rem; line-height: 1.4;">
+                      • Loan drawdown/repayment timing<br>
+                      • Revenue commencement dates<br>
+                      • Debt service coverage ratios<br>
+                      • Refinancing options analysis
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          resultsDiv.classList.remove('hidden');
+          comparisonDiv.classList.remove('hidden');
+          
+          // Save state
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('xnpv-xirr');
+          }, 100);
+        }
+
+        function renderCashFlowTimeline(cashFlows, xirr = null) {
+          const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
+          const startDate = sorted[0].date;
+          const endDate = sorted[sorted.length - 1].date;
+          const totalDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
+          
+          return `
+            <div style="background: var(--white); padding: 1.5rem; border-radius: 0.75rem; border: 1px solid var(--slate-200); margin-bottom: 1.5rem;">
+              <h4 style="font-size: 1rem; font-weight: 600; color: var(--slate-700); margin-bottom: 1rem;">
+                📅 Cash Flow Timeline
+              </h4>
+              
+              <div style="position: relative; height: 40px; background: var(--slate-100); border-radius: 0.5rem; margin-bottom: 1rem; overflow: hidden;">
+                ${sorted.map((cf, index) => {
+                  const daysFromStart = (cf.date - startDate) / (1000 * 60 * 60 * 24);
+                  const position = (daysFromStart / totalDays) * 100;
+                  const isNegative = cf.amount < 0;
+                  
+                  return `
+                    <div style="position: absolute; left: ${position}%; top: 50%; transform: translate(-50%, -50%);">
+                      <div style="width: 12px; height: 12px; border-radius: 50%; 
+                                  background: ${isNegative ? 'var(--red-500)' : 'var(--green-500)'};
+                                  border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"
+                            title="${formatDate(cf.date)}: $${(cf.amount / 1000).toFixed(0)}K">
+                      </div>
+                      <div style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); 
+                                  font-size: 0.7rem; white-space: nowrap; color: var(--slate-600);">
+                        ${formatDate(cf.date).split(' ')[0]}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">
+                <div>${formatDate(startDate)}</div>
+                <div>${formatDate(endDate)}</div>
+              </div>
+              
+              <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--red-500); border: 2px solid white;"></div>
+                  <span style="font-size: 0.75rem; color: var(--slate-600);">Outflow (Investment)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--green-500); border: 2px solid white;"></div>
+                  <span style="font-size: 0.75rem; color: var(--slate-600);">Inflow (Return)</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        function renderXIRRSensitivity(cashFlows, baseXIRR) {
+          // Test how XIRR changes with timing shifts
+          const scenarios = [
+            { label: 'Exit 30 days later', daysShift: 30, isExit: true },
+            { label: 'Investment 15 days earlier', daysShift: -15, isExit: false },
+            { label: 'Dividend 45 days delay', daysShift: 45, isExit: false },
+          ];
+          
+          const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
+          const results = [];
+          
+          for (const scenario of scenarios) {
+            const modifiedCFs = sorted.map((cf, index) => {
+              const cfCopy = { ...cf };
+              if (scenario.isExit ? cf.amount > 0 : cf.amount < 0) {
+                cfCopy.date = new Date(cf.date);
+                cfCopy.date.setDate(cfCopy.date.getDate() + scenario.daysShift);
+              }
+              return cfCopy;
+            });
+            
+            const result = calculateXIRR(modifiedCFs, baseXIRR);
+            if (result.success) {
+              results.push({
+                scenario: scenario.label,
+                xirr: result.xirr,
+                annualized: (Math.pow(1 + result.xirr, 1) - 1) * 100,
+                change: ((result.xirr - baseXIRR) / baseXIRR) * 100,
+              });
+            }
+          }
+          
+          if (results.length === 0) return '<p style="color: var(--slate-600); text-align: center;">Sensitivity analysis not available</p>';
+          
+          return `
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                  <tr style="background: var(--slate-100); border-bottom: 2px solid var(--slate-300);">
+                    <th style="padding: 0.75rem; text-align: left; font-weight: 600;">Scenario</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">New XIRR</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">Annualized</th>
+                    <th style="padding: 0.75rem; text-align: right; font-weight: 600;">Change</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${results.map(r => `
+                    <tr style="border-bottom: 1px solid var(--slate-200);">
+                      <td style="padding: 0.75rem;">${r.scenario}</td>
+                      <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: ${r.xirr >= baseXIRR ? 'var(--green-700)' : 'var(--red-700)'}">
+                        ${(r.xirr * 100).toFixed(2)}%
+                      </td>
+                      <td style="padding: 0.75rem; text-align: right; font-weight: 600;">
+                        ${r.annualized.toFixed(2)}%
+                      </td>
+                      <td style="padding: 0.75rem; text-align: right; font-weight: 700; color: ${r.change >= 0 ? 'var(--green-700)' : 'var(--red-700)'}">
+                        ${r.change >= 0 ? '+' : ''}${r.change.toFixed(2)}%
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            
+            <div style="margin-top: 1rem; padding: 1rem; background: var(--purple-50); border-radius: 0.5rem; font-size: 0.75rem;">
+              <strong>Key Insight:</strong> Even small timing changes can significantly impact XIRR — 
+              this is why precise date modeling is critical in professional finance.
+            </div>
+          `;
+        }
+
+        function calculateHoldingPeriod(cashFlows) {
+          if (cashFlows.length < 2) return '0 days';
+          
+          const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
+          const startDate = sorted[0].date;
+          const endDate = sorted[sorted.length - 1].date;
+          
+          const days = (endDate - startDate) / (1000 * 60 * 60 * 24);
+          const years = days / 365;
+          
+          if (years > 1) {
+            return `${years.toFixed(1)} years`;
+          } else if (days > 30) {
+            return `${(days / 30).toFixed(1)} months`;
+          } else {
+            return `${Math.round(days)} days`;
+          }
+        }
+
+        // Initialize with custom scenario
+        loadScenario('custom');
+      }             
+
+
       function setupNPVIRRCalculator() {
         const cashFlowsContainer =
           document.getElementById("cashFlowsContainer");
@@ -1474,7 +3531,8 @@
           }
 
           // Calculate IRR using the fixed function
-          const irrResult = calculateIRR(cashFlows, initialInvestment);
+          const allCashFlows = [-Math.abs(initialInvestment), ...cashFlows];
+          const irrResult = calculateIRR(allCashFlows, initialInvestment, 0.1);          
 
           if (!irrResult.success) {
             resultsDiv.innerHTML = `
@@ -1536,11 +3594,19 @@
                           </div>
                       `;
           }
-
           resultsDiv.classList.remove("hidden");
+
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('npv-irr');
+          }, 100);
         });
       }
 
+
+
+
+      // ==================== ADVANCED CALCULATORS ====================
       // --- Black-Scholes Calculator ---
       function renderBlackScholesCalculator() {
         return `
@@ -1661,6 +3727,9 @@
         return { delta, gamma, theta, vega, rho };
       }
 
+
+
+
       function setupBlackScholesCalculator() {
         const callOption = document.getElementById("callOption");
         const putOption = document.getElementById("putOption");
@@ -1769,8 +3838,14 @@
                       `;
 
           resultsDiv.classList.remove("hidden");
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('black-scholes');
+          }, 100);
         });
       }
+
+
 
       // --- WACC Calculator ---
       function renderWACCCalculator() {
@@ -1822,6 +3897,7 @@
                       </div>
                   `;
       }
+
 
       function setupWACCCalculator() {
         const calculateBtn = document.getElementById("calculateWACC");
@@ -1895,8 +3971,15 @@
                       `;
 
           resultsDiv.classList.remove("hidden");
+          
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('wacc');
+          }, 100);
         });
-      }
+      }      
+
+
       // --- DCF Valuation Calculator ---
       function renderDCFCalculator() {
         return `
@@ -1993,6 +4076,7 @@
                 </div>
               `;
       }
+
 
       function setupDCFCalculator() {
         const terminalGrowthBtn = document.getElementById("terminalGrowth");
@@ -2284,10 +4368,15 @@
 
           document.getElementById("fcfTable").innerHTML = tableHTML;
           breakdownDiv.classList.remove("hidden");
+
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('dcf');
+          }, 100);
         });
       }
 
-      // ==================== ENHANCED LBO MODEL CODE ====================
+      // ==================== LBO MODEL CODE ====================
 
       function renderLBOCalculator() {
         return `
@@ -2529,6 +4618,7 @@
               `;
       }
 
+
       function setupLBOCalculator() {
         // Toggle recap inputs
         document
@@ -2544,8 +4634,16 @@
           .getElementById("calculateLBO")
           .addEventListener("click", () => {
             runLBOModel();
+
+            // Save state after calculation
+            setTimeout(() => {
+              StorageManager.saveCalculatorState('lbo');
+            }, 100);
           });
       }
+
+
+
 
       function runLBOModel() {
         // Get all inputs
@@ -3044,32 +5142,100 @@
       }
 
       function calculateIRR(cashFlows) {
-        let irr = 0.15; // Initial guess
-        const maxIterations = 1000;
-        const tolerance = 1e-7;
-
-        for (let iter = 0; iter < maxIterations; iter++) {
-          let npv = 0;
-          let derivative = 0;
-
-          for (let t = 0; t < cashFlows.length; t++) {
-            npv += cashFlows[t] / Math.pow(1 + irr, t);
-            derivative -= (t * cashFlows[t]) / Math.pow(1 + irr, t + 1);
+          const maxIterations = 1000;
+          const tolerance = 1e-7;
+          
+          // 1. Check an toàn cơ bản
+          if (!cashFlows || cashFlows.length === 0) return { success: false, message: "Không có dữ liệu dòng tiền." };
+          const hasPositive = cashFlows.some(cf => cf > 0);
+          const hasNegative = cashFlows.some(cf => cf < 0);
+          if (!hasPositive || !hasNegative) {
+              return { success: false, message: "Dòng tiền phải có cả âm và dương." };
           }
 
-          if (Math.abs(derivative) < 1e-10) break;
+          // 2. Cảnh báo Multiple IRRs (Dựa trên số lần đổi dấu)
+          let signChanges = 0;
+          let previousSign = 0; 
+          for (let cf of cashFlows) {
+              if (cf !== 0) {
+                  const currentSign = cf > 0 ? 1 : -1;
+                  if (previousSign !== 0 && currentSign !== previousSign) signChanges++;
+                  previousSign = currentSign;
+              }
+          }
+          let warning = signChanges > 1 
+              ? "Cảnh báo: Dòng tiền đổi dấu nhiều lần (>1). Có thể tồn tại nhiều kết quả IRR khác nhau." 
+              : null;
 
-          const delta = npv / derivative;
-          irr -= delta;
+          // 3. CHIẾN THUẬT GRID SEARCH (Thử nhiều guess khác nhau)
+          // Thay vì đoán bừa, ta thử lần lượt các mốc này. Cái nào ra nghiệm trước thì lấy.
+          // Ưu tiên: 0.1 (10%) -> -0.1 (-10%) -> 0.5 (50%) -> -0.5 (-50%) -> ...
+          const initialGuesses = [0.1, -0.1, 0.5, -0.5, 0.9, 0.0, 1.5];
 
-          if (irr < -0.99) irr = -0.99;
-          if (irr > 10) irr = 10;
+          for (let guess of initialGuesses) {
+              let irr = guess;
+              let converged = false;
 
-          if (Math.abs(delta) < tolerance) break;
-        }
+              for (let iter = 0; iter < maxIterations; iter++) {
+                  let npv = 0;
+                  let derivative = 0;
 
-        return irr;
+                  for (let t = 0; t < cashFlows.length; t++) {
+                      const discountFactor = Math.pow(1 + irr, t);
+                      npv += cashFlows[t] / discountFactor;
+
+                      if (t > 0) {
+                          derivative -= (t * cashFlows[t]) / (discountFactor * (1 + irr));
+                      }
+                  }
+
+                  // Nếu đạo hàm quá nhỏ (phẳng), thuật toán bị kẹt -> Break để thử guess tiếp theo
+                  if (Math.abs(derivative) < 1e-12) {
+                      break; 
+                  }
+
+                  const delta = npv / derivative;
+                  irr -= delta;
+
+                  // --- XỬ LÝ BIÊN (CLAMPING) ---
+                  // Nếu irr chạm vào vùng nguy hiểm, ta không ép nó nữa mà coi là guess này thất bại.
+                  // Để tránh việc Newton-Raphson bị hút vào nghiệm âm vô lý hoặc dương vô cực.
+                  if (irr <= -1 || Math.abs(irr) > 100) {
+                      break; // Guess này hỏng, thoát vòng lặp để thử guess khác
+                  }
+
+                  // Nếu delta cực nhỏ -> Đã tìm ra nghiệm!
+                  if (Math.abs(delta) < tolerance) {
+                      converged = true;
+                      break;
+                  }
+              }
+
+              // Nếu guess này tìm ra nghiệm thành công, trả về ngay
+              if (converged) {
+                  return {
+                      success: true,
+                      irr: irr,
+                      npv: calculateNPV(cashFlows, irr), // Hàm phụ tính lại NPV để kiểm chứng
+                      warning: warning,
+                      iterations: maxIterations // (Thông tin thêm nếu cần debug)
+                  };
+              }
+          }
+
+          // Nếu thử hết danh sách guess mà vẫn không ra
+          return {
+              success: false,
+              message: "Không tìm thấy IRR hội tụ sau khi thử nhiều phương án.",
+              warning: warning
+          };
       }
+
+      // Hàm phụ trợ để tính NPV kiểm chứng (Clean code)
+      function calculateNPV(cashFlows, rate) {
+          return cashFlows.reduce((acc, val, t) => acc + val / Math.pow(1 + rate, t), 0);
+      }
+
 
       function displayScenarioComparison(scenarios) {
         const resultsDiv = document.getElementById("lboScenarioResults");
@@ -4872,14 +7038,20 @@
           `;
 
           resultsDiv.classList.remove("hidden");
-
+          
           // Add event listener for detailed view
           document
             .getElementById("showDetailedBtn")
             .addEventListener("click", () => {
               displayDetailedBreakdown(avalanche, snowball);
             });
-        }
+
+          // Save state after calculation
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('ccpo');
+          }, 100);
+        } 
+
 
         function displayDetailedBreakdown(avalanche, snowball) {
           const detailedDiv = document.getElementById("detailedBreakdown");
@@ -5276,231 +7448,269 @@
       // --- TIME VS MONEY TRADE-OFF CALCULATOR ---
       function renderTimeMoneyCalculator() {
         return `
-                <h2 class="calculator-title">⏰💰 Time vs Money Trade-Off Calculator</h2>
+          <h2 class="calculator-title">⏰💰 Time vs Money Trade-Off Calculator</h2>
 
-                <div class="explanation-box">
-                  <div class="explanation-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Stop Wasting Your Most Valuable Asset: TIME
-                  </div>
-                  <p class="explanation-text">
-                    <strong>Every minute has a dollar value.</strong> This calculator helps you make rational decisions by converting time into money.
-                    Whether it's a boring movie, a DIY project, or a "good deal" that wastes hours - we'll tell you the TRUE cost.
-                  </p>
-                  <div class="explanation-note">
-                    <strong>Cognitive Bias Alert:</strong> Sunk Cost Fallacy - Your brain tricks you into continuing bad investments
-                    because "you've already invested." This calculator fights that bias with cold, hard math.
-                  </div>
+          <div class="explanation-box">
+            <div class="explanation-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Stop Wasting Your Most Valuable Asset: TIME
+            </div>
+            <p class="explanation-text">
+              <strong>Your time has different values in different contexts.</strong> This calculator helps you make rational decisions
+              by comparing activities based on WHEN and HOW you can use your time.
+            </p>
+            <div class="explanation-note">
+              <strong>Key Insight:</strong> Your "work hour" value is NOT always applicable. Weekend time, evening time, 
+              and leisure time have different opportunity costs. We'll calculate the TRUE trade-off for each scenario.
+            </div>
+          </div>
+
+          <!-- Your Time Profile -->
+          <div style="background: linear-gradient(135deg, var(--indigo-50), var(--blue-50));
+                      padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 2rem; border: 2px solid var(--indigo-200);">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--indigo-900); margin-bottom: 1rem;">
+              💼 Your Time Profile
+            </h3>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">💰 Work Hourly Rate ($/hr)</label>
+                <input type="number" id="workHourlyRate" class="form-input" placeholder="30" step="1">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                  What you actually earn per hour at work
                 </div>
+              </div>
 
-                <!-- Your Financial Profile -->
-                <div style="background: linear-gradient(135deg, var(--indigo-50), var(--blue-50));
-                            padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 2rem; border: 2px solid var(--indigo-200);">
-                  <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--indigo-900); margin-bottom: 1rem;">
-                    💼 Your Financial Profile
-                  </h3>
+              <div class="form-group">
+                <label class="form-label">⏰ Can You Work Extra Hours?</label>
+                <select id="canWorkExtra" class="form-select">
+                  <option value="yes">Yes - I can freelance/overtime</option>
+                  <option value="limited">Limited - Sometimes possible</option>
+                  <option value="no">No - Fixed salary/hours</option>
+                </select>
+              </div>
 
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label class="form-label">Annual Income (after-tax) ($)</label>
-                      <input type="number" id="annualIncome" class="form-input" placeholder="60000" step="1000">
-                      <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
-                        Or enter hourly rate below
-                      </div>
-                    </div>
-
-                    <div class="form-group">
-                      <label class="form-label">OR Hourly Rate (after-tax) ($/hr)</label>
-                      <input type="number" id="hourlyRate" class="form-input" placeholder="30" step="1">
-                    </div>
-
-                    <div class="form-group">
-                      <label class="form-label">Weekly Work Hours</label>
-                      <input type="number" id="weeklyHours" class="form-input" value="40" step="1">
-                    </div>
-                  </div>
-
-                  <div id="profileCalculated" class="hidden" style="margin-top: 1rem; padding: 1rem; background: var(--white);
-                                                                    border-radius: 0.5rem; border-left: 4px solid var(--indigo-500);">
-                    <div style="font-size: 0.875rem;">
-                      <strong>Your Time Value:</strong> <span id="calculatedRate"></span>/hour
-                      <br>
-                      <strong>Per Minute:</strong> <span id="perMinute"></span>
-                      <br>
-                      <strong>Per Day (8hr):</strong> <span id="perDay"></span>
-                    </div>
-                  </div>
+              <div class="form-group">
+                <label class="form-label">💵 Freelance/Side Hustle Rate ($/hr)</label>
+                <input type="number" id="freelanceRate" class="form-input" placeholder="50" step="5">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                  Leave blank if not applicable
                 </div>
+              </div>
+            </div>
 
-                <!-- Scenario Selector -->
-                <div style="background: var(--slate-50); padding: 1rem; border-radius: 0.75rem; margin-bottom: 2rem;">
-                  <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--slate-700); margin-bottom: 1rem;">
-                    🎯 Choose Your Scenario
-                  </h3>
+            <div id="profileSummary" class="hidden" style="margin-top: 1rem; padding: 1rem; background: var(--white);
+                                                            border-radius: 0.5rem; border-left: 4px solid var(--indigo-500);">
+              <!-- Will be populated by JS -->
+            </div>
+          </div>
 
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
-                    <button class="scenario-btn active" data-scenario="opportunity">
-                      💸 Opportunity Cost<br>
-                      <span style="font-size: 0.75rem; font-weight: normal;">Is saving $X worth Y hours?</span>
-                    </button>
-                    <button class="scenario-btn" data-scenario="sunk">
-                      🎬 Sunk Cost Helper<br>
-                      <span style="font-size: 0.75rem; font-weight: normal;">Should I quit or continue?</span>
-                    </button>
-                    <button class="scenario-btn" data-scenario="diy">
-                      🔧 DIY vs Pay<br>
-                      <span style="font-size: 0.75rem; font-weight: normal;">Do it myself or hire?</span>
-                    </button>
-                    <button class="scenario-btn" data-scenario="activity">
-                      📊 Activity ROI<br>
-                      <span style="font-size: 0.75rem; font-weight: normal;">Compare multiple options</span>
-                    </button>
-                    <button class="scenario-btn" data-scenario="breakeven">
-                      ⚖️ Break-Even Table<br>
-                      <span style="font-size: 0.75rem; font-weight: normal;">What's worth your time?</span>
-                    </button>
-                  </div>
-                </div>
+          <!-- Scenario Selector -->
+          <div style="background: var(--slate-50); padding: 1rem; border-radius: 0.75rem; margin-bottom: 2rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--slate-700); margin-bottom: 1rem;">
+              🎯 Choose Your Scenario
+            </h3>
 
-                <!-- Scenario Content (dynamically loaded) -->
-                <div id="scenarioContent">
-                  <!-- Will be populated by JS -->
-                </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+              <button class="scenario-btn active" data-scenario="opportunity">
+                💸 Opportunity Cost<br>
+                <span style="font-size: 0.75rem; font-weight: normal;">Is this deal worth my time?</span>
+              </button>
+              <button class="scenario-btn" data-scenario="sunk">
+                🎬 Sunk Cost Helper<br>
+                <span style="font-size: 0.75rem; font-weight: normal;">Should I quit or continue?</span>
+              </button>
+              <button class="scenario-btn" data-scenario="diy">
+                🔧 DIY vs Hire<br>
+                <span style="font-size: 0.75rem; font-weight: normal;">Do it myself or pay?</span>
+              </button>
+              <button class="scenario-btn" data-scenario="activity">
+                📊 Activity Comparison<br>
+                <span style="font-size: 0.75rem; font-weight: normal;">Compare multiple options</span>
+              </button>
+            </div>
+          </div>
 
-                <!-- Results Section -->
-                <div id="timeMoneyResults" class="results-container hidden"
-                    style="border-color: var(--indigo-100); background-color: var(--indigo-50); margin-top: 2rem;">
-                  <!-- Results will be populated here -->
-                </div>
-              `;
+          <!-- Scenario Content -->
+          <div id="scenarioContent"></div>
+
+          <!-- Results -->
+          <div id="timeMoneyResults" class="results-container hidden"
+              style="border-color: var(--indigo-100); background-color: var(--indigo-50); margin-top: 2rem;">
+          </div>
+        `;
       }
+
 
       function setupTimeMoneyCalculator() {
         let activeScenario = "opportunity";
-        let hourlyRateValue = 0;
+        let workRate = 0;
+        let freelanceRate = 0;
+        let canWorkExtra = "no";
 
-        // Calculate hourly rate from income or vice versa
-        const annualIncomeInput = document.getElementById("annualIncome");
-        const hourlyRateInput = document.getElementById("hourlyRate");
-        const weeklyHoursInput = document.getElementById("weeklyHours");
-        const profileDiv = document.getElementById("profileCalculated");
+        const workRateInput = document.getElementById("workHourlyRate");
+        const freelanceRateInput = document.getElementById("freelanceRate");
+        const canWorkExtraSelect = document.getElementById("canWorkExtra");
+        const profileSummary = document.getElementById("profileSummary");
 
         function updateProfile() {
-          const weeklyHours = parseFloat(weeklyHoursInput.value) || 40;
+          workRate = parseFloat(workRateInput.value) || 0;
+          freelanceRate = parseFloat(freelanceRateInput.value) || 0;
+          canWorkExtra = canWorkExtraSelect.value;
 
-          if (annualIncomeInput.value) {
-            const annualIncome = parseFloat(annualIncomeInput.value);
-            hourlyRateValue = annualIncome / (weeklyHours * 52);
-            hourlyRateInput.value = hourlyRateValue.toFixed(2);
-          } else if (hourlyRateInput.value) {
-            hourlyRateValue = parseFloat(hourlyRateInput.value);
-            annualIncomeInput.value = (
-              hourlyRateValue *
-              weeklyHours *
-              52
-            ).toFixed(0);
-          }
+          if (workRate > 0) {
+            let opportunityCostText = "";
 
-          if (hourlyRateValue > 0) {
-            document.getElementById("calculatedRate").textContent =
-              "$" + hourlyRateValue.toFixed(2);
-            document.getElementById("perMinute").textContent =
-              "$" + (hourlyRateValue / 60).toFixed(2);
-            document.getElementById("perDay").textContent =
-              "$" + (hourlyRateValue * 8).toFixed(2);
-            profileDiv.classList.remove("hidden");
+            if (canWorkExtra === "yes" && freelanceRate > 0) {
+              opportunityCostText = `<strong>Your opportunity cost:</strong> $${freelanceRate.toFixed(
+                2
+              )}/hr (freelance rate)`;
+            } else if (canWorkExtra === "yes") {
+              opportunityCostText = `<strong>Your opportunity cost:</strong> $${workRate.toFixed(
+                2
+              )}/hr (work rate - you can work extra)`;
+            } else if (canWorkExtra === "limited") {
+              opportunityCostText = `<strong>Your opportunity cost:</strong> ~$${(
+                workRate * 0.5
+              ).toFixed(2)}/hr (limited extra work possible)`;
+            } else {
+              opportunityCostText = `<strong>Your opportunity cost:</strong> $0/hr for free time (fixed hours - can't work more)`;
+            }
+
+            profileSummary.innerHTML = `
+              <div style="font-size: 0.875rem; line-height: 1.6;">
+                <strong>Work Rate:</strong> $${workRate.toFixed(2)}/hr<br>
+                ${
+                  freelanceRate > 0
+                    ? `<strong>Freelance Rate:</strong> $${freelanceRate.toFixed(
+                        2
+                      )}/hr<br>`
+                    : ""
+                }
+                ${opportunityCostText}<br><br>
+                <div style="background: var(--blue-50); padding: 0.75rem; border-radius: 0.375rem; margin-top: 0.5rem;">
+                  <strong>💡 Important Context:</strong><br>
+                  ${
+                    canWorkExtra === "no"
+                      ? '• Your free time has NO monetary opportunity cost (you can\'t work more anyway)<br>• Focus on ENJOYMENT and LONG-TERM VALUE instead<br>• "Saving money" on free time is usually worth it'
+                      : canWorkExtra === "limited"
+                      ? "• You can sometimes work extra, so time has PARTIAL monetary value<br>• Weekend/evening activities: compare against 50% of work rate<br>• High-value activities might be worth your limited extra work time"
+                      : '• You can freely trade time for money (freelance/overtime)<br>• Any activity should beat your freelance rate to be "worth it"<br>• Time spent on low-ROI activities = money left on the table'
+                  }
+                </div>
+              </div>
+            `;
+            profileSummary.classList.remove("hidden");
           }
         }
 
-        annualIncomeInput.addEventListener("input", updateProfile);
-        hourlyRateInput.addEventListener("input", updateProfile);
-        weeklyHoursInput.addEventListener("input", updateProfile);
+        workRateInput.addEventListener("change", updateProfile);
+        freelanceRateInput.addEventListener("change", updateProfile);
+        canWorkExtraSelect.addEventListener("change", updateProfile);
 
-        // Scenario switching
         const scenarioBtns = document.querySelectorAll(".scenario-btn");
         scenarioBtns.forEach((btn) => {
           btn.addEventListener("click", () => {
             scenarioBtns.forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
             activeScenario = btn.dataset.scenario;
-            loadScenario(activeScenario, hourlyRateValue);
+            loadScenario(activeScenario, {
+              workRate,
+              freelanceRate,
+              canWorkExtra,
+            });
           });
         });
 
-        // Load initial scenario
-        loadScenario("opportunity", hourlyRateValue);
+        loadScenario("opportunity", { workRate, freelanceRate, canWorkExtra });
 
-        function loadScenario(scenario, rate) {
+        function loadScenario(scenario, rates) {
           const content = document.getElementById("scenarioContent");
 
           switch (scenario) {
             case "opportunity":
-              content.innerHTML = renderOpportunityCost();
-              setupOpportunityCost(rate);
+              content.innerHTML = renderOpportunityCostNew();
+              setupOpportunityCostNew(rates);
               break;
             case "sunk":
               content.innerHTML = renderSunkCost();
-              setupSunkCost(rate);
+              setupSunkCost(rates.workRate);
               break;
             case "diy":
               content.innerHTML = renderDIYvsPay();
-              setupDIYvsPay(rate);
+              setupDIYvsPay(rates.workRate);
               break;
             case "activity":
               content.innerHTML = renderActivityROI();
-              setupActivityROI(rate);
-              break;
-            case "breakeven":
-              content.innerHTML = renderBreakEven();
-              setupBreakEven(rate);
+              setupActivityROI(rates.workRate);
               break;
           }
+
+          // Save state after loading scenario
+          setTimeout(() => {
+            StorageManager.saveCalculatorState('time-money');
+          }, 100);
         }
       }
 
-      function renderOpportunityCost() {
+      function renderOpportunityCostNew() {
         return `
-                <div style="background: var(--white); padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--slate-200);">
-                  <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--slate-800); margin-bottom: 1rem;">
-                    💸 Opportunity Cost Analyzer
-                  </h3>
-                  <p style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 1.5rem;">
-                    "Is this 'deal' actually costing me money?"
-                  </p>
+          <div style="background: var(--white); padding: 1.5rem; border-radius: 0.75rem; border: 2px solid var(--slate-200);">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--slate-800); margin-bottom: 1rem;">
+              💸 Smart Opportunity Cost Calculator
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--slate-600); margin-bottom: 1.5rem;">
+              "Is this deal actually saving me money, or am I fooling myself?"
+            </p>
 
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label class="form-label">⏰ Time You'll Spend (minutes)</label>
-                      <input type="number" id="oppTimeSpent" class="form-input" placeholder="30" step="1">
-                      <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
-                        Driving to outlet mall, clipping coupons, etc.
-                      </div>
-                    </div>
-
-                    <div class="form-group">
-                      <label class="form-label">💰 Money You'll Save ($)</label>
-                      <input type="number" id="oppMoneySaved" class="form-input" placeholder="10" step="1">
-                      <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
-                        Discount, sale price difference
-                      </div>
-                    </div>
-                  </div>
-
-                  <button class="btn btn-primary" id="calculateOpp">
-                    🧮 Calculate True Cost
-                  </button>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">⏰ Time You'll Spend (hours)</label>
+                <input type="number" id="oppTimeSpent" class="form-input" placeholder="1" step="0.25">
+                <div style="font-size: 0.75rem; color: var(--slate-600); margin-top: 0.25rem;">
+                  Total time including travel, waiting, etc.
                 </div>
-              `;
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">💰 Money You'll Save ($)</label>
+                <input type="number" id="oppMoneySaved" class="form-input" placeholder="20" step="1">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">📅 When Will You Do This?</label>
+                <select id="oppTiming" class="form-select">
+                  <option value="work">During Work Hours</option>
+                  <option value="evening">Evening (after work)</option>
+                  <option value="weekend">Weekend</option>
+                  <option value="flexible">Flexible - anytime</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">🎯 Could You Work Instead?</label>
+                <select id="oppCanWork" class="form-select">
+                  <option value="yes">Yes - I could earn money in this time</option>
+                  <option value="no">No - This is free/leisure time</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" id="calculateOppNew">
+              🧮 Calculate TRUE Cost
+            </button>
+          </div>
+        `;
       }
 
-      function setupOpportunityCost(hourlyRate) {
+      function setupOpportunityCostNew(rates) {
         document
-          .getElementById("calculateOpp")
+          .getElementById("calculateOppNew")
           .addEventListener("click", () => {
-            if (hourlyRate === 0) {
-              alert("Please set your hourly rate first!");
+            if (rates.workRate === 0) {
+              alert("Please set your work hourly rate first!");
               return;
             }
 
@@ -5510,157 +7720,225 @@
             const moneySaved = parseFloat(
               document.getElementById("oppMoneySaved").value
             );
+            const timing = document.getElementById("oppTiming").value;
+            const canWork = document.getElementById("oppCanWork").value;
 
-            if (isNaN(timeSpent) || isNaN(moneySaved)) {
-              alert("Please fill in all fields");
+            if (isNaN(timeSpent) || isNaN(moneySaved) || timeSpent <= 0) {
+              alert("Please enter valid time and money values");
               return;
             }
 
-            const timeValue = hourlyRate * (timeSpent / 60);
-            const netGain = moneySaved - timeValue;
-            const roi = (netGain / timeValue) * 100;
+            let opportunityCost = 0;
+            let reasoning = "";
+            let context = "";
 
-            const resultsDiv = document.getElementById("timeMoneyResults");
+            if (canWork === "yes") {
+              if (rates.canWorkExtra === "yes" && rates.freelanceRate > 0) {
+                opportunityCost = rates.freelanceRate * timeSpent;
+                reasoning = `You could earn $${rates.freelanceRate.toFixed(
+                  2
+                )}/hr freelancing`;
+                context = "high";
+              } else if (rates.canWorkExtra === "yes") {
+                opportunityCost = rates.workRate * timeSpent;
+                reasoning = `You could work overtime at $${rates.workRate.toFixed(
+                  2
+                )}/hr`;
+                context = "high";
+              } else if (timing === "work") {
+                opportunityCost = rates.workRate * timeSpent;
+                reasoning = `This takes away from paid work time`;
+                context = "high";
+              } else {
+                opportunityCost = rates.workRate * 0.3 * timeSpent;
+                reasoning = `Limited opportunity to work extra (30% of work rate)`;
+                context = "medium";
+              }
+            } else {
+              if (timing === "work") {
+                opportunityCost = rates.workRate * timeSpent;
+                reasoning = `This happens during work hours`;
+                context = "high";
+              } else {
+                opportunityCost = 0;
+                reasoning = `This is free time you can't monetize anyway`;
+                context = "low";
+              }
+            }
+
+            const netGain = moneySaved - opportunityCost;
+            const effectiveRate = timeSpent > 0 ? moneySaved / timeSpent : 0;
             const isWorthIt = netGain > 0;
 
-            resultsDiv.innerHTML = `
-                  <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; color: var(--slate-800);">
-                    ${
-                      isWorthIt
-                        ? "✅ GOOD DEAL - Worth Your Time!"
-                        : "❌ BAD DEAL - You're Losing Money!"
-                    }
-                  </h3>
-
-                  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
-                    <div style="background: var(--blue-100); padding: 1rem; border-radius: 0.5rem; text-align: center;">
-                      <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Time Value</div>
-                      <div style="font-weight: 700; font-size: 1.1rem; color: var(--blue-700);">
-                        $${timeValue.toFixed(2)}
-                      </div>
-                      <div style="font-size: 0.75rem; margin-top: 0.25rem; color: var(--slate-600);">
-                        ${timeSpent} min × $${hourlyRate.toFixed(2)}/hr
-                      </div>
-                    </div>
-
-                    <div style="background: var(--green-100); padding: 1rem; border-radius: 0.5rem; text-align: center;">
-                      <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Money Saved</div>
-                      <div style="font-weight: 700; font-size: 1.1rem; color: var(--green-700);">
-                        $${moneySaved.toFixed(2)}
-                      </div>
-                    </div>
-
-                    <div style="background: ${
-                      isWorthIt ? "var(--green-100)" : "var(--red-100)"
-                    }; padding: 1rem; border-radius: 0.5rem; text-align: center;">
-                      <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Net Gain/Loss</div>
-                      <div style="font-weight: 700; font-size: 1.1rem; color: ${
-                        isWorthIt ? "var(--green-700)" : "var(--red-700)"
-                      };">
-                        ${netGain >= 0 ? "+" : ""}$${netGain.toFixed(2)}
-                      </div>
-                    </div>
-
-                    <div style="background: var(--purple-100); padding: 1rem; border-radius: 0.5rem; text-align: center;">
-                      <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">ROI</div>
-                      <div style="font-weight: 700; font-size: 1.1rem; color: var(--purple-700);">
-                        ${roi.toFixed(0)}%
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style="background: ${
-                    isWorthIt
-                      ? "linear-gradient(135deg, var(--green-50), var(--emerald-50))"
-                      : "linear-gradient(135deg, var(--red-50), var(--orange-50))"
-                  };
-                              padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid ${
-                                isWorthIt
-                                  ? "var(--green-600)"
-                                  : "var(--red-600)"
-                              };">
-                    <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: ${
-                      isWorthIt ? "var(--green-900)" : "var(--red-900)"
-                    };">
-                      💡 Financial Insight:
-                    </h4>
-                    ${
-                      isWorthIt
-                        ? `
-                      <p style="font-size: 0.875rem; line-height: 1.6; margin-bottom: 1rem;">
-                        <strong>Great call!</strong> You're earning $${(
-                          moneySaved /
-                          (timeSpent / 60)
-                        ).toFixed(2)}/hour on this activity,
-                        which is <strong>${(
-                          ((moneySaved / (timeSpent / 60) - hourlyRate) /
-                            hourlyRate) *
-                          100
-                        ).toFixed(0)}% better</strong> than your baseline rate.
-                      </p>
-                      <p style="font-size: 0.875rem; line-height: 1.6;">
-                        Activities worth your time should save at least <strong>$${(
-                          hourlyRate *
-                          (timeSpent / 60)
-                        ).toFixed(
-                          2
-                        )}</strong> for ${timeSpent} minutes of effort.
-                        This one saves $${moneySaved.toFixed(2)}. ✅
-                      </p>
-                    `
-                        : `
-                      <p style="font-size: 0.875rem; line-height: 1.6; margin-bottom: 1rem;">
-                        <strong>This is a trap!</strong> You're effectively paying yourself $${(
-                          moneySaved /
-                          (timeSpent / 60)
-                        ).toFixed(2)}/hour,
-                        which is <strong>${(
-                          ((hourlyRate - moneySaved / (timeSpent / 60)) /
-                            hourlyRate) *
-                          100
-                        ).toFixed(0)}% worse</strong> than your normal rate.
-                      </p>
-                      <p style="font-size: 0.875rem; line-height: 1.6; margin-bottom: 1rem;">
-                        <strong>Better alternatives:</strong>
-                        <br>• Work an extra ${timeSpent} minutes → Earn $${timeValue.toFixed(
-                            2
-                          )}
-                        <br>• Use that time to learn a skill (future value)
-                        <br>• Rest/relax (mental health value)
-                      </p>
-                      <p style="font-size: 0.875rem; line-height: 1.6;">
-                        <strong>Rule of thumb:</strong> For ${timeSpent} minutes, it's only worth it if you save at least $${(
-                            hourlyRate *
-                            (timeSpent / 60)
-                          ).toFixed(2)}.
-                        You're saving $${moneySaved.toFixed(2)}. ❌
-                      </p>
-                    `
-                    }
-                  </div>
-
-                  ${
-                    !isWorthIt
-                      ? `
-                    <div style="margin-top: 1.5rem; padding: 1rem; background: var(--orange-50); border-radius: 0.5rem;
-                                border: 1px solid var(--orange-300);">
-                      <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--orange-900); margin-bottom: 0.75rem;">
-                        ⚠️ Common Traps People Fall For:
-                      </h4>
-                      <ul style="margin: 0; padding-left: 1.5rem; font-size: 0.875rem; line-height: 1.8; color: var(--slate-700);">
-                        <li>Driving 20 min to save $3 on gas → <strong>Lose $7</strong></li>
-                        <li>Waiting in Black Friday line (2 hrs) for $50 off → <strong>Lose $10</strong> (if you earn $30/hr)</li>
-                        <li>Clipping coupons (30 min) to save $5 → <strong>Lose $10</strong></li>
-                        <li>DIY car wash (20 min, save $8) → <strong>Lose $2</strong></li>
-                      </ul>
-                    </div>
-                  `
-                      : ""
-                  }
-                `;
-
-            resultsDiv.classList.remove("hidden");
+            displayOpportunityResults({
+              timeSpent,
+              moneySaved,
+              opportunityCost,
+              netGain,
+              effectiveRate,
+              isWorthIt,
+              reasoning,
+              context,
+              timing,
+              canWork,
+              rates,
+            });
           });
+      }
+
+      function displayOpportunityResults(data) {
+        const resultsDiv = document.getElementById("timeMoneyResults");
+
+        const contextColors = {
+          high: {
+            bg: "var(--red-50)",
+            border: "var(--red-500)",
+            text: "var(--red-800)",
+          },
+          medium: {
+            bg: "var(--orange-50)",
+            border: "var(--orange-500)",
+            text: "var(--orange-800)",
+          },
+          low: {
+            bg: "var(--blue-50)",
+            border: "var(--blue-500)",
+            text: "var(--blue-800)",
+          },
+        };
+
+        const color = contextColors[data.context];
+
+        resultsDiv.innerHTML = `
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; color: var(--slate-800);">
+            ${
+              data.isWorthIt
+                ? "✅ GOOD DEAL - Worth Your Time!"
+                : "❌ BAD DEAL - Not Worth It!"
+            }
+          </h3>
+
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
+            <div style="background: var(--blue-100); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Time Spent</div>
+              <div style="font-weight: 700; font-size: 1.1rem; color: var(--blue-700);">
+                ${data.timeSpent}h
+              </div>
+            </div>
+
+            <div style="background: var(--green-100); padding: 1rem; border-radius: 0.5rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Money Saved</div>
+              <div style="font-weight: 700; font-size: 1.1rem; color: var(--green-700);">
+                $${data.moneySaved.toFixed(2)}
+              </div>
+            </div>
+
+            <div style="background: ${
+              color.bg
+            }; padding: 1rem; border-radius: 0.5rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Opportunity Cost</div>
+              <div style="font-weight: 700; font-size: 1.1rem; color: ${
+                color.text
+              };">
+                $${data.opportunityCost.toFixed(2)}
+              </div>
+              <div style="font-size: 0.7rem; margin-top: 0.25rem; color: ${
+                color.text
+              };">
+                ${data.reasoning}
+              </div>
+            </div>
+
+            <div style="background: ${
+              data.isWorthIt ? "var(--green-100)" : "var(--red-100)"
+            }; padding: 1rem; border-radius: 0.5rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: var(--slate-600); margin-bottom: 0.5rem;">Net Gain/Loss</div>
+              <div style="font-weight: 700; font-size: 1.1rem; color: ${
+                data.isWorthIt ? "var(--green-700)" : "var(--red-700)"
+              };">
+                ${data.netGain >= 0 ? "+" : ""}$${data.netGain.toFixed(2)}
+              </div>
+            </div>
+          </div>
+
+          <div style="background: linear-gradient(135deg, ${
+            color.bg
+          }, var(--indigo-50));
+                      padding: 1.5rem; border-radius: 0.75rem; border-left: 4px solid ${
+                        color.border
+                      };">
+            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: ${
+              color.text
+            };">
+              💡 Analysis:
+            </h4>
+            <div style="font-size: 0.875rem; line-height: 1.7; color: var(--slate-700);">
+              <p style="margin-bottom: 1rem;">
+                <strong>Your effective rate for this activity:</strong> $${data.effectiveRate.toFixed(
+                  2
+                )}/hr
+              </p>
+              
+              <p style="margin-bottom: 1rem;">
+                <strong>Context matters:</strong> ${data.reasoning}
+                ${
+                  data.context === "low"
+                    ? " Since you can't work during this time anyway, the opportunity cost is effectively $0. Any money saved is pure gain!"
+                    : data.context === "medium"
+                    ? " You have limited ability to work extra, so we use a conservative 30% of your work rate as opportunity cost."
+                    : " You could directly earn money during this time, so opportunity cost equals your earning potential."
+                }
+              </p>
+
+              ${
+                data.isWorthIt
+                  ? `
+                  <p style="background: var(--green-50); padding: 1rem; border-radius: 0.5rem; border-left: 3px solid var(--green-600);">
+                    <strong style="color: var(--green-800);">✅ This is worth it!</strong><br>
+                    You're gaining $${data.netGain.toFixed(2)} net. ${
+                      data.context === "low"
+                        ? "Perfect use of free time that can't be monetized anyway."
+                        : `You're earning $${data.effectiveRate.toFixed(
+                            2
+                          )}/hr, which beats your opportunity cost.`
+                    }
+                  </p>
+                `
+                  : `
+                  <p style="background: var(--red-50); padding: 1rem; border-radius: 0.5rem; border-left: 3px solid var(--red-600);">
+                    <strong style="color: var(--red-800);">❌ Not worth your time!</strong><br>
+                    You're losing $${Math.abs(data.netGain).toFixed(2)} net. ${
+                      data.canWork === "yes"
+                        ? `You could earn $${data.opportunityCost.toFixed(
+                            2
+                          )} working instead.`
+                        : "Your time during work hours is too valuable for this deal."
+                    }
+                  </p>
+                `
+              }
+
+              <div style="margin-top: 1rem; padding: 1rem; background: var(--slate-50); border-radius: 0.5rem;">
+                <strong>🎯 Rule of Thumb:</strong><br>
+                ${
+                  data.context === "low"
+                    ? "• Free time: Almost any money saved is good<br>• Focus on enjoyment and learning value too"
+                    : data.context === "medium"
+                    ? "• Limited work ability: Save at least $" +
+                      (data.rates.workRate * 0.3 * data.timeSpent).toFixed(2) +
+                      " for " +
+                      data.timeSpent +
+                      "h<br>• Consider if it's worth giving up leisure time"
+                    : "• Can work freely: Must save more than $" +
+                      data.opportunityCost.toFixed(2) +
+                      "<br>• Otherwise, work and pay full price instead"
+                }
+              </div>
+            </div>
+          </div>
+        `;
+
+        resultsDiv.classList.remove("hidden");
       }
 
       function renderSunkCost() {
@@ -7453,9 +9731,12 @@
                         `;
         }
       }
-
-      // --- Initialize the app when the page loads ---
-      document.addEventListener("DOMContentLoaded", initApp);
     </script>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="saveToast">
+      <span id="toastMessage">💾 Saved!</span>
+    </div>
+
   </body>
 </html>
