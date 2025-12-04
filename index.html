@@ -2121,28 +2121,45 @@
           });
         });
 
+ 
         // Clear data button
         const clearDataBtn = document.getElementById('clearDataBtn');
         if (clearDataBtn) {
           clearDataBtn.addEventListener('click', () => {
             const confirmed = confirm(
               '⚠️ Are you sure you want to clear all saved data?\n\n' +
-              'This will delete:\n' +
-              '• All saved calculator inputs\n' +
-              '• All saved results\n' +
-              '• Your last session state\n\n' +
-              'This action cannot be undone!'
+              'This action will:\n' +
+              '• Delete all your inputs\n' +
+              '• Clear all calculated results\n\n' +
+              'Note: You will remain on the current tab.'
             );
             
             if (confirmed) {
+              // 1. Capture current location before clearing
+              const currentTier = activeTier;
+              const currentTab = activeTab;
+
+              // 2. Clear all storage
               StorageManager.clearState();
-              // Refresh page to reset everything
+
+              // 3. Restore ONLY the location state
+              const resetState = {
+                activeTier: currentTier,
+                activeTab: currentTab,
+                calculators: {} // Ensure calculator data is empty
+              };
+              localStorage.setItem(StorageManager.STORAGE_KEY, JSON.stringify(resetState));
+
+              // 4. Reload to apply changes
               setTimeout(() => {
                 location.reload();
-              }, 500);
+              }, 100);
             }
           });
         }
+
+
+
         
         // Auto-save when switching tabs (delegated)
         tabsContainer.addEventListener('click', (e) => {
@@ -5950,242 +5967,241 @@
 
 
       // ==================== LBO MODEL ====================
+
       function renderLBOCalculator() {
-              return `
-                      <h2 class="calculator-title">Advanced Leveraged Buyout (LBO) Model</h2>
-                      <div class="explanation-box">
-                        <div class="explanation-title">
-                          Institutional-Grade LBO Model
-                        </div>
-                        <p class="explanation-text">
-                          Advanced LBO model with multi-tranche debt structure, management incentives, dividend recaps,
-                          and 3-scenario analysis. This model reflects real PE deal dynamics including covenants,
-                          cash sweeps, and realistic exit strategies.
-                        </p>
-                      </div>
+        return `
+              <h2 class="calculator-title">Advanced Leveraged Buyout (LBO) Model</h2>
+              <div class="explanation-box">
+                <div class="explanation-title">
+                  Institutional-Grade LBO Model
+                </div>
+                <p class="explanation-text">
+                  Advanced LBO model featuring multi-tranche debt structure (Senior, Mezzanine), management incentives, and 3-scenario analysis (Base, Upside, Downside).
+                </p>
+              </div>
 
-                      <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
-                        📊 Transaction Structure
-                      </h3>
-                      <div class="form-grid">
-                        <div class="form-group">
-                          <label class="form-label">LTM EBITDA ($M)</label>
-                          <input type="number" id="lboEBITDA" class="form-input" value="100" step="0.1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Entry EV/EBITDA Multiple</label>
-                          <input type="number" id="entryMultiple" class="form-input" value="12.0" step="0.1">
-                        </div>
-                        
-                        <div class="form-group">
-                          <label class="form-label">Financing Fees (% of Debt)</label>
-                          <input type="number" id="financingFee" class="form-input" value="2.0" step="0.1">
-                          <small style="color: #666; font-size: 0.8em;">Capitalized on B/S</small>
-                        </div>
+              <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
+                📊 Transaction Structure
+              </h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">LTM EBITDA ($M)</label>
+                  <input type="number" id="lboEBITDA" class="form-input" placeholder="100" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Entry EV/EBITDA Multiple</label>
+                  <input type="number" id="entryMultiple" class="form-input" placeholder="12.0" step="0.1">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Financing Fees (% of Debt)</label>
+                  <input type="number" id="financingFee" class="form-input" placeholder="2.0" step="0.1">
+                  <small style="color: #666; font-size: 0.8em;">Capitalized on B/S</small>
+                </div>
 
-                        <div class="form-group">
-                          <label class="form-label">Advisory Fees (% of EV)</label>
-                          <input type="number" id="transFees" class="form-input" value="2.0" step="0.1">
-                          <small style="color: #666; font-size: 0.8em;">Expensed immediately</small>
-                        </div>
+                <div class="form-group">
+                  <label class="form-label">Advisory Fees (% of EV)</label>
+                  <input type="number" id="transFees" class="form-input" placeholder="2.0" step="0.1">
+                  <small style="color: #666; font-size: 0.8em;">Expensed immediately</small>
+                </div>
 
-                        <div class="form-group">
-                          <label class="form-label">Existing Cash ($M)</label>
-                          <input type="number" id="existingCash" class="form-input" value="0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Existing Debt ($M)</label>
-                          <input type="number" id="existingDebt" class="form-input" value="0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Minimum Cash ($M)</label>
-                          <input type="number" id="minCash" class="form-input" value="25" step="0.1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Hold Period (Years)</label>
-                          <input type="number" id="holdPeriod" class="form-input" value="5" min="3" max="10">
-                        </div>
-                      </div>
+                <div class="form-group">
+                  <label class="form-label">Existing Cash ($M)</label>
+                  <input type="number" id="existingCash" class="form-input" placeholder="0" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Existing Debt ($M)</label>
+                  <input type="number" id="existingDebt" class="form-input" placeholder="0" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Minimum Cash ($M)</label>
+                  <input type="number" id="minCash" class="form-input" placeholder="25" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Hold Period (Years)</label>
+                  <input type="number" id="holdPeriod" class="form-input" placeholder="5" min="3" max="10">
+                </div>
+              </div>
 
-                      <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
-                        💰 Multi-Tranche Debt Structure
-                      </h3>
-                      <div class="form-grid">
-                        <div class="form-group">
-                          <label class="form-label">Revolver (x EBITDA)</label>
-                          <input type="number" id="revolverMultiple" class="form-input" value="0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Revolver Rate (bps spread)</label>
-                          <input type="number" id="revolverRate" class="form-input" value="450" step="25">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Commitment Fee (%)</label>
-                          <input type="number" id="commitmentFee" class="form-input" value="0.5" step="0.1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Term Loan B (x EBITDA)</label>
-                          <input type="number" id="tlbMultiple" class="form-input" value="3.0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">TLB Rate (bps spread)</label>
-                          <input type="number" id="tlbRate" class="form-input" value="300" step="25">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">TLB Amortization (%/year)</label>
-                          <input type="number" id="tlbAmort" class="form-input" value="5.0" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Mezzanine (x EBITDA)</label>
-                          <input type="number" id="mezzMultiple" class="form-input" value="2.0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Mezz Rate (%)</label>
-                          <input type="number" id="mezzRate" class="form-input" value="10.0" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">PIK Toggle (%)</label>
-                          <input type="number" id="pikToggle" class="form-input" value="10" step="5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Base SOFR (%)</label>
-                          <input type="number" id="baseSofr" class="form-input" value="1.5" step="0.25">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Max Net Leverage (Year 1)</label>
-                          <input type="number" id="maxLevY1" class="form-input" value="6.0" step="0.25">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Max Net Leverage (Year 5)</label>
-                          <input type="number" id="maxLevY5" class="form-input" value="4.0" step="0.25">
-                        </div>
-                      </div>
+              <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
+                💰 Multi-Tranche Debt Structure
+              </h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Revolver (x EBITDA)</label>
+                  <input type="number" id="revolverMultiple" class="form-input" placeholder="0" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Revolver Rate (bps spread)</label>
+                  <input type="number" id="revolverRate" class="form-input" placeholder="450" step="25">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Commitment Fee (%)</label>
+                  <input type="number" id="commitmentFee" class="form-input" placeholder="0.5" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Term Loan B (x EBITDA)</label>
+                  <input type="number" id="tlbMultiple" class="form-input" placeholder="3.0" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">TLB Rate (bps spread)</label>
+                  <input type="number" id="tlbRate" class="form-input" placeholder="300" step="25">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">TLB Amortization (%/year)</label>
+                  <input type="number" id="tlbAmort" class="form-input" placeholder="5.0" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Mezzanine (x EBITDA)</label>
+                  <input type="number" id="mezzMultiple" class="form-input" placeholder="2.0" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Mezz Rate (%)</label>
+                  <input type="number" id="mezzRate" class="form-input" placeholder="10.0" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">PIK Toggle (%)</label>
+                  <input type="number" id="pikToggle" class="form-input" placeholder="10" step="5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Base SOFR (%)</label>
+                  <input type="number" id="baseSofr" class="form-input" placeholder="1.5" step="0.25">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Max Net Leverage (Year 1)</label>
+                  <input type="number" id="maxLevY1" class="form-input" placeholder="6.0" step="0.25">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Max Net Leverage (Year 5)</label>
+                  <input type="number" id="maxLevY5" class="form-input" placeholder="4.0" step="0.25">
+                </div>
+              </div>
 
-                      <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
-                        👔 Management Equity Structure
-                      </h3>
-                      <div class="form-grid">
-                        <div class="form-group">
-                          <label class="form-label">Management Rollover (%)</label>
-                          <input type="number" id="mgmtRollover" class="form-input" value="0" step="1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Sweet Equity Pool (%)</label>
-                          <input type="number" id="sweetEquity" class="form-input" value="0" step="1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Sweet Equity Discount (%)</label>
-                          <input type="number" id="sweetDiscount" class="form-input" value="0" step="5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Options Pool (%)</label>
-                          <input type="number" id="optionsPool" class="form-input" value="5" step="1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Option Strike (% of FMV)</label>
-                          <input type="number" id="optionStrike" class="form-input" value="100" step="5">
-                        </div>
-                      </div>
+              <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
+                👔 Management Equity Structure
+              </h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Management Rollover (%)</label>
+                  <input type="number" id="mgmtRollover" class="form-input" placeholder="0" step="1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Sweet Equity Pool (%)</label>
+                  <input type="number" id="sweetEquity" class="form-input" placeholder="0" step="1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Sweet Equity Discount (%)</label>
+                  <input type="number" id="sweetDiscount" class="form-input" placeholder="0" step="5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Options Pool (%)</label>
+                  <input type="number" id="optionsPool" class="form-input" placeholder="5" step="1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Option Strike (% of FMV)</label>
+                  <input type="number" id="optionStrike" class="form-input" placeholder="100" step="5">
+                </div>
+              </div>
 
-                      <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
-                        📈 Operating Assumptions (Base Case)
-                      </h3>
-                      <div class="form-grid">
-                        <div class="form-group">
-                          <label class="form-label">Revenue Growth Y1 (%)</label>
-                          <input type="number" id="revenueGrowthY1" class="form-input" value="15.5" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Revenue Growth Y2-Y5 (%)</label>
-                          <input type="number" id="revenueGrowthSteady" class="form-input" value="12" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">EBITDA Margin Y1 (%)</label>
-                          <input type="number" id="ebitdaMarginY1" class="form-input" value="20" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">EBITDA Margin Y5 (%)</label>
-                          <input type="number" id="ebitdaMarginY5" class="form-input" value="25" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">D&A (% of Revenue)</label>
-                          <input type="number" id="daPercent" class="form-input" value="4.0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">CapEx (% of Revenue)</label>
-                          <input type="number" id="capexPercent" class="form-input" value="6.2" step="0.1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">NWC (% of Revenue)</label>
-                          <input type="number" id="nwcPercent" class="form-input" value="15" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Tax Rate (%)</label>
-                          <input type="number" id="taxRate" class="form-input" value="25" step="1">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Exit Multiple (Base)</label>
-                          <input type="number" id="exitMultipleBase" class="form-input" value="10.0" step="0.5">
-                        </div>
-                      </div>
+              <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
+                📈 Operating Assumptions (Base Case)
+              </h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Revenue Growth Y1 (%)</label>
+                  <input type="number" id="revenueGrowthY1" class="form-input" placeholder="15.5" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Revenue Growth Y2-Y5 (%)</label>
+                  <input type="number" id="revenueGrowthSteady" class="form-input" placeholder="12" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">EBITDA Margin Y1 (%)</label>
+                  <input type="number" id="ebitdaMarginY1" class="form-input" placeholder="20" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">EBITDA Margin Y5 (%)</label>
+                  <input type="number" id="ebitdaMarginY5" class="form-input" placeholder="25" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">D&A (% of Revenue)</label>
+                  <input type="number" id="daPercent" class="form-input" placeholder="4.0" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">CapEx (% of Revenue)</label>
+                  <input type="number" id="capexPercent" class="form-input" placeholder="6.2" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">NWC (% of Revenue)</label>
+                  <input type="number" id="nwcPercent" class="form-input" placeholder="15" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tax Rate (%)</label>
+                  <input type="number" id="taxRate" class="form-input" placeholder="25" step="1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Exit Multiple (Base)</label>
+                  <input type="number" id="exitMultipleBase" class="form-input" placeholder="10.0" step="0.5">
+                </div>
+              </div>
 
-                      <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
-                        🎯 Scenario Adjustments
-                      </h3>
-                      <div class="form-grid">
-                        <div class="form-group">
-                          <label class="form-label">Upside: Growth Delta (%)</label>
-                          <input type="number" id="upsideGrowth" class="form-input" value="2" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Upside: Multiple Delta (x)</label>
-                          <input type="number" id="upsideMultiple" class="form-input" value="1.0" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Downside: Growth Delta (%)</label>
-                          <input type="number" id="downsideGrowth" class="form-input" value="-2" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Downside: Multiple Delta (x)</label>
-                          <input type="number" id="downsideMultiple" class="form-input" value="-1.0" step="0.5">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Downside: Rate Increase (bps)</label>
-                          <input type="number" id="downsideRate" class="form-input" value="100" step="50">
-                        </div>
-                      </div>
+              <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
+                🎯 Scenario Adjustments
+              </h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Upside: Growth Delta (%)</label>
+                  <input type="number" id="upsideGrowth" class="form-input" placeholder="2" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Upside: Multiple Delta (x)</label>
+                  <input type="number" id="upsideMultiple" class="form-input" placeholder="1.0" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Downside: Growth Delta (%)</label>
+                  <input type="number" id="downsideGrowth" class="form-input" placeholder="-2" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Downside: Multiple Delta (x)</label>
+                  <input type="number" id="downsideMultiple" class="form-input" placeholder="-1.0" step="0.5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Downside: Rate Increase (bps)</label>
+                  <input type="number" id="downsideRate" class="form-input" placeholder="100" step="50">
+                </div>
+              </div>
 
-                      <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
-                        💵 Dividend Recapitalization (Optional)
-                      </h3>
-                      <div style="margin-bottom: 1rem;">
-                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                          <input type="checkbox" id="enableRecap" style="width: 20px; height: 20px;">
-                          <span style="font-weight: 500;">Enable Dividend Recap</span>
-                        </label>
-                      </div>
-                      <div class="form-grid" id="recapInputs" style="display: none;">
-                        <div class="form-group">
-                          <label class="form-label">Recap Year</label>
-                          <input type="number" id="recapYear" class="form-input" value="3" min="2" max="4">
-                        </div>
-                        <div class="form-group">
-                          <label class="form-label">Additional Debt (x EBITDA)</label>
-                          <input type="number" id="recapDebtMultiple" class="form-input" value="1.0" step="0.25">
-                        </div>
-                      </div>
+              <h3 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 1rem 0; color: var(--slate-700);">
+                💵 Dividend Recapitalization (Optional)
+              </h3>
+              <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                  <input type="checkbox" id="enableRecap" style="width: 20px; height: 20px;">
+                  <span style="font-weight: 500;">Enable Dividend Recap</span>
+                </label>
+              </div>
+              <div class="form-grid" id="recapInputs" style="display: none;">
+                <div class="form-group">
+                  <label class="form-label">Recap Year</label>
+                  <input type="number" id="recapYear" class="form-input" placeholder="3" min="2" max="4">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Additional Debt (x EBITDA)</label>
+                  <input type="number" id="recapDebtMultiple" class="form-input" placeholder="1.0" step="0.25">
+                </div>
+              </div>
 
-                      <button class="btn btn-success" id="calculateLBO" style="margin-top: 1.5rem;">
-                        🚀 Run LBO Model (3 Scenarios)
-                      </button>
+              <button class="btn btn-success" id="calculateLBO" style="margin-top: 1.5rem;">
+                🚀 Run LBO Model (3 Scenarios)
+              </button>
 
-                      <div id="lboScenarioResults" class="results-container hidden" style="border-color: var(--green-100); background-color: var(--green-50); margin-top: 2rem;">
-                        </div>
+              <div id="lboScenarioResults" class="results-container hidden" style="border-color: var(--green-100); background-color: var(--green-50); margin-top: 2rem;">
+                </div>
 
-                      <div id="lboDetailedResults" class="hidden" style="margin-top: 2rem;">
-                        </div>
-                    `;
-            }
+              <div id="lboDetailedResults" class="hidden" style="margin-top: 2rem;">
+                </div>
+            `;
+      }      
 
       function setupLBOCalculator() {
         const recapCheckbox = document.getElementById("enableRecap");
@@ -6722,147 +6738,101 @@
       }
 
       function calculateReturns(adjustedInputs, transaction, projections) {
-        // =================================================================
-        // 1. SAFETY CHECKS (PHẦN CHECK PROJECTIONS ĐẦY ĐỦ)
-        // =================================================================
-        // Kiểm tra xem mảng dự phóng có tồn tại và có dữ liệu không
-        if (!projections || !Array.isArray(projections) || projections.length === 0) {
-            console.warn("calculateReturns: Dữ liệu dự phóng (Projections) bị thiếu hoặc rỗng.");
-            return {}; // Trả về object rỗng để UI không bị sập
-        }
-        const holdPeriod = adjustedInputs.holdPeriod;
-        // Lấy năm Exit 
-        const exitProj = projections[projections.length - 1];
-        // Kiểm tra xem năm Exit có dữ liệu hợp lệ không
-        if (!exitProj) {
-            console.warn("calculateReturns: Không tìm thấy dữ liệu năm Exit.");
-            return {};
-        }
+          // 1. Safety Checks
+          if (!projections || !Array.isArray(projections) || projections.length === 0) {
+              return { totalExitEquityValueRaw: 0 }; 
+          }
+          const holdPeriod = adjustedInputs.holdPeriod;
+          const exitProj = projections[projections.length - 1];
+          if (!exitProj) return { totalExitEquityValueRaw: 0 };
 
-        // =================================================================
-        // 2. EXIT VALUATION (ĐỊNH GIÁ KHI THOÁT VỐN)
-        // =================================================================
-        const exitEBITDA = exitProj.ebitda || 0;
-        const exitMultiple = adjustedInputs.exitMultipleBase || 0;
+          // 2. Exit Valuation
+          const exitEBITDA = exitProj.ebitda || 0;
+          const exitMultiple = adjustedInputs.exitMultipleBase || 0;
+          const exitEV = exitEBITDA * exitMultiple;
 
-        // Exit Enterprise Value 
-        const exitEV = exitEBITDA * exitMultiple;
+          // Net Debt at Exit
+          const totalDebtExit = exitProj.totalDebt || 0;
+          const endingCashExit = exitProj.endingCash || 0;
+          const netDebtAtExit = Math.max(0, totalDebtExit - endingCashExit);
 
-        // Net Debt tại thời điểm Exit (Nợ - Tiền mặt)
-        // Lưu ý: Dùng Math.max(0, ...) để tránh số âm nếu tiền mặt > nợ
-        const totalDebtExit = exitProj.totalDebt || 0;
-        const endingCashExit = exitProj.endingCash || 0;
-        const netDebtAtExit = Math.max(0, totalDebtExit - endingCashExit);
+          // Total Exit Equity Value (Raw Number)
+          const totalExitEquityValue = Math.max(0, exitEV - netDebtAtExit);
 
-        // Total Exit Equity Value (Tổng giá trị Vốn chủ sở hữu - cho TẤT CẢ cổ đông)
-        const totalExitEquityValue = Math.max(0, exitEV - netDebtAtExit);
+          // 3. Sponsor Returns
+          // Get Sponsor Ownership % (Default to 100% if not found to prevent NaN)
+          const sponsorOwnershipPct = transaction.metrics?.ownership?.sponsorFD || 
+              (transaction.sources.equity.totalRequired > 0 
+                  ? transaction.sources.equity.sponsorCheck / transaction.sources.equity.totalRequired 
+                  : 1.0);
+                  
+          const sponsorExitProceeds = totalExitEquityValue * sponsorOwnershipPct;
+          const sponsorInitialEquity = transaction.sources.equity.sponsorCheck || 0;
+          
+          // MOIC
+          const moic = sponsorInitialEquity > 0 ? sponsorExitProceeds / sponsorInitialEquity : 0;
 
-        // =================================================================
-        // 3. SPONSOR RETURNS 
-        // =================================================================
-        // Lấy % sở hữu của Sponsor (Fully Diluted) từ cấu trúc ban đầu
-        // Safety check: Nếu không có ownership data, tính từ equity check
-        const sponsorOwnershipPct = transaction.metrics?.ownership?.sponsorFD || 
-        (transaction.sources.equity.sponsorCheck / transaction.sources.equity.totalRequired) || 0;
-        // Tiền thực nhận của Sponsor = Tổng Equity * % Sở hữu
-        const sponsorExitProceeds = totalExitEquityValue * sponsorOwnershipPct;
+          // 4. IRR Calculation
+          const cashFlows = [];
+          cashFlows[0] = -sponsorInitialEquity;
+          for (let y = 1; y < holdPeriod; y++) {
+              cashFlows[y] = 0;
+              // Add Dividend Recap logic if applicable
+              if (adjustedInputs.enableRecap && adjustedInputs.recapYear === y) {
+                  const proj = projections.find(p => p.year === y);
+                  if (proj) cashFlows[y] += (proj.recapDividend || 0) * sponsorOwnershipPct;
+              }
+          }
+          cashFlows[holdPeriod] = sponsorExitProceeds;
+          const irr = calculateIRR(cashFlows);
 
-        // Số tiền Sponsor bỏ ra ban đầu (Initial Investment)
-        const sponsorInitialEquity = transaction.sources.equity.sponsorCheck || 0;
+          // Helper for formatting
+          const fmt = (val, dec = 1) => (typeof val === 'number' && isFinite(val) ? val.toFixed(dec) : "0.0");
+          const fmtPct = (val) => (typeof val === 'number' && isFinite(val) ? (val * 100).toFixed(1) + "%" : "0.0%");
 
-        // Tính MOIC (Chỉ tính trên phần của Sponsor)
-        const moic = sponsorInitialEquity > 0 ? sponsorExitProceeds / sponsorInitialEquity : 0;
+          const grossLeverageEntry = transaction.metrics.grossLeverage || 0;
+          const netLeverageExit = exitEBITDA > 0 ? netDebtAtExit / exitEBITDA : 0;
+          const multipleExpansion = exitMultiple - adjustedInputs.entryMultiple;
+          
+          let ebitdaCagr = 0;
+          if (adjustedInputs.ltmEBITDA > 0 && holdPeriod > 0) {
+              ebitdaCagr = Math.pow(exitEBITDA / adjustedInputs.ltmEBITDA, 1 / holdPeriod) - 1;
+          }
 
-        // =================================================================
-        // 4. IRR CALCULATION 
-        // =================================================================
-        const cashFlows = [];
-        
-        // Năm 0: Dòng tiền ra (Đầu tư) - Dấu âm
-        cashFlows[0] = -sponsorInitialEquity;
-        
-        // Các năm giữa (1 đến N-1): Dòng tiền = 0 (trừ khi có cổ tức)
-        for (let y = 1; y < holdPeriod; y++) {
-            cashFlows[y] = 0;
-        }
-        
-        // Năm cuối (Exit): Dòng tiền vào (Thu về) - Dùng Sponsor Proceeds
-        cashFlows[holdPeriod] = sponsorExitProceeds;
-
-        // Xử lý Dividend Recap (Nếu có)
-        if (adjustedInputs.enableRecap) {
-            const recapYear = adjustedInputs.recapYear;
-            // Tìm dữ liệu của năm Recap
-            const recapProj = projections.find(p => p.year === recapYear);
-            const recapDividend = recapProj ? (recapProj.recapDividend || 0) : 0;
-            
-            // Nếu năm Recap nằm trong kỳ nắm giữ hợp lệ
-            if (recapYear > 0 && recapYear <= holdPeriod) {
-                // Sponsor chỉ nhận phần cổ tức tương ứng với % sở hữu
-                const sponsorDividend = recapDividend * sponsorOwnershipPct;
-                cashFlows[recapYear] += sponsorDividend;
-            }
-        }
-
-        // Gọi hàm tính IRR
-        const irr = calculateIRR(cashFlows);
-
-        // =================================================================
-        // 5. METRICS & FORMATTING 
-        // =================================================================
-        // Helper functions để format số an toàn (tránh lỗi toFixed trên undefined)
-        const fmt = (val, dec = 1) => (typeof val === 'number' && isFinite(val) ? val.toFixed(dec) : "0.0");
-        const fmtPct = (val) => (typeof val === 'number' && isFinite(val) ? (val * 100).toFixed(1) + "%" : "0.0%");
-
-        // Các chỉ số phụ để phân tích (Drivers)
-        const grossLeverageEntry = transaction.metrics.grossLeverage || 0;
-        const netLeverageExit    = exitEBITDA > 0 ? netDebtAtExit / exitEBITDA : 0;
-        const multipleExpansion  = exitMultiple - adjustedInputs.entryMultiple;
-        
-        // Tính CAGR EBITDA
-        let ebitdaCagr = 0;
-        if (adjustedInputs.ltmEBITDA > 0 && holdPeriod > 0) {
-            ebitdaCagr = Math.pow(exitEBITDA / adjustedInputs.ltmEBITDA, 1 / holdPeriod) - 1;
-        }
-
-        // Trả về Object kết quả
-        return {
-            // --- Core Returns ---
-            irr: irr,
-            irrFormatted: fmtPct(irr),
-            moic: fmt(moic, 2) + "x",
-
-            // --- Valuation Details ---
-            exitYear: holdPeriod,
-            exitMultiple: fmt(exitMultiple, 1) + "x",
-            exitEBITDA: fmt(exitEBITDA, 1),
-            exitEV: fmt(exitEV, 1),
-            netDebtAtExit: fmt(netDebtAtExit, 1),
-            
-            // Phân biệt rõ Total vs Sponsor Share
-            totalExitEquityValue: fmt(totalExitEquityValue, 1),
-            sponsorExitProceeds: fmt(sponsorExitProceeds, 1),
-
-            // --- Return Drivers (Value Creation) ---
-            entryMultiple: fmt(adjustedInputs.entryMultiple, 1) + "x",
-            multipleExpansion: fmt(multipleExpansion, 1) + "x",
-            ebitdaCagr: fmtPct(ebitdaCagr),
-            // Deleveraging: Chênh lệch đòn bẩy vào vs ra
-            deleveragingPaydown: fmt(grossLeverageEntry - netLeverageExit, 1) + "x",
-
-            // --- Credit Stats ---
-            grossLeverageEntry: fmt(grossLeverageEntry, 1) + "x",
-            netLeverageEntry: fmt(transaction.metrics.netLeverage, 1) + "x",
-            netLeverageExit: fmt(netLeverageExit, 1) + "x",
-
-            // --- Raw Data cho biểu đồ ---
-            cashFlowsForIRR: cashFlows
-        };
+          return {
+              // --- PASS RAW NUMBERS FOR CALCULATIONS ---
+              totalExitEquityValueRaw: totalExitEquityValue, 
+              
+              // --- Formatted Strings for UI ---
+              irr: irr,
+              irrFormatted: fmtPct(irr),
+              moic: fmt(moic, 2) + "x",
+              exitYear: holdPeriod,
+              exitMultiple: fmt(exitMultiple, 1) + "x",
+              exitEBITDA: fmt(exitEBITDA, 1),
+              exitEV: fmt(exitEV, 1),
+              netDebtAtExit: fmt(netDebtAtExit, 1),
+              totalExitEquityValue: fmt(totalExitEquityValue, 1),
+              sponsorExitProceeds: fmt(sponsorExitProceeds, 1),
+              entryMultiple: fmt(adjustedInputs.entryMultiple, 1) + "x",
+              multipleExpansion: fmt(multipleExpansion, 1) + "x",
+              ebitdaCagr: fmtPct(ebitdaCagr),
+              deleveragingPaydown: fmt(grossLeverageEntry - netLeverageExit, 1) + "x",
+              grossLeverageEntry: fmt(grossLeverageEntry, 1) + "x",
+              netLeverageEntry: fmt(transaction.metrics.netLeverage, 1) + "x",
+              netLeverageExit: fmt(netLeverageExit, 1) + "x",
+              cashFlowsForIRR: cashFlows
+          };
       }
 
       function calculateIRR(cashFlows, guess = 0.12) {
+
         if (!Array.isArray(cashFlows) || cashFlows.length === 0) return 0;
+        
+        // Clone mảng để không ảnh hưởng dữ liệu gốc
         let cfs = [...cashFlows];
+
+        // Trim trailing zeros: Loại bỏ các năm thừa phía sau (nếu có)
         while (cfs.length > 1 && Math.abs(cfs[cfs.length - 1]) < 1e-9) {
           cfs.pop();
         }
@@ -6871,25 +6841,22 @@
         const hasPositive = cfs.some(cf => cf > 0);
         const hasNegative = cfs.some(cf => cf < 0);
         if (!hasPositive || !hasNegative) return 0; 
+
+        // ============== NEWTON-RAPHSON ==============
         const tolerance = 1e-8;
         const maxIter = 1000;
         let rate = guess;
-
         for (let i = 0; i < maxIter; i++) {
           let npv = 0;
           let derivative = 0;
           let discount = 1.0; // Biến tích lũy: (1+r)^t
-
           for (let t = 0; t < cfs.length; t++) {
             const cf = cfs[t];
-            
             // Tại t=0, discount=1. Từ t=1 trở đi, nhân dồn
             if (t > 0) discount *= (1 + rate);
-            
             npv += cf / discount;
-
             // Đạo hàm: -t * CF / (1+r)^(t+1)
-            // discount đang là (1+r)^t, nên nhân thêm (1+rate) là đủ
+            // Lưu ý: discount đang là (1+r)^t, nên nhân thêm (1+rate) là đủ
             if (t > 0) {
               derivative -= (t * cf) / (discount * (1 + rate));
             }
@@ -6903,21 +6870,17 @@
 
           rate = nextRate;
         }
+
         return bisectionIRR(cfs);
       }
 
       function bisectionIRR(cashFlows, low = -0.9999, high = 100.0) {
         const tolerance = 1e-8;
         const maxIter = 1500; 
-
         for (let i = 0; i < maxIter; i++) {
           const mid = (low + high) / 2;
-          
-          // Dùng reduce tính NPV 
           const npv = cashFlows.reduce((sum, cf, t) => sum + cf / Math.pow(1 + mid, t), 0);
-
           if (Math.abs(npv) < tolerance) return mid;
-
           // Logic kẹp khoảng: NPV nghịch biến với Rate
           if (npv > 0) {
             low = mid;
@@ -6928,89 +6891,118 @@
         return (low + high) / 2;
       }
 
-
-
-
-      
       function calculateManagementReturns(adjustedInputs, transaction, returns, projections) {
-        const { holdPeriod } = adjustedInputs;
-        const { exitEquityValue } = returns;
-        const rolloverValue       = transaction.sources.equity.mgmtRollover || 0;
-        const totalNewEquity      = transaction.sources.equity.totalRequired;
-        const rolloverPct         = totalNewEquity > 0 ? rolloverValue / totalNewEquity : 0;
-        const sweetEquityPct      = adjustedInputs.sweetEquity || 0;
-        const sweetDiscount       = adjustedInputs.sweetDiscount || 0.5;
-        const optionsPoolPct      = adjustedInputs.optionsPool || 0;
-        const optionStrikeMult    = adjustedInputs.optionStrike || 1.0;
-        const BASE_FD_SHARES      = 100;                                      
-        const exitSharePrice      = exitEquityValue / BASE_FD_SHARES;
-        const sweetShares         = BASE_FD_SHARES * sweetEquityPct;
-        const sweetStrike         = exitSharePrice * (1 - sweetDiscount);
-        const sweetCashPaid       = sweetShares * sweetStrike;
-        const sweetProceeds       = sweetShares * (exitSharePrice - sweetStrike);
-        const optionSharesGranted = BASE_FD_SHARES * optionsPoolPct;
-        const optionStrikePrice   = exitSharePrice * optionStrikeMult;
+          const { holdPeriod } = adjustedInputs;
+          
+          // 1. USE RAW NUMBER FROM STEP 1
+          const totalExitEquityValue = returns.totalExitEquityValueRaw || 0;
+          
+          // 2. Safely retrieve sources (Handle NaN risk)
+          const getSourceVal = (val) => (typeof val === 'number' && isFinite(val) ? val : 0);
+          
+          const rolloverValue = getSourceVal(transaction.sources.equity.mgmtRollover);
+          const totalNewEquity = getSourceVal(transaction.sources.equity.totalRequired);
+          
+          // Avoid divide by zero
+          const rolloverPct = totalNewEquity > 0 ? rolloverValue / totalNewEquity : 0;
 
-        let optionNetProceeds = 0;
-        let optionNetNewShares = 0;    
+          const sweetEquityPct = adjustedInputs.sweetEquity || 0;
+          const sweetDiscount = adjustedInputs.sweetDiscount || 0;
+          const optionsPoolPct = adjustedInputs.optionsPool || 0;
+          const optionStrikeMult = adjustedInputs.optionStrike || 1.0;
 
-        if (exitSharePrice > optionStrikePrice) {
-          const cashFromExercise   = optionSharesGranted * optionStrikePrice;
-          const sharesRepurchased  = cashFromExercise / exitSharePrice;   
-          optionNetNewShares       = optionSharesGranted - sharesRepurchased;
-          optionNetProceeds        = optionNetNewShares * exitSharePrice;
-        }
+          // 3. Share Price Calculation
+          const BASE_FD_SHARES = 100;
+          const exitSharePrice = totalExitEquityValue > 0 ? totalExitEquityValue / BASE_FD_SHARES : 0;
 
-        const rolloverProceeds    = exitEquityValue * rolloverPct;
-        const totalMgmtProceeds   = rolloverProceeds + sweetProceeds + optionNetProceeds;
-        const mgmtInitialOutlay   = rolloverValue + sweetCashPaid;
-        const mgmtMOIC            = mgmtInitialOutlay > 0 ? totalMgmtProceeds / mgmtInitialOutlay : 0;
+          // 4. Sweet Equity
+          const sweetShares = BASE_FD_SHARES * sweetEquityPct;
+          const sweetStrike = exitSharePrice * (1 - sweetDiscount);
+          const sweetCashPaid = sweetShares * sweetStrike; 
+          // Proceeds = (Price - Strike) * Shares. If Price < Strike, Proceeds = 0
+          const sweetProceeds = sweetShares > 0 ? Math.max(0, (exitSharePrice - sweetStrike) * sweetShares) : 0;
 
-        const mgmtCashFlows = Array(holdPeriod + 1).fill(0);
-        mgmtCashFlows[0] = -mgmtInitialOutlay;
-        mgmtCashFlows[holdPeriod] = totalMgmtProceeds;
+          // 5. Stock Options (Net Share Settlement)
+          const optionSharesGranted = BASE_FD_SHARES * optionsPoolPct;
+          // Strike price is based on Entry Value (usually), but simplified here relative to Exit for modeling
+          // In a real model, Option Strike is fixed at Entry. Assuming optionStrikeMult is % of Entry Price? 
+          // NOTE: Usually Strike is based on ENTRY share price. 
+          // Let's approximate Entry Share Price based on Entry Equity Value:
+          const entryEquityValue = totalNewEquity;
+          const entrySharePrice = entryEquityValue > 0 ? entryEquityValue / BASE_FD_SHARES : 0;
+          const optionStrikePrice = entrySharePrice * optionStrikeMult; // Strike calculated off Entry
 
-        if (adjustedInputs.enableRecap) {
-          const recapYear = adjustedInputs.recapYear;
-          const proj = projections?.find(p => p.year === recapYear);
-          if (proj?.recapDividend) {
-            const mgmtOwnershipAtRecap = rolloverPct + sweetEquityPct + optionsPoolPct;
-            mgmtCashFlows[recapYear] += proj.recapDividend * mgmtOwnershipAtRecap;
+          let optionNetProceeds = 0;
+          let optionNetNewShares = 0;
+
+          if (exitSharePrice > optionStrikePrice && optionSharesGranted > 0) {
+              // Cashless exercise logic
+              const grossValue = optionSharesGranted * (exitSharePrice - optionStrikePrice);
+              optionNetProceeds = grossValue;
+              optionNetNewShares = exitSharePrice > 0 ? grossValue / exitSharePrice : 0;
           }
-        }
 
-        const mgmtIRR = calculateIRR(mgmtCashFlows);
-        
-        // ... [Rest of calculation: Final FD Shares, Ownership Pct] ...
-        const finalFDShares = BASE_FD_SHARES + optionNetNewShares;
-        const mgmtFinalShares = (rolloverPct * BASE_FD_SHARES) + sweetShares + optionNetNewShares;                  
-        const mgmtFinalOwnershipPct = mgmtFinalShares / finalFDShares;
-        const sponsorFinalOwnershipPct = 1 - mgmtFinalOwnershipPct;
+          // 6. Rollover Proceeds
+          const rolloverProceeds = totalExitEquityValue * rolloverPct;
 
-        return {
-          totalManagementProceeds: totalMgmtProceeds.toFixed(1),
-          managementInitialInvestment: mgmtInitialOutlay.toFixed(1),
-          mgmtMOIC: mgmtMOIC.toFixed(2) + "x",
-          mgmtIRR: (mgmtIRR * 100).toFixed(1) + "%",
+          // 7. Aggregation
+          const totalMgmtProceeds = rolloverProceeds + sweetProceeds + optionNetProceeds;
+          const mgmtInitialOutlay = rolloverValue + sweetCashPaid;
+          
+          // Safety check for MOIC
+          const mgmtMOIC = (mgmtInitialOutlay > 0.01) ? totalMgmtProceeds / mgmtInitialOutlay : 0;
 
-          rollover: { proceeds: rolloverProceeds.toFixed(1), pct: (rolloverPct * 100).toFixed(1) + "%" },
-          sweetEquity: { shares: sweetShares.toFixed(2), proceeds: sweetProceeds.toFixed(1) },
-          options: {
-            granted: optionSharesGranted.toFixed(2),
-            netNewShares: optionNetNewShares.toFixed(3),
-            proceeds: optionNetProceeds.toFixed(1),
-            itm: exitSharePrice > optionStrikePrice
-          },
+          // 8. IRR Logic
+          const mgmtCashFlows = Array(holdPeriod + 1).fill(0);
+          mgmtCashFlows[0] = -mgmtInitialOutlay;
+          mgmtCashFlows[holdPeriod] = totalMgmtProceeds;
 
-          finalOwnership: {
-            management: (mgmtFinalOwnershipPct * 100).toFixed(2) + "%",
-            sponsor: (sponsorFinalOwnershipPct * 100).toFixed(2) + "%"
-          },
+          // Dividend Recap Injection for Management
+          if (adjustedInputs.enableRecap && projections) {
+              const recapYear = adjustedInputs.recapYear;
+              const proj = projections.find(p => p.year === recapYear);
+              if (proj && proj.recapDividend) {
+                  const mgmtOwnershipAtRecap = rolloverPct + sweetEquityPct + optionsPoolPct; // Simplified
+                  mgmtCashFlows[recapYear] += proj.recapDividend * mgmtOwnershipAtRecap;
+              }
+          }
 
-          exitSharePrice: exitSharePrice.toFixed(2),
-          finalFDShares: finalFDShares.toFixed(3),
-          mgmtCashFlows
-        };
+          const mgmtIRR = calculateIRR(mgmtCashFlows);
+
+          // 9. Ownership dilution logic
+          const finalFDShares = BASE_FD_SHARES + optionNetNewShares; // Options add shares
+          const mgmtFinalShares = (rolloverPct * BASE_FD_SHARES) + sweetShares + optionNetNewShares;
+          const mgmtFinalOwnershipPct = finalFDShares > 0 ? mgmtFinalShares / finalFDShares : 0;
+          const sponsorFinalOwnershipPct = 1 - mgmtFinalOwnershipPct;
+
+          return {
+              totalManagementProceeds: totalMgmtProceeds.toFixed(1),
+              managementInitialInvestment: mgmtInitialOutlay.toFixed(1),
+              mgmtMOIC: mgmtMOIC.toFixed(2) + "x",
+              mgmtIRR: (mgmtIRR * 100).toFixed(1) + "%",
+              
+              rollover: { 
+                  proceeds: rolloverProceeds.toFixed(1), 
+                  pct: (rolloverPct * 100).toFixed(1) + "%" 
+              },
+              sweetEquity: { 
+                  shares: sweetShares.toFixed(2), 
+                  proceeds: sweetProceeds.toFixed(1) 
+              },
+              options: {
+                  granted: optionSharesGranted.toFixed(2),
+                  netNewShares: optionNetNewShares.toFixed(3),
+                  proceeds: optionNetProceeds.toFixed(1),
+                  itm: exitSharePrice > optionStrikePrice
+              },
+              finalOwnership: {
+                  management: (mgmtFinalOwnershipPct * 100).toFixed(2) + "%",
+                  sponsor: (sponsorFinalOwnershipPct * 100).toFixed(2) + "%"
+              },
+              exitSharePrice: exitSharePrice.toFixed(2),
+              finalFDShares: finalFDShares.toFixed(3),
+              mgmtCashFlows
+          };
       }
 
       function renderScenarioCard(name, scenario, color, isBase = false) {
@@ -7133,18 +7125,19 @@
       }
 
       function renderMgmtRow(label, scenarios, path) {
-        const getValue = (obj, path) => {
-          return path.split('.').reduce((o, p) => o?.[p], obj?.mgmtReturns);
-        };
+          const getValue = (obj, path) => {
+              if (!obj || !obj.mgmtReturns) return "0.0";
+              return path.split('.').reduce((o, p) => (o ? o[p] : "0.0"), obj.mgmtReturns);
+          };
 
-        return `
-          <tr style="border-bottom: 1px solid #e5e7eb;">
-            <td style="padding: 0.75rem; color: #6b7280;">${label}</td>
-            <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: #1f2937;">${getValue(scenarios.downside, path)}</td>
-            <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: #1f2937; background: #f0fdf4;">${getValue(scenarios.base, path)}</td>
-            <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: #1f2937;">${getValue(scenarios.upside, path)}</td>
-          </tr>
-        `;
+          return `
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+              <td style="padding: 0.75rem; color: #6b7280;">${label}</td>
+              <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: #1f2937;">${getValue(scenarios.downside, path)}</td>
+              <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: #1f2937; background: #f0fdf4;">${getValue(scenarios.base, path)}</td>
+              <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: #1f2937;">${getValue(scenarios.upside, path)}</td>
+            </tr>
+          `;
       }
 
       function displaySensitivityAnalysis(scenarios, inputs) {
@@ -7765,324 +7758,163 @@
         const { base, upside, downside } = scenarios;
         const projections = base.projections;
         
-        // Calculate chart dimensions and scales
-        const chartWidth = 100; // percentage
-        const chartHeight = 300;
-        const padding = { top: 20, right: 20, bottom: 40, left: 60 };
-        const plotWidth = chartWidth;
-        const plotHeight = chartHeight - padding.top - padding.bottom;
+        // --- 1. SETUP HIGH-RES COORDINATE SYSTEM ---
+        const viewBoxWidth = 1000;
+        const viewBoxHeight = 400;
+        const internalPad = { top: 40, bottom: 20 }; 
+        const plotHeight = viewBoxHeight - internalPad.top - internalPad.bottom;
         
-        // Find max leverage across all scenarios for Y-axis scaling
+        // --- 2. CALCULATE Y-AXIS SCALE ---
         const allLeverages = [
           ...downside.projections.map(p => p.netLeverage),
           ...base.projections.map(p => p.netLeverage),
           ...upside.projections.map(p => p.netLeverage)
         ];
-        const maxLeverage = Math.max(...allLeverages);
-        const minLeverage = Math.min(...allLeverages);
-        const yAxisMax = Math.ceil(maxLeverage) + 0.5;
-        const yAxisMin = Math.max(0, Math.floor(minLeverage) - 0.5);
-        const yRange = yAxisMax - yAxisMin;
         
-        // Generate Y-axis grid lines
+        const maxLev = Math.max(...allLeverages);
+        const minLev = Math.min(...allLeverages);
+        
+        const buffer = (maxLev - minLev) * 0.2;
+        const yMax = Math.ceil((maxLev + buffer) * 10) / 10;
+        const yMin = Math.max(0, Math.floor((minLev - buffer) * 10) / 10);
+        const yRange = yMax - yMin;
+        
         const gridLines = [];
-        const numGridLines = 6;
-        for (let i = 0; i <= numGridLines; i++) {
-          const value = yAxisMin + (yRange * i / numGridLines);
-          const yPos = plotHeight - ((value - yAxisMin) / yRange * plotHeight);
-          gridLines.push({ value: value.toFixed(1), yPos });
+        for (let i = 0; i <= 4; i++) {
+            const val = yMin + (yRange * i / 4);
+            const yPos = internalPad.top + plotHeight - ((val - yMin) / yRange * plotHeight);
+            gridLines.push({ value: val.toFixed(1), yPos });
         }
-        
-        // Generate path data for each scenario
-        const scenarioData = {
-          downside: { color: '#ef4444', name: 'Downside', projections: downside.projections },
-          base: { color: '#10b981', name: 'Base Case', projections: base.projections },
-          upside: { color: '#3b82f6', name: 'Upside', projections: upside.projections }
-        };
-        
-        function generatePath(projections, scenarioKey) {
-          const isBase = scenarioKey === 'base';
-          const points = projections.map((p, i) => {
-            const x = (i / (projections.length - 1)) * plotWidth;
-            const y = plotHeight - ((p.netLeverage - yAxisMin) / yRange * plotHeight);
-            return { x, y, year: p.year, leverage: p.netLeverage, ebitda: p.ebitda };
-          });
-          
-          // Create smooth SVG path using points
-          let pathD = `M ${points[0].x} ${points[0].y}`;
-          for (let i = 1; i < points.length; i++) {
-            pathD += ` L ${points[i].x} ${points[i].y}`;
-          }
-          
-          return { pathD, points, isBase };
-        }
-        
-        const paths = {
-          downside: generatePath(scenarioData.downside.projections, 'downside'),
-          base: generatePath(scenarioData.base.projections, 'base'),
-          upside: generatePath(scenarioData.upside.projections, 'upside')
+
+        // --- 3. PATH GENERATOR FUNCTION ---
+        const generatePathData = (proj, isBase) => {
+            const points = proj.map((p, i) => {
+                const x = (i / (proj.length - 1)) * viewBoxWidth;
+                const y = internalPad.top + plotHeight - ((p.netLeverage - yMin) / yRange * plotHeight);
+                return { x, y, netLeverage: p.netLeverage, year: p.year, ebitda: p.ebitda };
+            });
+
+            let d = `M ${points[0].x} ${points[0].y}`;
+            points.slice(1).forEach(p => d += ` L ${p.x} ${p.y}`);
+
+            const areaD = `${d} L ${points[points.length-1].x} ${viewBoxHeight} L ${points[0].x} ${viewBoxHeight} Z`;
+
+            return { d, areaD, points, color: isBase ? '#10b981' : (proj === downside.projections ? '#ef4444' : '#3b82f6') };
         };
 
+        const paths = {
+            downside: generatePathData(downside.projections, false),
+            upside: generatePathData(upside.projections, false),
+            base: generatePathData(base.projections, true)
+        };
+
+        // --- 4. RENDER HTML ---
         return `
-          <div style="background: white; border: 2px solid #e5e7eb; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
-              <div>
-                <h3 style="font-size: 1.3rem; font-weight: 700; margin: 0 0 0.5rem 0; color: #1f2937; display: flex; align-items: center; gap: 0.5rem;">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                  Net Leverage Deleveraging Path
-                </h3>
-                <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">Credit Profile Evolution • ${projections.length}-Year Timeline</p>
-              </div>
-              
-              <!-- Summary Metrics -->
-              <div style="display: flex; gap: 1.5rem;">
-                <div style="text-align: right;">
-                  <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">Entry Leverage</div>
-                  <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">${base.transaction.metrics.netLeverage.toFixed(1)}x</div>
+          <div style="background: white; border: 2px solid #e5e7eb; border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+                <div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                        Deleveraging Path
+                    </h3>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">Net Leverage Evolution (${projections.length}-Year)</p>
                 </div>
-                <div style="text-align: right;">
-                  <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">Exit Leverage</div>
-                  <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">${projections[projections.length - 1].netLeverage.toFixed(1)}x</div>
+                <div style="display: flex; gap: 1rem; font-size: 0.8rem; font-weight: 600;">
+                    <div style="display: flex; align-items: center; gap: 0.25rem; color: #ef4444;"><div style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></div>Down</div>
+                    <div style="display: flex; align-items: center; gap: 0.25rem; color: #10b981;"><div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>Base</div>
+                    <div style="display: flex; align-items: center; gap: 0.25rem; color: #3b82f6;"><div style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></div>Up</div>
                 </div>
-              </div>
             </div>
-            
-            <!-- Chart Container -->
-            <div style="position: relative; padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px; background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%); border-radius: 12px; border: 1px solid #e5e7eb;">
-              
-              <!-- Y-Axis Labels -->
-              <div style="position: absolute; left: 0; top: ${padding.top}px; width: ${padding.left - 10}px; height: ${plotHeight}px;">
-                ${gridLines.map(line => `
-                  <div style="position: absolute; right: 10px; top: ${line.yPos}px; transform: translateY(-50%); font-size: 0.75rem; color: #6b7280; font-weight: 500;">
-                    ${line.value}x
-                  </div>
-                `).join('')}
-              </div>
-              
-              <!-- Chart Area with SVG -->
-              <div style="position: relative; width: 100%; height: ${plotHeight}px;">
+
+            <div style="display: grid; grid-template-columns: 50px 1fr; gap: 10px; height: 350px;">
                 
-                <!-- Grid Lines -->
-                ${gridLines.map(line => `
-                  <div style="position: absolute; left: 0; right: 0; top: ${line.yPos}px; height: 1px; background: ${line.value === '0.0' ? '#d1d5db' : '#f3f4f6'};"></div>
-                `).join('')}
-                
-                <!-- SVG Paths -->
-                <svg viewBox="0 0 ${plotWidth} ${plotHeight}" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
-                  <defs>
-                    <!-- Gradient fills for area under curves -->
-                    <linearGradient id="gradientDownside" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.1" />
-                      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:0" />
-                    </linearGradient>
-                    <linearGradient id="gradientBase" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.15" />
-                      <stop offset="100%" style="stop-color:#10b981;stop-opacity:0" />
-                    </linearGradient>
-                    <linearGradient id="gradientUpside" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.1" />
-                      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0" />
-                    </linearGradient>
+                <div style="display: flex; flex-direction: column; justify-content: space-between; text-align: right; padding-top: ${internalPad.top/viewBoxHeight * 100}%; padding-bottom: ${internalPad.bottom/viewBoxHeight * 100}%; color: #9ca3af; font-size: 0.75rem; font-weight: 600;">
+                    ${gridLines.slice().reverse().map(g => `<span>${g.value}x</span>`).join('')}
+                </div>
+
+                <div style="position: relative; width: 100%; height: 100%;">
+                    ${gridLines.map(g => `
+                        <div style="position: absolute; left: 0; right: 0; top: ${(g.yPos / viewBoxHeight) * 100}%; border-top: 1px dashed #e5e7eb;"></div>
+                    `).join('')}
+
+                    <svg viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" preserveAspectRatio="none" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible;">
+                        <defs>
+                            <linearGradient id="gradBase" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981" stop-opacity="0.2"/><stop offset="100%" stop-color="#10b981" stop-opacity="0"/></linearGradient>
+                            <linearGradient id="gradUp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.1"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient>
+                            <linearGradient id="gradDown" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444" stop-opacity="0.1"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></linearGradient>
+                            <filter id="shadowLine"><feDropShadow dx="0" dy="4" stdDeviation="3" flood-opacity="0.2"/></filter>
+                        </defs>
+
+                        <path d="${paths.downside.areaD}" fill="url(#gradDown)" />
+                        <path d="${paths.upside.areaD}" fill="url(#gradUp)" />
+                        <path d="${paths.base.areaD}" fill="url(#gradBase)" />
+
+                        <path d="${paths.downside.d}" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" />
+                        <path d="${paths.upside.d}" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" />
+                        <path d="${paths.base.d}" fill="none" stroke="#10b981" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="filter: url(#shadowLine);" />
+
+                        ${['downside', 'upside', 'base'].map(key => {
+                            const pData = paths[key];
+                            const r = key === 'base' ? 6 : 4;
+                            return pData.points.map((p, i) => `
+                                <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="white" stroke="${pData.color}" stroke-width="${key === 'base' ? 3 : 2}" 
+                                    style="cursor: pointer; transition: r 0.2s;"
+                                    onmouseover="
+                                        this.setAttribute('r', '${r + 3}');
+                                        document.getElementById('tip-${key}-${i}').style.opacity = 1;
+                                    "
+                                    onmouseout="
+                                        this.setAttribute('r', '${r}');
+                                        document.getElementById('tip-${key}-${i}').style.opacity = 0;
+                                    "
+                                />
+                            `).join('');
+                        }).join('')}
+                    </svg>
                     
-                    <!-- Drop shadows for lines -->
-                    <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
-                      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-                      <feOffset dx="0" dy="2" result="offsetblur"/>
-                      <feComponentTransfer>
-                        <feFuncA type="linear" slope="0.3"/>
-                      </feComponentTransfer>
-                      <feMerge>
-                        <feMergeNode/>
-                        <feMergeNode in="SourceGraphic"/>
-                      </feMerge>
-                    </filter>
-                  </defs>
-                  
-                  <!-- Area fills under lines -->
-                  ${Object.entries(paths).map(([key, data]) => {
-                    const areaPath = `${data.pathD} L ${plotWidth} ${plotHeight} L 0 ${plotHeight} Z`;
-                    return `<path d="${areaPath}" fill="url(#gradient${key.charAt(0).toUpperCase() + key.slice(1)})" opacity="0.5"/>`;
-                  }).join('')}
-                  
-                  <!-- Scenario Lines -->
-                  ${Object.entries(scenarioData).map(([key, scenario]) => {
-                    const pathData = paths[key];
-                    return `
-                      <path
-                        d="${pathData.pathD}"
-                        fill="none"
-                        stroke="${scenario.color}"
-                        stroke-width="${pathData.isBase ? '4' : '2.5'}"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        filter="${pathData.isBase ? 'url(#dropShadow)' : 'none'}"
-                        opacity="${pathData.isBase ? '1' : '0.7'}"
-                        style="transition: all 0.3s ease;"
-                        class="leverage-path leverage-path-${key}"
-                      />
-                    `;
-                  }).join('')}
-                  
-                  <!-- Data Points with Hover Effects -->
-                  ${Object.entries(scenarioData).map(([key, scenario]) => {
-                    const pathData = paths[key];
-                    return pathData.points.map((point, i) => `
-                      <g class="data-point-group" style="cursor: pointer;">
-                        <!-- Hover target (invisible but larger) -->
-                        <circle
-                          cx="${point.x}"
-                          cy="${point.y}"
-                          r="12"
-                          fill="transparent"
-                          style="cursor: pointer;"
-                          onmouseover="
-                            this.nextElementSibling.setAttribute('r', '7');
-                            this.nextElementSibling.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))';
-                            document.getElementById('tooltip-${key}-${i}').style.display = 'block';
-                          "
-                          onmouseout="
-                            this.nextElementSibling.setAttribute('r', '${pathData.isBase ? '5' : '4'}');
-                            this.nextElementSibling.style.filter = 'none';
-                            document.getElementById('tooltip-${key}-${i}').style.display = 'none';
-                          "
-                        />
-                        <!-- Visible point -->
-                        <circle
-                          cx="${point.x}"
-                          cy="${point.y}"
-                          r="${pathData.isBase ? '5' : '4'}"
-                          fill="${scenario.color}"
-                          stroke="white"
-                          stroke-width="2"
-                          style="transition: all 0.2s ease; pointer-events: none;"
-                        />
-                      </g>
-                    `).join('');
-                  }).join('')}
-                </svg>
-                
-                <!-- Tooltips (positioned absolutely) -->
-                ${Object.entries(scenarioData).map(([key, scenario]) => {
-                  const pathData = paths[key];
-                  return pathData.points.map((point, i) => {
-                    const xPercent = (point.x / plotWidth) * 100;
-                    const yPercent = (point.y / plotHeight) * 100;
-                    const alignRight = xPercent > 70;
-                    
-                    return `
-                      <div 
-                        id="tooltip-${key}-${i}"
-                        style="
-                          display: none;
-                          position: absolute;
-                          left: ${xPercent}%;
-                          top: ${yPercent}%;
-                          transform: translate(${alignRight ? '-100%' : '10px'}, -50%);
-                          background: white;
-                          border: 2px solid ${scenario.color};
-                          border-radius: 8px;
-                          padding: 0.75rem;
-                          box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-                          z-index: 100;
-                          min-width: 180px;
-                          pointer-events: none;
-                        "
-                      >
-                        <div style="font-weight: 700; color: ${scenario.color}; margin-bottom: 0.5rem; font-size: 0.85rem;">
-                          ${scenario.name} • Year ${point.year}
-                        </div>
-                        <div style="display: grid; gap: 0.4rem; font-size: 0.8rem;">
-                          <div style="display: flex; justify-content: space-between; gap: 1rem;">
-                            <span style="color: #6b7280;">Net Leverage:</span>
-                            <strong style="color: #1f2937;">${point.leverage.toFixed(2)}x</strong>
-                          </div>
-                          <div style="display: flex; justify-content: space-between; gap: 1rem;">
-                            <span style="color: #6b7280;">EBITDA:</span>
-                            <strong style="color: #1f2937;">$${point.ebitda.toFixed(1)}M</strong>
-                          </div>
-                        </div>
-                      </div>
-                    `;
-                  }).join('');
-                }).join('')}
-              </div>
-              
-              <!-- X-Axis Labels -->
-              <div style="display: flex; justify-content: space-between; margin-top: 1rem; padding: 0 0.5rem; font-size: 0.85rem; color: #6b7280; font-weight: 600;">
-                ${projections.map(p => `
-                  <div style="text-align: center;">
-                    <div style="color: #1f2937;">Year ${p.year}</div>
-                  </div>
-                `).join('')}
-              </div>
+                    ${['downside', 'upside', 'base'].map(key => {
+                        const pData = paths[key];
+                        return pData.points.map((p, i) => `
+                            <div id="tip-${key}-${i}" style="
+                                position: absolute; 
+                                left: ${(p.x / viewBoxWidth) * 100}%; 
+                                top: ${(p.y / viewBoxHeight) * 100}%; 
+                                transform: translate(-50%, -130%);
+                                background: #1f2937; color: white; padding: 6px 10px; border-radius: 6px; 
+                                font-size: 0.75rem; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; z-index: 50; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+                            ">
+                                <strong>${p.netLeverage.toFixed(2)}x</strong> <span style="opacity:0.7">(${key})</span>
+                            </div>
+                        `).join('');
+                    }).join('')}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 50px 1fr; gap: 10px; margin-top: 0.5rem;">
+                <div></div> 
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280; font-weight: 600;">
+                    ${projections.map(p => `<span>Year ${p.year}</span>`).join('')}
+                </div>
             </div>
             
-            <!-- Legend with Toggle Functionality -->
-            <div style="display: flex; gap: 2rem; justify-content: center; margin-top: 2rem; padding: 1.25rem; background: #f9fafb; border-radius: 10px;">
-              ${Object.entries(scenarioData).map(([key, scenario]) => {
-                const pathData = paths[key];
-                return `
-                  <div 
-                    style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem 1rem; border-radius: 8px; transition: all 0.2s ease; background: white; border: 2px solid #e5e7eb;"
-                    onmouseover="
-                      this.style.background = '${scenario.color}10';
-                      this.style.borderColor = '${scenario.color}';
-                      this.style.transform = 'translateY(-2px)';
-                      document.querySelectorAll('.leverage-path-${key}').forEach(el => {
-                        el.style.strokeWidth = '${pathData.isBase ? '5' : '4'}';
-                        el.style.opacity = '1';
-                      });
-                    "
-                    onmouseout="
-                      this.style.background = 'white';
-                      this.style.borderColor = '#e5e7eb';
-                      this.style.transform = 'translateY(0)';
-                      document.querySelectorAll('.leverage-path-${key}').forEach(el => {
-                        el.style.strokeWidth = '${pathData.isBase ? '4' : '2.5'}';
-                        el.style.opacity = '${pathData.isBase ? '1' : '0.7'}';
-                      });
-                    "
-                  >
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                      <div style="width: 32px; height: 4px; background: ${scenario.color}; border-radius: 2px;"></div>
-                      <span style="font-weight: 600; color: #1f2937; font-size: 0.9rem;">${scenario.name}</span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f3f4f6;">
+                <div style="text-align: center;">
+                    <div style="font-size: 0.75rem; color: #9ca3af; text-transform: uppercase;">Entry Leverage</div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: #1f2937;">${base.transaction.metrics.netLeverage.toFixed(1)}x</div>
+                </div>
+                 <div style="text-align: center;">
+                    <div style="font-size: 0.75rem; color: #9ca3af; text-transform: uppercase;">Avg Deleveraging</div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;">
+                        ${((base.transaction.metrics.netLeverage - projections[projections.length-1].netLeverage) / projections.length).toFixed(2)}x/yr
                     </div>
-                    <div style="display: flex; gap: 1rem; margin-left: 1rem; padding-left: 1rem; border-left: 1px solid #e5e7eb; font-size: 0.85rem;">
-                      <div>
-                        <span style="color: #6b7280;">Entry:</span>
-                        <strong style="color: ${scenario.color}; margin-left: 0.25rem;">${pathData.points[0].leverage.toFixed(1)}x</strong>
-                      </div>
-                      <div>
-                        <span style="color: #6b7280;">Exit:</span>
-                        <strong style="color: ${scenario.color}; margin-left: 0.25rem;">${pathData.points[pathData.points.length - 1].leverage.toFixed(1)}x</strong>
-                      </div>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.75rem; color: #9ca3af; text-transform: uppercase;">Exit Leverage</div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: #1f2937;">${projections[projections.length-1].netLeverage.toFixed(1)}x</div>
+                </div>
             </div>
-            
-            <!-- Key Insights Panel -->
-            <div style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-              ${renderDeleveragingInsightCard(
-                "Average Deleveraging Rate",
-                ((base.transaction.metrics.netLeverage - projections[projections.length - 1].netLeverage) / projections.length).toFixed(2) + "x/year",
-                "#6366f1",
-                "Debt paydown velocity from operational cash flow"
-              )}
-              ${renderDeleveragingInsightCard(
-                "Total Debt Reduction",
-                "$" + (projections[0].totalDebt - projections[projections.length - 1].totalDebt).toFixed(0) + "M",
-                "#10b981",
-                "Cumulative principal repayment over hold period"
-              )}
-              ${renderDeleveragingInsightCard(
-                "Covenant Headroom (Y1)",
-                projections[0].covenantHeadroom.toFixed(2) + "x",
-                projections[0].covenantHeadroom > 1 ? "#10b981" : "#f59e0b",
-                "Buffer above maximum net leverage covenant"
-              )}
-            </div>
+
           </div>
         `;
       }
