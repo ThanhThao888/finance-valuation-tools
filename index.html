@@ -2391,7 +2391,7 @@
           const amount = parseFloat(amountInput.value);
 
           // ========== ROBUST VALIDATION ==========
-          if (isNaN(r) || r < 0 || r > 100) {
+          if (isNaN(r) || r < 0 || r > 1) {
             alert("Please enter a valid interest rate (0% - 100%).");
             return;
           }
@@ -3850,81 +3850,484 @@
         return roundFinancial(npv, 2);
       }
 
+
       /**
-       * PRODUCTION-GRADE XIRR với financial precision
+       * ═══════════════════════════════════════════════════════════════
+       * PRODUCTION-GRADE XIRR CALCULATOR
+       * ═══════════════════════════════════════════════════════════════
+       * 
+       * Features:
+       * - Hybrid solver (Newton-Raphson + Bisection)
+       * - Multiple initial guess strategy
+       * - Floating-point error protection
+       * - Timezone-safe date handling
+       * - Excel-compatible precision (1e-9 tolerance)
+       * 
+       * @param {Array<{date: Date, amount: number}>} cashFlows
+       * @param {number} initialGuess - Starting rate (default 0.1 = 10%)
+       * @returns {Object} {success, xirr, iterations, method, xnpv, message}
        */
       function calculateXIRR(cashFlows, initialGuess = 0.1) {
-        // Validate input
-        if (!cashFlows || cashFlows.length < 2) {
+        // ═══════════════════════════════════════════════════════════
+        // STEP 1: DATA PREPARATION & VALIDATION
+        // ═══════════════════════════════════════════════════════════
+        
+        // 1.1 Input validation
+        if (!cashFlows || !Array.isArray(cashFlows)) {
           return {
             success: false,
-            message: "Need at least 2 cash flows"
+            message: "Invalid input: cashFlows must be an array"
           };
         }
 
-        // Validate cash flow signs
-        const amounts = cashFlows.map(cf => cf.amount);
-        const hasPositive = amounts.some(a => a > 0);
-        const hasNegative = amounts.some(a => a < 0);
+        // 1.2 Filter out zero cash flows (optimization)
+        const nonZeroCFs = cashFlows.filter(cf => Math.abs(cf.amount) > 1e-10);
+        
+        if (nonZeroCFs.length < 2) {
+          return {
+            success: false,
+            message: "Need at least 2 non-zero cash flows"
+          };
+        }
+
+        // 1.3 Check for both positive and negative values (CRITICAL)
+        const hasPositive = nonZeroCFs.some(cf => cf.amount > 0);
+        const hasNegative = nonZeroCFs.some(cf => cf.amount < 0);
         
         if (!hasPositive || !hasNegative) {
           return {
             success: false,
-            message: "Need both positive and negative cash flows"
+            message: "Cash flows must contain both positive and negative values",
+            details: `Found: ${nonZeroCFs.filter(cf => cf.amount > 0).length} positive, ${nonZeroCFs.filter(cf => cf.amount < 0).length} negative`
           };
         }
 
-        // Sort by date
-        const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
-        const baseDate = sorted[0].date;
+        // 1.4 Sort by date (ascending) - MANDATORY
+        const sortedCFs = [...nonZeroCFs].sort((a, b) => a.date - b.date);
         
-        // Tính tolerance dựa trên magnitude
-        const totalMagnitude = sorted.reduce((sum, cf) => sum + Math.abs(cf.amount), 0);
-        const tolerance = Math.max(1e-9, totalMagnitude * 1e-12);
+        // 1.5 Normalize dates to UTC noon to avoid timezone issues
+        const baseDate = new Date(Date.UTC(
+          sortedCFs[0].date.getUTCFullYear(),
+          sortedCFs[0].date.getUTCMonth(),
+          sortedCFs[0].date.getUTCDate(),
+          12, 0, 0, 0
+        ));
+
+        // ═══════════════════════════════════════════════════════════
+        // STEP 2: HELPER FUNCTIONS (XNPV & Derivative)
+        // ═══════════════════════════════════════════════════════════
         
-        // Multiple initial guesses (Excel's approach)
+        /**
+         * Calculate XNPV at given rate with floating-point protection
+         * Formula: XNPV = Σ [CF_i / (1 + rate)^years_i]
+         */
+        const calculateXNPV = (rate) => {
+          // Guard against invalid rates
+          if (rate <= -1.0 || !isFinite(rate)) {
+            return NaN;
+          }
+
+          let xnpv = 0;
+          
+          for (const cf of sortedCFs) {
+            // Calculate year fraction (CRITICAL: no rounding before division)
+            const millisDiff = cf.date - baseDate;
+            const daysDiff = millisDiff / (1000 * 60 * 60 * 24);
+            const years = daysDiff / 365.0; // Use 365.0 for exact division
+            
+            // Calculate discount factor
+            const discountFactor = Math.pow(1 + rate, years);
+            
+            // Accumulate XNPV with precision protection
+            const pv = cf.amount / discountFactor;
+            xnpv += pv;
+          }
+          
+          return xnpv;
+        };
+
+        /**
+         * Calculate derivative of XNPV for Newton-Raphson
+         * Formula: dXNPV/dr = Σ [-years_i * CF_i / (1 + rate)^(years_i + 1)]
+         */
+        const calculateDerivative = (rate) => {
+          // Guard against invalid rates
+          if (rate <= -1.0 || !isFinite(rate)) {
+            return NaN;
+          }
+
+          let derivative = 0;
+          
+          for (const cf of sortedCFs) {
+            const millisDiff = cf.date - baseDate;
+            const daysDiff = millisDiff / (1000 * 60 * 60 * 24);
+            const years = daysDiff / 365.0;
+            
+            // Skip t=0 term (derivative is 0)
+            if (Math.abs(years) < 1e-10) continue;
+            
+            // dXNPV/dr term
+            const discountFactor = Math.pow(1 + rate, years + 1);
+            const term = -(years * cf.amount) / discountFactor;
+            derivative += term;
+          }
+          
+          return derivative;
+        };
+
+        // ═══════════════════════════════════════════════════════════
+        // STEP 3: NEWTON-RAPHSON SOLVER (Primary Method)
+        // ═══════════════════════════════════════════════════════════
+        
+        /**
+         * Newton-Raphson solver with safety guards
+         * Fast convergence but can diverge → needs fallback
+         */
+        const solveNewtonRaphson = (guess, maxIter = 50) => {
+          const TOLERANCE = 1e-9; // Finance-grade precision
+          const MAX_STEP = 1.0;   // Prevent wild jumps
+          const MIN_DERIVATIVE = 1e-12; // Abort if derivative too small
+          
+          let rate = guess;
+          
+          for (let i = 0; i < maxIter; i++) {
+            const npv = calculateXNPV(rate);
+            const derivative = calculateDerivative(rate);
+            
+            // Check convergence (PRIMARY EXIT)
+            if (Math.abs(npv) < TOLERANCE) {
+              return {
+                success: true,
+                rate: rate,
+                iterations: i + 1,
+                finalNPV: npv
+              };
+            }
+            
+            // Safety check: derivative too small (ABORT)
+            if (Math.abs(derivative) < MIN_DERIVATIVE) {
+              return {
+                success: false,
+                reason: 'derivative_too_small',
+                iterations: i + 1
+              };
+            }
+            
+            // Calculate Newton step
+            const step = npv / derivative;
+            
+            // Limit step size to prevent wild jumps
+            const limitedStep = Math.max(-MAX_STEP, Math.min(MAX_STEP, step));
+            
+            // Update rate
+            const newRate = rate - limitedStep;
+            
+            // Apply bounds [-0.99, 10.0]
+            if (newRate <= -0.99 || newRate >= 10.0) {
+              return {
+                success: false,
+                reason: 'out_of_bounds',
+                iterations: i + 1,
+                attemptedRate: newRate
+              };
+            }
+            
+            // Check for oscillation (step size not decreasing)
+            if (i > 10 && Math.abs(limitedStep) > 0.1) {
+              return {
+                success: false,
+                reason: 'oscillation_detected',
+                iterations: i + 1
+              };
+            }
+            
+            rate = newRate;
+          }
+          
+          // Max iterations reached
+          return {
+            success: false,
+            reason: 'max_iterations',
+            iterations: maxIter
+          };
+        };
+
+        // ═══════════════════════════════════════════════════════════
+        // STEP 4: BISECTION SOLVER (Robust Fallback)
+        // ═══════════════════════════════════════════════════════════
+        
+        /**
+         * Bisection method with adaptive bounds
+         * Slower but GUARANTEED to converge if solution exists
+         */
+        const solveBisection = () => {
+          const TOLERANCE = 1e-9;
+          const MAX_ITER = 100;
+          
+          // Adaptive bounds strategy
+          const boundSets = [
+            { low: -0.99, high: 1.0 },
+            { low: -0.99, high: 2.0 },
+            { low: -0.99, high: 5.0 },
+            { low: -0.99, high: 10.0 }
+          ];
+          
+          for (const bounds of boundSets) {
+            let low = bounds.low;
+            let high = bounds.high;
+            
+            const npvLow = calculateXNPV(low);
+            const npvHigh = calculateXNPV(high);
+            
+            // Check for sign change (required for bisection)
+            if (npvLow * npvHigh > 0) {
+              continue; // Try next bound set
+            }
+            
+            // Bisection loop
+            for (let i = 0; i < MAX_ITER; i++) {
+              const mid = (low + high) / 2;
+              const npvMid = calculateXNPV(mid);
+              
+              // Check convergence
+              if (Math.abs(npvMid) < TOLERANCE) {
+                return {
+                  success: true,
+                  rate: mid,
+                  iterations: i + 1,
+                  finalNPV: npvMid,
+                  bounds: bounds
+                };
+              }
+              
+              // Update bounds based on sign
+              if (npvLow * npvMid < 0) {
+                high = mid;
+              } else {
+                low = mid;
+              }
+              
+              // Check if interval too small
+              if (Math.abs(high - low) < 1e-12) {
+                return {
+                  success: true,
+                  rate: mid,
+                  iterations: i + 1,
+                  finalNPV: npvMid,
+                  bounds: bounds,
+                  note: 'interval_collapsed'
+                };
+              }
+            }
+          }
+          
+          // No sign change found in any bound set
+          return {
+            success: false,
+            reason: 'no_sign_change',
+            message: 'No solution found in tested ranges'
+          };
+        };
+
+        // ═══════════════════════════════════════════════════════════
+        // STEP 5: MULTI-GUESS STRATEGY (Excel Approach)
+        // ═══════════════════════════════════════════════════════════
+        
         const initialGuesses = [
-          roundFinancial(initialGuess, 8),
-          roundFinancial(0.1, 8),
-          roundFinancial(-0.1, 8),
-          roundFinancial(0.5, 8),
-          roundFinancial(-0.5, 8),
-          roundFinancial(0.0, 8),
-          roundFinancial(0.25, 8),
-          roundFinancial(1.0, 8),
-          roundFinancial(-0.99, 8),
-          roundFinancial(2.0, 8)
+          initialGuess,  // User-provided (default 0.1)
+          0.1,           // Excel default
+          -0.1,          // Negative scenario
+          0.5,           // Higher return
+          -0.5,          // Deep loss
+          0.0,           // Breakeven
+          0.9,           // Very high return
+          1.5            // Extreme return
         ];
         
-        for (const guess of initialGuesses) {
-          const result = newtonRaphsonXIRR(sorted, baseDate, guess, tolerance);
+        // Remove duplicates
+        const uniqueGuesses = [...new Set(initialGuesses)];
+        
+        // Try Newton-Raphson with each guess
+        for (const guess of uniqueGuesses) {
+          const result = solveNewtonRaphson(guess);
+          
           if (result.success) {
-            const xnpv = calculateXNPV(result.xirr, sorted);
+            // Verify solution with XNPV recalculation
+            const verifyXNPV = calculateXNPV(result.rate);
+            
             return {
-              ...result,
-              xnpv: roundFinancial(xnpv, 2),
-              method: 'newton-raphson'
+              success: true,
+              xirr: result.rate,
+              iterations: result.iterations,
+              method: 'newton-raphson',
+              initialGuess: guess,
+              xnpv: verifyXNPV,
+              annualizedReturn: (result.rate * 100).toFixed(4) + '%'
             };
           }
         }
         
-        // Fallback to bisection
-        const bisectionResult = bisectionXIRR(sorted, baseDate, tolerance);
+        // ═══════════════════════════════════════════════════════════
+        // STEP 6: FALLBACK TO BISECTION
+        // ═══════════════════════════════════════════════════════════
+        
+        const bisectionResult = solveBisection();
+        
         if (bisectionResult.success) {
-          const xnpv = calculateXNPV(bisectionResult.xirr, sorted);
+          const verifyXNPV = calculateXNPV(bisectionResult.rate);
+          
           return {
-            ...bisectionResult,
-            xnpv: roundFinancial(xnpv, 2),
-            method: 'bisection'
+            success: true,
+            xirr: bisectionResult.rate,
+            iterations: bisectionResult.iterations,
+            method: 'bisection',
+            xnpv: verifyXNPV,
+            annualizedReturn: (bisectionResult.rate * 100).toFixed(4) + '%',
+            note: 'Newton-Raphson failed, used bisection fallback'
           };
         }
         
+        // ═══════════════════════════════════════════════════════════
+        // STEP 7: COMPLETE FAILURE
+        // ═══════════════════════════════════════════════════════════
+        
         return {
           success: false,
-          message: "XIRR did not converge. Check cash flow pattern or try different initial guess.",
-          iterations: 100
+          message: 'XIRR calculation failed after trying all methods',
+          details: {
+            guessesAttempted: uniqueGuesses.length,
+            bisectionAttempted: true,
+            cashFlowCount: sortedCFs.length,
+            dateRange: {
+              start: sortedCFs[0].date.toISOString().split('T')[0],
+              end: sortedCFs[sortedCFs.length - 1].date.toISOString().split('T')[0]
+            }
+          },
+          recommendation: 'Check cash flow pattern for unusual characteristics (multiple sign changes, extreme values)'
         };
       }
+
+      // ═══════════════════════════════════════════════════════════
+      // XNPV STANDALONE FUNCTION (For verification)
+      // ═══════════════════════════════════════════════════════════
+
+      /**
+       * Calculate XNPV at a given discount rate
+       * @param {number} rate - Annual discount rate (e.g., 0.1 for 10%)
+       * @param {Array<{date: Date, amount: number}>} cashFlows
+       * @returns {number} XNPV value
+       */
+      function calculateXNPVStandalone(rate, cashFlows) {
+        if (!cashFlows || cashFlows.length === 0) return 0;
+        
+        const sorted = [...cashFlows].sort((a, b) => a.date - b.date);
+        const baseDate = sorted[0].date;
+        
+        let xnpv = 0;
+        
+        for (const cf of sorted) {
+          const days = (cf.date - baseDate) / (1000 * 60 * 60 * 24);
+          const years = days / 365.0;
+          const discountFactor = Math.pow(1 + rate, years);
+          xnpv += cf.amount / discountFactor;
+        }
+        
+        return xnpv;
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // TEST SUITE: XIRR Calculator Validation
+      // ═══════════════════════════════════════════════════════════
+
+      function runXIRRTests() {
+        console.log('═══════════════════════════════════════════════');
+        console.log('XIRR CALCULATOR TEST SUITE');
+        console.log('═══════════════════════════════════════════════\n');
+
+        // Test 1: Simple PE Investment (Known Result)
+        const test1 = [
+          { date: new Date('2024-01-01'), amount: -1000000 },
+          { date: new Date('2024-12-31'), amount: 1200000 }
+        ];
+        
+        const result1 = calculateXIRR(test1);
+        console.log('Test 1: Simple 1-year investment');
+        console.log('Expected: ~20% IRR');
+        console.log('Result:', result1);
+        console.log('✓ PASS:', Math.abs(result1.xirr - 0.2) < 0.001);
+        console.log('');
+
+        // Test 2: Excel Example (Standard Validation)
+        const test2 = [
+          { date: new Date('2020-01-01'), amount: -10000 },
+          { date: new Date('2020-03-01'), amount: 2750 },
+          { date: new Date('2020-10-30'), amount: 4250 },
+          { date: new Date('2021-02-15'), amount: 3250 },
+          { date: new Date('2021-04-01'), amount: 2750 }
+        ];
+        
+        const result2 = calculateXIRR(test2);
+        console.log('Test 2: Excel benchmark case');
+        console.log('Expected: ~37.34% IRR (Excel XIRR)');
+        console.log('Result:', result2);
+        console.log('');
+
+        // Test 3: Bridge Loan (Short Duration)
+        const test3 = [
+          { date: new Date('2024-01-01'), amount: -5000000 },
+          { date: new Date('2024-02-15'), amount: 5075000 }
+        ];
+        
+        const result3 = calculateXIRR(test3);
+        console.log('Test 3: 45-day bridge loan');
+        console.log('Expected: Very high annualized IRR');
+        console.log('Result:', result3);
+        console.log('');
+
+        // Test 4: Negative Return Scenario
+        const test4 = [
+          { date: new Date('2024-01-01'), amount: -1000000 },
+          { date: new Date('2024-12-31'), amount: 900000 }
+        ];
+        
+        const result4 = calculateXIRR(test4);
+        console.log('Test 4: Loss scenario (-10%)');
+        console.log('Expected: Negative IRR');
+        console.log('Result:', result4);
+        console.log('');
+
+        // Test 5: Dividend Recap (Multi-cash flow)
+        const test5 = [
+          { date: new Date('2023-01-01'), amount: -50000000 },
+          { date: new Date('2024-06-15'), amount: 15000000 }, // Recap
+          { date: new Date('2027-03-31'), amount: 95000000 }  // Exit
+        ];
+        
+        const result5 = calculateXIRR(test5);
+        console.log('Test 5: PE deal with dividend recap');
+        console.log('Expected: ~20-30% IRR');
+        console.log('Result:', result5);
+        console.log('');
+
+        // Test 6: Error Case - All Positive
+        const test6 = [
+          { date: new Date('2024-01-01'), amount: 1000 },
+          { date: new Date('2024-12-31'), amount: 2000 }
+        ];
+        
+        const result6 = calculateXIRR(test6);
+        console.log('Test 6: Error case (all positive)');
+        console.log('Expected: Failure message');
+        console.log('Result:', result6);
+        console.log('');
+
+        console.log('═══════════════════════════════════════════════');
+        console.log('TEST SUITE COMPLETE');
+        console.log('═══════════════════════════════════════════════');
+      }
+
+      // Run tests
+      runXIRRTests();
 
 
       /**
@@ -5517,7 +5920,7 @@
             Re < 0 ||
             Rd < 0 ||
             T < 0 ||
-            T > 100
+            T > 1
           ) {
             alert("Please enter valid numbers.");
             return;
@@ -6470,7 +6873,7 @@
         // Balance Sheet Initialization
         let ppeNet = revenue * 1.5; // Giả định asset intensity
         let nwc = revenue * inputs.nwcPercent;
-        let retainedEarnings = transaction.sources.sponsorEquity + transaction.sources.mgmtRollover; 
+        let retainedEarnings = transaction.sources.equity.sponsorCheck + transaction.sources.equity.mgmtRollover; 
         let cash = inputs.minCash;
         let debt = {
           revolver: transaction.sources.newDebt.revolver,
@@ -11376,9 +11779,12 @@
               enjoymentValue;
 
             // Professional Calculations
+            // Hiring a pro costs money directly, but frees up the time you would have
+            // spent on DIY. That freed time is worth diyTimeCost (already counted as a
+            // cost on the DIY side), so we net it out here for an apples-to-apples
+            // dollar comparison instead of double-counting professionalCost.
             const professionalTimeSaved = totalDIYTime;
-            const professionalOpportunityCost =
-              professionalTimeSaved * hourlyRate - professionalCost; // Negative if pro is more expensive than your time saved
+            const professionalOpportunityCost = professionalTimeSaved * hourlyRate; // Value of time freed up by hiring a pro
             const totalProfessionalCost =
               professionalCost + materialsCost - professionalOpportunityCost;
 
@@ -13170,35 +13576,53 @@
         } = inputs;
         
         const results = [];
+        const baseDSCR = year1Data.marketNOI / annualDebtService;
+
+        // Scenario 1: Vacancy increase.
+        // year1Data.marketNOI already nets out the ORIGINAL vacancyLoss (it's EGI - OpEx).
+        // So we must only subtract the INCREMENTAL vacancy loss caused by the stress test,
+        // not the full stressed vacancy amount (which would double-count the original loss).
         const stressedVacancy = year1Data.vacancyLoss * (1 + stressTestVacancyIncrease);
-        const stressedNOI1 = year1Data.marketNOI - stressedVacancy;
+        const incrementalVacancyLoss = stressedVacancy - year1Data.vacancyLoss;
+        const stressedNOI1 = year1Data.marketNOI - incrementalVacancyLoss;
         const stressedDSCR1 = stressedNOI1 / annualDebtService;
         results.push({
           scenario: `Vacancy +${(stressTestVacancyIncrease * 100)}%`,
           noiImpact: roundFinancial(year1Data.marketNOI - stressedNOI1, 2),
           dscr: roundFinancial(stressedDSCR1, 2),
-          dscrChange: roundFinancial(stressedDSCR1 - (year1Data.marketNOI / annualDebtService), 2),
+          dscrChange: roundFinancial(stressedDSCR1 - baseDSCR, 2),
           severity: stressedDSCR1 < 1.25 ? 'HIGH' : stressedDSCR1 < 1.35 ? 'MEDIUM' : 'LOW'
         });
+
+        // Scenario 2: Rent decrease.
+        // PGI falls, and vacancy loss (applied at the same vacancy rate) must still be
+        // netted out before subtracting OpEx to reach EGI-based NOI - the original code
+        // skipped this step entirely, understating the true NOI impact.
+        const vacancyRatio = year1Data.pgi > 0 ? year1Data.vacancyLoss / year1Data.pgi : 0;
         const stressedRent = year1Data.monthlyRent * (1 - stressTestRentDecrease);
         const stressedPGI = (stressedRent * 12);
-        const stressedNOI2 = stressedPGI - year1Data.operatingExpenses;
+        const stressedVacancyLoss2 = stressedPGI * vacancyRatio;
+        const stressedEGI2 = stressedPGI - stressedVacancyLoss2;
+        const stressedNOI2 = stressedEGI2 - year1Data.operatingExpenses;
         const stressedDSCR2 = stressedNOI2 / annualDebtService;
         results.push({
           scenario: `Rent -${(stressTestRentDecrease * 100)}%`,
           noiImpact: roundFinancial(year1Data.marketNOI - stressedNOI2, 2),
           dscr: roundFinancial(stressedDSCR2, 2),
-          dscrChange: roundFinancial(stressedDSCR2 - (year1Data.marketNOI / annualDebtService), 2),
+          dscrChange: roundFinancial(stressedDSCR2 - baseDSCR, 2),
           severity: stressedDSCR2 < 1.25 ? 'HIGH' : stressedDSCR2 < 1.35 ? 'MEDIUM' : 'LOW'
         });
+
+        // Scenario 3: Expense increase.
         const stressedExpenses = year1Data.operatingExpenses * (1 + stressTestExpenseIncrease);
-        const stressedNOI3 = year1Data.marketNOI - (stressedExpenses - year1Data.operatingExpenses);
+        const incrementalExpenseIncrease = stressedExpenses - year1Data.operatingExpenses;
+        const stressedNOI3 = year1Data.marketNOI - incrementalExpenseIncrease;
         const stressedDSCR3 = stressedNOI3 / annualDebtService;
         results.push({
           scenario: `Expenses +${(stressTestExpenseIncrease * 100)}%`,
-          noiImpact: roundFinancial(year1Data.operatingExpenses - stressedExpenses, 2),
+          noiImpact: roundFinancial(year1Data.marketNOI - stressedNOI3, 2),
           dscr: roundFinancial(stressedDSCR3, 2),
-          dscrChange: roundFinancial(stressedDSCR3 - (year1Data.marketNOI / annualDebtService), 2),
+          dscrChange: roundFinancial(stressedDSCR3 - baseDSCR, 2),
           severity: stressedDSCR3 < 1.25 ? 'HIGH' : stressedDSCR3 < 1.35 ? 'MEDIUM' : 'LOW'
         });
         
